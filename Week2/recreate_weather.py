@@ -14,7 +14,7 @@ df1['date'] = pd.date_range('2019-01-01', '2019-12-31')
 df1['nodes'] = 1
 
 # Create EMOD-readable weather files to be used in simulations from modified CSVs if needed
-wa.update({"IdReference": "Custom user"})
+#wa.update({"IdReference": "Custom user"}) #update ID reference if desired
 
 weather_columns = {
     WeatherVariable.AIR_TEMPERATURE: "airtemp",
