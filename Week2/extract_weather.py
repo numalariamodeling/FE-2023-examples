@@ -11,6 +11,8 @@ wr = generate_weather(platform="Calculon",
                       start_date=2019001,
                       end_date=2019365,
                       node_column="nodes",
-                      local_dir="../inputs/example_weather/")
+                      local_dir="../inputs/example_weather/",
+                      id_reference="Gridded world grump2.5arcmin",
+                      force=True)
 
 print("\n".join(wr.files))

@@ -3,7 +3,7 @@
         "Tool": "weather-files",
         "Author": "Institute for Disease Modeling",
         "WeatherSchemaVersion": "2.0",
-        "IdReference": "Default",
+        "IdReference": "Gridded world grump2.5arcmin",
         "WeatherCellCount": 1,
         "NodeCount": 1,
         "OffsetEntryCount": 1,

@@ -3,7 +3,7 @@
     "Tool": "weather-files",
     "Author": "Institute for Disease Modeling",
     "WeatherSchemaVersion": "2.0",
-    "IdReference": "Custom user",
+    "IdReference": "Gridded world grump2.5arcmin",
     "WeatherCellCount": 1,
     "UpdateResolution": "CLIMATE_UPDATE_DAY",
     "OriginalDataYears": "2019-2019",
