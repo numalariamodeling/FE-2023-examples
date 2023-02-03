@@ -35,13 +35,14 @@ def set_param_fn(config):
     conf.add_species(config, manifest, ["gambiae", "arabiensis", "funestus"])
 
     config.parameters.Simulation_Duration = sim_years*365
+    config.parameters.Run_Number = 5
     
     
     #Add climate files
-    config.parameters.Air_Temperature_Filename = os.path.join('example_weather', 'example_air_temperature_daily.bin')
-    config.parameters.Land_Temperature_Filename = os.path.join('example_weather', 'example_air_temperature_daily.bin')
-    config.parameters.Rainfall_Filename = os.path.join('example_weather', 'example_rainfall_daily.bin')
-    config.parameters.Relative_Humidity_Filename = os.path.join('example_weather', 'example_relative_humidity_daily.bin')
+    config.parameters.Air_Temperature_Filename = os.path.join('climate','example_air_temperature_daily.bin')
+    config.parameters.Land_Temperature_Filename = os.path.join('climate','example_air_temperature_daily.bin')
+    config.parameters.Rainfall_Filename = os.path.join('climate','example_rainfall_daily.bin')
+    config.parameters.Relative_Humidity_Filename = os.path.join('climate', 'example_relative_humidity_daily.bin')
 
 
     return config
@@ -63,7 +64,7 @@ def build_demog():
     This function builds a demographics input file for the DTK using emod_api.
     """
 
-    demog = Demographics.from_template_node(lat=1, lon=2, pop=1000, name="Pretend Site")
+    demog = Demographics.from_template_node(lat=0.4479, lon=33.2026, pop=1000, name="Example_Site")
     demog.SetEquilibriumVitalDynamics()
     
     return demog
@@ -98,12 +99,14 @@ def general_sim(selected_platform):
     # set the singularity image to be used when running this experiment
     task.set_sif(manifest.SIF_PATH, platform)
     
+    task.common_assets.add_directory(os.path.join(manifest.input_dir, "example_weather", "out"),
+                                         relative_path="climate")
 
     # Create simulation sweep with builder
-    builder = SimulationBuilder()
+    #builder = SimulationBuilder()
 
     # create experiment from builder
-    experiment = Experiment.from_builder(builder, task, name=params.exp_name)
+    experiment = Experiment.from_task(task, name="example_sim_inputs")
 
 
     # The last step is to call run() on the ExperimentManager to run the simulations.
