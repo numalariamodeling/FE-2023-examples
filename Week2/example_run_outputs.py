@@ -1,4 +1,5 @@
 import pathlib
+import os
 from functools import \
     partial 
  
@@ -25,7 +26,6 @@ import emodpy_malaria.demographics.MalariaDemographics as Demographics
 from emodpy_malaria.reporters.builtin import *
 
 
-#import params
 import manifest
 
 sim_years=1
@@ -37,14 +37,16 @@ def set_param_fn(config):
     import emodpy_malaria.malaria_config as conf
     config = conf.set_team_defaults(config, manifest)
     conf.add_species(config, manifest, ["gambiae", "arabiensis", "funestus"])
-    
-    config.parameters.Simulation_Duration = sim_years*365
 
+    config.parameters.Simulation_Duration = sim_years*365
+    config.parameters.Run_Number = 5
+    
+    
     #Add climate files
-    config.parameters.Air_Temperature_Filename = os.path.join('example_weather', 'example_air_temperature_daily.bin')
-    config.parameters.Land_Temperature_Filename = os.path.join('example_weather', 'example_air_temperature_daily.bin')
-    config.parameters.Rainfall_Filename = os.path.join('example_weather', 'example_rainfall_daily.bin')
-    config.parameters.Relative_Humidity_Filename = os.path.join('example_weather', 'example_relative_humidity_daily.bin')
+    config.parameters.Air_Temperature_Filename = os.path.join('climate','example_air_temperature_daily.bin')
+    config.parameters.Land_Temperature_Filename = os.path.join('climate','example_air_temperature_daily.bin')
+    config.parameters.Rainfall_Filename = os.path.join('climate','example_rainfall_daily.bin')
+    config.parameters.Relative_Humidity_Filename = os.path.join('climate', 'example_relative_humidity_daily.bin')
 
 
     return config
@@ -66,20 +68,20 @@ def build_demog():
     This function builds a demographics input file for the DTK using emod_api.
     """
 
-    demog = Demographics.from_template_node(lat=1, lon=2, pop=1000, name="Pretend_Site")
+    demog = Demographics.from_template_node(lat=1, lon=2, pop=1000, name="Example_Site")
     demog.SetEquilibriumVitalDynamics()
                                             
     return demog
 
 
-def general_sim():
+def general_sim(selected_platform):
     """
     This function is designed to be a parameterized version of the sequence of things we do 
     every time we run an emod experiment. 
     """
 
     # Set platform and associated values, such as the maximum number of jobs to run at one time
-    platform = Platform("SLURM_LOCAL", job_directory=manifest.job_directory, partition='b1139', time='2:00:00',
+    platform = Platform(selected_platform, job_directory=manifest.job_directory, partition='b1139', time='2:00:00',
                             account='b1139', modules=['singularity'], max_running_jobs=10)
 
     # create EMODTask 
@@ -101,14 +103,17 @@ def general_sim():
     # set the singularity image to be used when running this experiment
     task.set_sif(manifest.SIF_PATH, platform)
     
+    # add weather directory as an asset
+    task.common_assets.add_directory(os.path.join(manifest.input_dir, "example_weather", "out"),
+                                         relative_path="climate")    
 
     # Create simulation sweep with builder
     builder = SimulationBuilder()
 
     #Add reports
     add_event_recorder(task, event_list=["HappyBirthday", "Births"],
-                       start_day=7, end_day=34, node_ids=[1], min_age_years=3,
-                       max_age_years=21)
+                       start_day=1, end_day=sim_years*365, node_ids=[1], min_age_years=0,
+                       max_age_years=100)
                        
     # MalariaSummaryReport
     add_malaria_summary_report(task, manifest, start_day=1, end_day=sim_years*365, reporting_interval=7,
@@ -117,7 +122,8 @@ def general_sim():
                                pretty_format=True)
 
     # create experiment from builder
-    experiment = Experiment.from_builder(builder, task, name=params.exp_name)
+    #experiment = Experiment.from_builder(builder, task, name="example_sim_outputs")
+    experiment = Experiment.from_task(task, name="example_sim_inputs")
 
 
     # The last step is to call run() on the ExperimentManager to run the simulations.
@@ -139,12 +145,12 @@ if __name__ == "__main__":
     import argparse
 
     dtk.setup(pathlib.Path(manifest.eradication_path).parent)
-    #parser = argparse.ArgumentParser()
-    #parser.add_argument('-l', '--local', action='store_true', help='select slurm_local')
-    #args = parser.parse_args()
-    #if args.local:
-    #    selected_platform = "SLURM_LOCAL"
-    #else:
-    #    selected_platform = "SLURM_BRIDGED"
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-l', '--local', action='store_true', help='select slurm_local')
+    args = parser.parse_args()
+    if args.local:
+        selected_platform = "SLURM_LOCAL"
+    else:
+        selected_platform = "SLURM_BRIDGED"
     
     general_sim(selected_platform)

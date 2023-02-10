@@ -1,5 +1,6 @@
 import pathlib
 import os
+import numpy as np
 from functools import \
     partial 
  
@@ -28,7 +29,7 @@ from emodpy_malaria.reporters.builtin import *
 
 import manifest
 
-sim_years=1
+serialize_years=5
 num_seeds=5
 
 def set_param_fn(config):
@@ -39,7 +40,7 @@ def set_param_fn(config):
     config = conf.set_team_defaults(config, manifest)
     conf.add_species(config, manifest, ["gambiae", "arabiensis", "funestus"])
 
-    config.parameters.Simulation_Duration = sim_years*365
+    config.parameters.Simulation_Duration = serialize_years*365
     
     
     #Add climate files
@@ -47,7 +48,12 @@ def set_param_fn(config):
     config.parameters.Land_Temperature_Filename = os.path.join('climate','example_air_temperature_daily.bin')
     config.parameters.Rainfall_Filename = os.path.join('climate','example_rainfall_daily.bin')
     config.parameters.Relative_Humidity_Filename = os.path.join('climate', 'example_relative_humidity_daily.bin')
-
+    
+    #Add serialization - add burnin "write" parameters to config.json
+    config.parameters.Serialized_Population_Writing_Type = "TIMESTEP"
+    config.parameters.Serialization_Time_Steps = [365 * serialize_years]
+    config.parameters.Serialization_Mask_Node_Write = 0
+    config.parameters.Serialization_Precision = "REDUCED"
 
     return config
     
@@ -120,20 +126,20 @@ def general_sim(selected_platform):
     builder = SimulationBuilder()
     
     builder.add_sweep_definition(partial(set_param, param='Run_Number'), range(num_seeds))
+    builder.add_sweep_definition(partial(set_param, param='x_Temporary_Larval_Habitat'), np.logspace(-0.5,1,10))
 
     #Add reports
-    add_event_recorder(task, event_list=["HappyBirthday", "Births"],
-                       start_day=1, end_day=sim_years*365, node_ids=[1], min_age_years=0,
-                       max_age_years=100)
                        
     # MalariaSummaryReport
-    add_malaria_summary_report(task, manifest, start_day=1, end_day=sim_years*365, reporting_interval=7,
+    add_malaria_summary_report(task, manifest, start_day=1, end_day=serialize_years*365, reporting_interval=30,
                                age_bins=[0.25, 5, 115],
                                max_number_reports=52,
-                               pretty_format=True)
+                               pretty_format=True, 
+                               filename_suffix='Monthly_U5')
+
 
     # create experiment from builder
-    experiment = Experiment.from_builder(builder, task, name="example_sim_sweep")
+    experiment = Experiment.from_builder(builder, task, name="example_sim_larval")
 
 
     # The last step is to call run() on the ExperimentManager to run the simulations.
