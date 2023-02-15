@@ -6,19 +6,22 @@ import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
-from calibtool.LL_calculators import beta_binomial
+from idmtools_calibra.utilities.ll_calculators import beta_binomial
 
 user = os.getlogin()  # user initials
-expt_name = f'{user}_FE_2022_example_w7'
-output_dir = os.path.join('simulation_outputs')
-input_dir = os.path.join('input')
+expt_name = 'week3_calib'
+
+jdir =  '/projects/b1139/FE-2023-examples/experiments'
+output_dir=os.path.join(jdir, 'simulation_outputs')
+
+input_dir = os.path.join('~','FE-2023-examples/inputs')
 data_dir = os.path.join('data')
 
 sim_pfpr_df = pd.read_csv(os.path.join(output_dir, expt_name, 'U5_PfPR_ClinicalIncidence.csv'))
 sim_pfpr_df.columns = [col.replace(' U5', '') for col in sim_pfpr_df.columns]
 sim_pfpr_df['npos'] = sim_pfpr_df['PfPR'] * sim_pfpr_df['Pop']
 sim_pfpr_df['npos'] = sim_pfpr_df.npos.round(0)
-dhs_pfpr_df = pd.read_csv(os.path.join(data_dir, 'fake_DHS_calib.csv'))
+dhs_pfpr_df = pd.read_csv(os.path.join(input_dir, 'fake_DHS_calib.csv'))
 sweep_variables = ['x_Temporary_Larval_Habitat', 'Run_Number']
 
 
@@ -49,17 +52,18 @@ def plot_output(sim_df, data_df, score_df, variable):
     axes = [fig.add_subplot(1, 2, x + 1) for x in range(2)]
 
     candidate_val = score_df[variable]
-
+    score_df1 = score_df[score_df.ll == max(score_df.ll)]
+    print(score_df1)
     for cand in candidate_val:
         plot_df = sim_df[sim_df[variable] == cand]
-        a = 1 if cand == score_df[variable].max() else 0.15
+        a = 1 if cand == score_df1[variable].max() else 0.15
         axes[0].plot(plot_df['date'], plot_df['PfPR'], color='#FF0000', alpha=a)
 
     axes[0].scatter(data_df['date'].values, data_df['PfPR'], data_df['DHS_n'], 'k')
     axes[0].set_ylabel('PfPR')
     axes[0].set_title('Observed vs Simulated (Dark red is the best fit)')
 
-    score_df1 = score_df[score_df.ll == score_df.ll.max()]
+    
     axes[1].plot(score_df[variable], score_df['ll'], '-o', color='#FF0000', markersize=5)
     axes[1].scatter(score_df1[variable], score_df1.ll, s=90, color='red')
     axes[1].set_ylabel('log-likelihood')

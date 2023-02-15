@@ -8,15 +8,14 @@ import random
 from idmtools.entities import IAnalyzer	
 from idmtools.entities.simulation import Simulation
 
-class MonthlyPfPRAnalyzerU5(IAnalyzer):
+class MonthlyPfPRAnalyzerU5IP(IAnalyzer):
 
     def __init__(self, expt_name, sweep_variables=None, working_dir='./', start_year=2020, end_year=2023,
-                 burnin=None, filter_exists=False):
+                 burnin=None, filter_exists=False, ipfilter=''):
 
-        super(MonthlyPfPRAnalyzerU5, self).__init__(working_dir=working_dir,
+        super(MonthlyPfPRAnalyzerU5IP, self).__init__(working_dir=working_dir,
                                                     filenames=[
-                                                        f"output/MalariaSummaryReport_Monthly_U5.json"
-                                                        for x in range(start_year, end_year)]
+                                                        f"output/MalariaSummaryReport_{ipfilter}.json"]
                                                     )
         self.sweep_variables = sweep_variables or ["Run_Number"]
         self.expt_name = expt_name
@@ -24,6 +23,7 @@ class MonthlyPfPRAnalyzerU5(IAnalyzer):
         self.end_year = end_year
         self.burnin = burnin
         self.filter_exists = filter_exists
+        self.ipfilter = ipfilter
 
     def filter(self, simulation):
         if self.filter_exists:
@@ -64,7 +64,7 @@ class MonthlyPfPRAnalyzerU5(IAnalyzer):
                     adf[sweep_var] = simulation.tags[sweep_var]
                 except:
                     adf[sweep_var] = '-'.join([str(x) for x in simulation.tags[sweep_var]])
-            elif sweep_var == 'Run_Number' :
+            elif sweep_var == 'Run_Number':
                 adf[sweep_var] = 0
 
         return adf
@@ -84,8 +84,7 @@ class MonthlyPfPRAnalyzerU5(IAnalyzer):
         adf = pd.concat(selected).reset_index(drop=True)
         if self.burnin is not None:
             adf = adf[adf['year'] > self.start_year + self.burnin]
-        adf.to_csv((os.path.join(self.working_dir, self.expt_name, 'U5_PfPR_ClinicalIncidence.csv')), index=False)
-        
+        adf.to_csv((os.path.join(self.working_dir, self.expt_name, f'U5{self.ipfilter}_PfPR_ClinicalIncidence.csv')), index=False)
         
 if __name__ == "__main__":
 
@@ -97,7 +96,8 @@ if __name__ == "__main__":
     expts = {
         #'week2_weather' : '2c090358-cb7b-44e5-a2fd-842a6c23a5b7'
         #'week2_outputs' : '26f947c3-0770-46df-bc6a-c1c77e36f686'
-        'week3_calib' : 'f27386a6-3958-46b3-8ec0-08df81c67ffc'
+        #'week3_calib' : 'f27386a6-3958-46b3-8ec0-08df81c67ffc'
+        'week4_IP_CM' : '47ca8005-ab6f-4397-939b-2ffeacb2bab6'
     }
     
 
@@ -110,16 +110,22 @@ if __name__ == "__main__":
 
         for expname, exp_id in expts.items():
           
-            analyzer = [MonthlyPfPRAnalyzerU5(expt_name=expname,
+            analyzer = [MonthlyPfPRAnalyzerU5IP(expt_name=expname,
                                       start_year=2010,
                                       end_year=2015,
                                       sweep_variables=sweep_variables,
-                                      working_dir=wdir)]
+                                      working_dir=wdir,
+                                      ipfilter='_highaccess'),
+                        MonthlyPfPRAnalyzerU5IP(expt_name=expname,
+                                      start_year=2010,
+                                      end_year=2015,
+                                      sweep_variables=sweep_variables,
+                                      working_dir=wdir,
+                                      ipfilter='_lowaccess')]
             
             # Create AnalyzerManager with required parameters
             manager = AnalyzeManager(configuration={},ids=[(exp_id, ItemType.EXPERIMENT)],
                                      analyzers=analyzer, partial_analyze_ok=True)
             # Run analyze
             manager.analyze()
-            
             

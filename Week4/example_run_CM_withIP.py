@@ -35,7 +35,7 @@ from utils_slurm import build_burnin_df
 serialize_years=50
 pickup_years=5
 num_seeds=5
-burnin_exp_id = 'dca5d678-dd18-4512-ac87-e1ddcf88a2fa'
+burnin_exp_id = '03dc5f4d-e8b8-4bdf-a297-a26beddf3829'
 
 def set_param_fn(config):
     """
@@ -92,7 +92,7 @@ def build_camp(cm_cov_U5=0.75):
     
     # Add case management for the low access group by age groups and severity
     # This example assumes adults will seek treatment 75% as often as U5s and severe cases will seek treatment 15% more than U5s (up to 100% coverage)
-    cm.add_treatment_seeking(campaign, start_day=1, drug=['Artemether', 'Lumefantrine'],
+    cm.add_treatment_seeking(camp, start_day=1, drug=['Artemether', 'Lumefantrine'],
                        targets=[{'trigger': 'NewClinicalCase', 'coverage': cm_cov_U5_low, 'agemin': 0, 'agemax': 5,
                                  'seek': 1,'rate': 0.3},
                                  {'trigger': 'NewClinicalCase', 'coverage': cm_cov_U5_low*0.75, 'agemin': 5, 'agemax': 115,
@@ -101,7 +101,7 @@ def build_camp(cm_cov_U5=0.75):
                                  'seek': 1,'rate': 0.5}],          
                        ind_property_restrictions=[{'Access': 'Low'}],
                        broadcast_event_name="Received_Treatment")
-    cm.add_treatment_seeking(campaign, start_day=1, drug=['Artemether', 'Lumefantrine'],
+    cm.add_treatment_seeking(camp, start_day=1, drug=['Artemether', 'Lumefantrine'],
                        targets=[{'trigger': 'NewClinicalCase', 'coverage': cm_cov_U5_high, 'agemin': 0, 'agemax': 5,
                                  'seek': 1,'rate': 0.3},
                                  {'trigger': 'NewClinicalCase', 'coverage': cm_cov_U5_high*0.75, 'agemin': 5, 'agemax': 115,
@@ -138,7 +138,7 @@ def build_demog():
     demog.SetEquilibriumVitalDynamics()
     
     initial_distribution = [0.5, 0.5]
-    demographics.AddIndividualPropertyAndHINT(Property="Access", Values=["Low", "High"],
+    demog.AddIndividualPropertyAndHINT(Property="Access", Values=["Low", "High"],
                                        InitialDistribution=initial_distribution)                                  
     
                                             
@@ -190,16 +190,26 @@ def general_sim(selected_platform):
     #report received treatment events
     add_event_recorder(task, event_list=["Received_Treatment"],
                        start_day=1, end_day=pickup_years*365, node_ids=[1], min_age_years=0,
-                       max_age_years=100)
+                       max_age_years=100,
+                       ips_to_record=['Access'])
                        
     # MalariaSummaryReport
-    add_malaria_summary_report(task, manifest, start_day=1, end_day=pickup_years*365, reporting_interval=7,
+    add_malaria_summary_report(task, manifest, start_day=1, end_day=serialize_years*365, reporting_interval=31,
                                age_bins=[0.25, 5, 115],
                                max_number_reports=52,
+                               must_have_ip_key_value='Access:High',
+                               filename_suffix='_highaccess',
+                               pretty_format=True)
+                               
+    add_malaria_summary_report(task, manifest, start_day=1, end_day=serialize_years*365, reporting_interval=31,
+                               age_bins=[0.25, 5, 115],
+                               max_number_reports=52,
+                               must_have_ip_key_value='Access:Low',
+                               filename_suffix='_lowaccess',
                                pretty_format=True)
 
     # create experiment from builder
-    experiment = Experiment.from_builder(builder, task, name="example_sim_burnin")
+    experiment = Experiment.from_builder(builder, task, name="example_sim_pickup_IP_CM")
 
 
     # The last step is to call run() on the ExperimentManager to run the simulations.
