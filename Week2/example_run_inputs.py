@@ -18,9 +18,10 @@ import emod_api.config.default_from_schema_no_validation as dfs
 import emod_api.campaign as camp
 
 #emodpy-malaria
+import emodpy_malaria.interventions.treatment_seeking as ts
 from emodpy_malaria.reporters.builtin import *
 import emodpy_malaria.demographics.MalariaDemographics as Demographics
-
+import emod_api.demographics.PreDefinedDistributions as Distributions
 
 import manifest
 
@@ -102,26 +103,13 @@ def general_sim(selected_platform):
     # set the singularity image to be used when running this experiment
     task.set_sif(manifest.SIF_PATH, platform)
     
-    # add weather directory as an asset
     task.common_assets.add_directory(os.path.join(manifest.input_dir, "example_weather", "out"),
-                                         relative_path="climate")    
+                                         relative_path="climate")
 
     # Create simulation sweep with builder
-    builder = SimulationBuilder()
-
-    #Add reports
-    add_event_recorder(task, event_list=["HappyBirthday", "Births"],
-                       start_day=1, end_day=sim_years*365, node_ids=[1], min_age_years=0,
-                       max_age_years=100)
-                       
-    # MalariaSummaryReport
-    add_malaria_summary_report(task, manifest, start_day=1, end_day=sim_years*365, reporting_interval=7,
-                               age_bins=[0.25, 5, 115],
-                               max_number_reports=52,
-                               pretty_format=True)
+    #builder = SimulationBuilder()
 
     # create experiment from builder
-    #experiment = Experiment.from_builder(builder, task, name="example_sim_outputs")
     experiment = Experiment.from_task(task, name="example_sim_inputs")
 
 
@@ -135,7 +123,7 @@ def general_sim(selected_platform):
         exit()
 
     print(f"Experiment {experiment.uid} succeeded.")
-    
+
 
 
 if __name__ == "__main__":
@@ -153,4 +141,3 @@ if __name__ == "__main__":
         selected_platform = "SLURM_BRIDGED"
     
     general_sim(selected_platform)
-    
