@@ -86,7 +86,7 @@ def general_sim(selected_platform):
     task.set_sif(manifest.SIF_PATH, platform)
     
 
-    # create experiment from builder
+    # create experiment from task
     experiment = Experiment.from_task(task, name="example_sim_inputs")
 
 

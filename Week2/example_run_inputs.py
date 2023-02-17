@@ -106,10 +106,8 @@ def general_sim(selected_platform):
     task.common_assets.add_directory(os.path.join(manifest.input_dir, "example_weather", "out"),
                                          relative_path="climate")
 
-    # Create simulation sweep with builder
-    #builder = SimulationBuilder()
 
-    # create experiment from builder
+    # create experiment from task
     experiment = Experiment.from_task(task, name="example_sim_inputs")
 
 

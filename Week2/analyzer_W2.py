@@ -59,13 +59,13 @@ class InsetChartAnalyzer(IAnalyzer):
         adf = pd.concat(selected).reset_index(drop=True)
         adf.to_csv(os.path.join(self.working_dir, self.expt_name, 'All_Age_InsetChart.csv'), index=False)
 
-class WeeklyPfPRAnalyzer(IAnalyzer):
+class MonthlyPfPRAnalyzer(IAnalyzer):
 
     def __init__(self, exp_name, sweep_variables=None, working_dir='./', start_year=2020, end_year=2025,
                  burnin=None, filter_exists=False):
 
         super(WeeklyPfPRAnalyzer, self).__init__(working_dir=working_dir,
-                                                   filenames=["output/MalariaSummaryReport.json"]
+                                                   filenames=["output/MalariaSummaryReport_monthly.json"]
                                                    )
      
         self.sweep_variables = sweep_variables or ["Run_Number"]
@@ -134,7 +134,7 @@ class WeeklyPfPRAnalyzer(IAnalyzer):
         print(f'\nSaving outputs to: {os.path.join(self.working_dir, self.exp_name)}')
 
         adf = pd.concat(selected).reset_index(drop=True)
-        adf.to_csv((os.path.join(self.working_dir, self.exp_name, 'PfPR_ClinicalIncidence_weekly.csv')),
+        adf.to_csv((os.path.join(self.working_dir, self.exp_name, 'PfPR_ClinicalIncidence_monthly.csv')),
                    index=False)
         
 if __name__ == "__main__":

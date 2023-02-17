@@ -104,10 +104,7 @@ def general_sim(selected_platform):
     
     # add weather directory as an asset
     task.common_assets.add_directory(os.path.join(manifest.input_dir, "example_weather", "out"),
-                                         relative_path="climate")    
-
-    # Create simulation sweep with builder
-    builder = SimulationBuilder()
+                                         relative_path="climate")
 
     #Add reports
     add_event_recorder(task, event_list=["HappyBirthday", "Births"],
@@ -115,14 +112,14 @@ def general_sim(selected_platform):
                        max_age_years=100)
                        
     # MalariaSummaryReport
-    add_malaria_summary_report(task, manifest, start_day=1, end_day=sim_years*365, reporting_interval=7,
+    add_malaria_summary_report(task, manifest, start_day=1, end_day=sim_years*365, reporting_interval=30,
                                age_bins=[0.25, 5, 115],
-                               max_number_reports=52,
+                               max_number_reports=20,
+                               filename_suffix="monthly",
                                pretty_format=True)
 
-    # create experiment from builder
-    #experiment = Experiment.from_builder(builder, task, name="example_sim_outputs")
-    experiment = Experiment.from_task(task, name="example_sim_inputs")
+    # create experiment from task
+    experiment = Experiment.from_task(task, name="example_sim_outputs")
 
 
     # The last step is to call run() on the ExperimentManager to run the simulations.
