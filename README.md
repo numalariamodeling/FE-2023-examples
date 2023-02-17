@@ -33,7 +33,7 @@ This week's final exercise will focus on observing changes in simulation results
 **Instructions**
 
 Click the arrow to expand:
-<details><summary><span>*Running a simple EMOD simulation*</span></summary>
+<details><summary><span><em>Running a simple EMOD simulation</em></span></summary>
 <p>
 - Navigate to your local copy of this repository on QUEST: `cd ~/FE-2023-examples`
 - Adjust paths in `manifest.py` by adding your username/netID to the end of the job directory: `/projects/b1139/FE-2023-examples/experiments/<username>`. This will help your track your simulations separately from other participants.
@@ -45,7 +45,7 @@ Click the arrow to expand:
 </p>
 </details>
 
-<details><summary><span>*Adding Inputs*</span></summary>
+<details><summary><span><em>Adding Inputs</em></span></summary>
 <p>
 
 This exercise demonstrates how to create demographics and climate files and how to incorporate these into the simulation as well as introducing how to modify config parameters (e.g. run number or simulation duration). Complete all of the steps below before running this next example.
@@ -78,10 +78,11 @@ def general_sim():
     # add weather directory as an asset
     task.common_assets.add_directory(os.path.join(manifest.input_dir, "example_weather", "out"), relative_path="climate")
 ```
+
 2. Adding demographics
     - You may have noticed a `build_demog()` function in the first example, now we'll look at it in more detail. There are a few ways to add demographics details to our simulations, primarily with a new generator where we add details as we go or from a csv or we can read in a pre-made json file. Here we'll use the `from_template_node` command in emodpy_malaria demographics with some basic information, such as latitude and longitude. We need to import this functionality directly from emodpy_malaria - you should see this at the top of your script
     - In the `build_demog()` function, you should see the template node command, add the latitude and longitude for your example site and increase the sample size to 1000.
-    - We also want to add equilibrium vital dynamics to our script. This will set the birth and mortality rates to be equal so we have a relatively stable population in our simulations. For some experiments it can be desirable to set these seperately but for now this simple version will meet our needs. Add `SetEquilibriumVitalDynamics()` directly to the demographics file we are creating within the generator function (as seen below).
+    - We also want to add equilibrium vital dynamics to our script. This will set the birth and mortality rates to be equal so we have a relatively stable population in our simulations. For some experiments it can be desirable to set these separately but for now this simple version will meet our needs. Add `SetEquilibriumVitalDynamics()` directly to the demographics file we are creating within the generator function (as seen below).
     - There are many aspects of demographics we are able to specify, such as the previously mentioned vital dynamics, risk distributions, and age distributions. The emod_api contains some existing age distributions. We'll need to import these PreDefined Distributions and then add it with `SetAgeDistribution` to our demographics file. Let's try adding the general distribution for Sub-Saharan Africa.
     
 ```py
@@ -118,13 +119,14 @@ def set_param_fn():
     config.parameters.Simulation_Duration = sim_years*365
     config.parameters.Run_Number = 5
 ```
-4. Now that you've added these changes, try running your new script with `python3 example_run_input.py -l`. Once it has succeeded go check on what has run. Do you see the changes to your demographics.json and the climate folder in the experiment's `Assets` directory? How about to config.json or stdout.txt? You should also see [`InsetChart.json`](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-inset-chart.html) in the simulation's output folder - this is EMOD's default report that will give you an idea of what's going on in your simulation. We'll explore this more later in the Analysis section of week 2.
+
+4. Now that you've added these changes, try running your new script with `python3 example_run_input.py -l`. Once it has succeeded go check on what has run. Do you see the changes to your demographics.json and the climate folder in the experiment's `Assets` directory? How about to config.json or stdout.txt? You should also see [`InsetChart.json`](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-inset-chart.html) in the simulation's output folder - this is EMOD's default report that will give you an idea of what's going on in your simulation. We'll explore this more later in the Analysis section of Week 2.
 
 </p>
 </details>
 
 
-<details><summary><span>*Adding outputs*</span></summary>
+<details><summary><span><em>Adding outputs</em></span></summary>
 <p>
 
 This exercise demonstrates how to add some of the malaria built-in reporters to our sims. These reports can help us understand what is going on in our simulations from basic targets like incidence and prevalence to more detailed pictures of events or within-host data such as parasitemia. You can read more about the possible types of analyzers in the [EMOD output file documentation](https://docs.idmod.org/projects/emod-malaria/en/latest/software-outputs.html). In this exercise we'll add the Report Event Recorder and Malaria Summary Report to the simulations.
@@ -163,7 +165,7 @@ def general_sim()
 </details>
 
 
-<details><summary><span>*Analysis*</span></summary>
+<details><summary><span><em>Analysis</em></span></summary>
 <p>
 
 Now that you've learned the basics of how to run EMOD and add inputs/outputs you can start actually analyzing some data! We use analyzer scripts to extract the data we want from our simulations' reports to understand what the simulation is doing, how it is changing, and answer research questions. This week's analyzer script, `analyzer_W2.py` contains two different analyzers:
@@ -171,12 +173,11 @@ Now that you've learned the basics of how to run EMOD and add inputs/outputs you
 1. InsetChartAnalyzer that extracts data from `Inset_Chart.json`. Notice the `channels_inset_chart` in line 159 - this tells defines which data channels we are interested in looking at. Six different channels are included currently but these can always be modified depending on what you want to explore. 
 2. MonthlyPfPRAnalyzer that extracts data from the monthly summary report. If you look at the guts of the analyzer (lines 62 - 138), you'll see that this will particularly focus on extracting PfPR, Clinical Incidence (per person per year), Severe Incidence (per person per year), and Population, all by time (month) and age bins.
 
-You'll also notice `sweep_variables` being defined and going into both analyzers - we'll discuss this in more depth in Week 3, but for now you can think of this like a tag (or set of tags) for our simulation(s).
+- You'll also notice `sweep_variables` being defined and going into both analyzers - we'll discuss this in more depth in Week 3, but for now you can think of this like a tag (or set of tags) for our simulation(s).
 
-Before we can run the analyzer script, you need to make a few changes:
-
-1. Set your `jdir` (short for job directory) to where your experiments are saved (*/projects/b1139/FE-2023-examples/experiments/<username>*)
-2. Define your experiment name and ID in the `expts` dictionary (line 147) - these should match the UID and name in the experiment level `metadata.json` for your experiment of interest. 
+- Before we can run the analyzer script, you need to make a few changes:
+    1. Set your `jdir` (short for job directory) to where your experiments are saved (*/projects/b1139/FE-2023-examples/experiments/<username>*). Notice that this is used for the platform, and we also set `wdir` (working directory) for the analyzer where the analyzers will output any results you have requested
+    2. Define your experiment name and ID in the `expts` dictionary (line 147) - these should match the UID and name in the experiment level `metadata.json` for your experiment of interest:
 
 ```py
  expts = {
@@ -184,13 +185,25 @@ Before we can run the analyzer script, you need to make a few changes:
     }
 ```
 
+- This week's analyzer script also includes a basic python plotter for the results from InsetChartAnalyzer that will help you visualize each of the `channels_inset_chart` throughout the simulation. Take a look through the code to see if you can tell what it is doing before running it.
+- Run the analyzer, you will not need the `-l` command as the platform is set to run only with `SLURM_LOCAL` right now
+- Wait for the analyzer to succeed. Once it is finished check out your new outputs (see if you can find the `wdir` mentioned above without help). You should see two csvs, one from each analyzer, as well as a InsetChart.png.
+- As an additional exercise, try to make a data visualization in R or python based off of the MonthlyPfPRAnalyzer output (PfPR_Clinical_Incidence_monthly.csv). You'll need to take a look through the output file and decide what kind of figure may be interesting and inform you about your simulation. *Note: there is no solution script for this, it is an exercise of creativity and data visualization skills where everyone may have unique ideas*
+- Once you've completed your data visualization exercise, feel free to try changing some other [config parameters](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-configuration.html) in your example script. Run additional simulations with different durations, population sizes, agebins, etc. - whatever you think would be interesting! This is a great time to look through the EMOD documentation and explore parameters so you get to know the EMOD ecosystem better. *(Tip: change your experiment name to keep track of your simulations in both the metadata and analyzer outputs)*
+    - You can also run these sims through the analyzer script by updating the experiment name and ID, as above. Do this and inspect the outputs as well as any changes compared to your first run. What do you see? 
+        - How have the outcomes changed? 
+        - What do you recognize about running time?
+    - You may also want to run the analyzer on your very first, simple EMOD run to see how adding our input files has changed the simulation
+
+
 </p>
 </details>
 
 ### Week 3: Experiment Setups & Fine-Tuning
 
 **Instructions**
-<details><summary><span>Click to expand</span></summary>
+Click the arrow to expand:
+<details><summary><span><em>Click to expand</em></span></summary>
 <p>
 
 </p>
@@ -199,7 +212,8 @@ Before we can run the analyzer script, you need to make a few changes:
 ### Week 4: Addressing Research Questions
 
 **Instructions**
-<details><summary><span>Click to expand</span></summary>
+Click the arrow to expand:
+<details><summary><span><em>Click to expand</em></span></summary>
 <p
 
 </p>
