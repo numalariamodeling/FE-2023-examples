@@ -6,23 +6,23 @@ Exemples de scripts pour le programme 2023 d'enrichissement de la faculté en mo
 
 ## Voie technique (EMOD)
 
-**Vue d'ensemble** : 
+**Vue d'ensemble:** 
 Les exercices consistent généralement en une simulation et un analyseur des sorties de simulation. 
 Certaines semaines, des scripts supplémentaires existent pour préparer les entrées de la simulation ou générer des sorties et des graphiques supplémentaires, ou encore pour la calibration du modèle, comme décrit dans les instructions des semaines respectives.
 
 **Vérification des résultats:**
 Pour chaque semaine, des suggestions de scripts de simulation pour la comparaison ou l'aide pendant l'exercice sont fournies dans le dossier de la semaine respective.
 
-**Conditions préalables** : 
+**Conditions préalables:**  
 Avant d'exécuter les scripts d'exemple hebdomadaires, veuillez vous assurer qu'emodpy a été [installé](https://faculty-enrich-2022.netlify.app/modules/install-emod/)
 et que le [référentiel a été cloné](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository)
 dans votre répertoire personnel sur quest, idéalement sous la forme _/home/<.username>/FE-2023-examples_.
 L'exécution de vos scripts nécessitera que l'environnement virtuel emodpy soit chargé et suppose que les fichiers soient exécutés depuis un répertoire de travail défini à l'endroit où se trouve le script. Avant de commencer un exercice, assurez-vous que vous avez extrait ou récupéré les dernières modifications du dépôt (voir git-guides [git-pull](https://github.com/git-guides/git-pull)).
 
-### Semaine 1 : Vue d'ensemble d'EMOD
+### Semaine 1: Vue d'ensemble d'EMOD
 Cette semaine, nous discuterons de la structure générale et du contenu d'EMOD et nous nous assurerons que vous êtes prêts à exécuter le modèle sur notre HPC basé sur linux, QUEST. Vous allez configurer votre propre environnement virtuel pour exécuter EMOD via emodpy et idmtools et cloner ce dépôt github dans votre répertoire personnel sur QUEST. Nous n'exécuterons pas de scripts d'exemple, mais nous vous invitons à vous familiariser avec le dépôt, le site web et la documentation EMOD.
 
-### Semaine 2 : Blocs de construction
+### Semaine 2: Blocs de construction
 Le premier exercice de cette semaine présente la version la plus simple pour exécuter et analyser une seule expérience de simulation dans EMOD en utilisant l'infrastructure emodpy/idmtools et python. Avant de lancer une simulation, il faut vérifier que toutes les configurations et installations se sont déroulées avec succès et modifier les chemins dans le fichier manifeste. Les étapes consistent généralement à 1) exécuter la simulation et 2) analyser les résultats de la simulation. 
 
 Le deuxième exercice de cette semaine montre comment créer des fichiers démographiques et climatiques et comment les intégrer dans la simulation. L'exercice présente également comment modifier les paramètres de configuration (c'est-à-dire la taille de la population ou la durée de la simulation).
@@ -35,8 +35,8 @@ Cliquez sur la flèche pour développer:
 <details><summary><span><em>Exécuter une simulation EMOD simple</em></span></summary>
 <p>
 
-- Naviguez vers votre copie locale de ce dépôt sur QUEST : `cd ~/FE-2023-examples`.
-- Ajustez les chemins dans `manifest.py` en ajoutant votre nom d'utilisateur/netID à la fin du répertoire de travail : `/projects/b1139/FE-2023-examples/experiments/<username>`. This will help your track your simulations separately from other participants.
+- Naviguez vers votre copie locale de ce dépôt sur QUEST: `cd ~/FE-2023-examples`.
+- Ajustez les chemins dans `manifest.py` en ajoutant votre nom d'utilisateur/netID à la fin du répertoire de travail: `/projects/b1139/FE-2023-examples/experiments/<username>`. This will help your track your simulations separately from other participants.
 - Chargez votre environnement virtuel emodpy `SLURM_LOCAL`.
 - Lancez la simulation avec `python3 example_run.py -l`.
 - Attendez la fin de la simulation (~2 minutes)
@@ -54,11 +54,11 @@ Cet exercice montre comment créer des fichiers démographiques et climatiques e
 
 1. Extraction des données climatiques et ajout aux simulations
     - Regardez le fichier `example_site.csv` dans le [dossier inputs] (https://github.com/numalariamodeling/FE-2023-examples/tree/main/inputs). Ce fichier contient les coordonnées d'un site d'exemple en Ouganda et établit que ce sera notre "Nœud 1" dans le modèle. Vous pouvez utiliser ces coordonnées ou sélectionner un site différent (et ajuster les coordonnées en conséquence) si vous le souhaitez pour le reste de cet exemple.
-    - Ensuite, nous allons exécuter `extract_weather.py` - ce script va lancer le générateur de météo. Remarquez qu'il lit les informations de `example_site.csv` pour chercher le bon site et vous pouvez demander la météo pour la période qui vous intéresse. Vous verrez aussi que la plateforme pour cela s'appelle *Calculon* - c'est le HPC de l'IDM _(nécessite un accès à la base de données climatiques : demandez à quelqu'un de l'équipe NU)_.
+    - Ensuite, nous allons exécuter `extract_weather.py` - ce script va lancer le générateur de météo. Remarquez qu'il lit les informations de `example_site.csv` pour chercher le bon site et vous pouvez demander la météo pour la période qui vous intéresse. Vous verrez aussi que la plateforme pour cela s'appelle *Calculon* - c'est le HPC de l'IDM _(nécessite un accès à la base de données climatiques: demandez à quelqu'un de l'équipe NU)_.
     - Nous pouvons aussi lancer `recreate_weather.py` qui convertira les fichiers météo que nous venons de générer en un format csv que nous pourrons modifier. Pour cet exemple, nous n'avons pas besoin de faire de modifications mais cela peut être utile pour des questions de recherche telles que celles relatives au changement climatique. Après avoir effectué toutes les modifications dans le script, nous reconvertissons le csv en fichiers météo.
     - Maintenant que vous savez ce que font les scripts, chargez votre environnement virtuel et utilisez `python3 extract_weather.py` pour lancer l'extraction. Entrez les informations d'identification pour accéder à Calculon et attendez que vos fichiers météo soient générés, quand c'est terminé, vérifiez les entrées de votre dépôt pour vous assurer que les fichiers sont là. Lancez ensuite `python3 recreate_weather.py` et vérifiez que les fichiers météo modifiés ont été créés. Assurez-vous de vérifier le script `recreate_weather.py` pour voir où ils doivent être situés.
     - Copiez `example_run.py` et nommez-le `example_run_inputs.py` et dans le script changez le nom de l'expérience en `f'{user}_FE_example_inputs'`.
-    - Mettez à jour les paramètres par défaut dans la fonction set_param_fn() de votre script de simulation (`example_run_inputs.py`). Vous devrez également ajouter votre dossier de fichiers climatiques en tant que répertoire d'actifs à la tâche EMODTask dans general_sim(), ceci doit être défini après que la tâche soit définie et avant que l'expérience soit créée. Il est recommandé de mettre ce répertoire après le "set sif" :
+    - Mettez à jour les paramètres par défaut dans la fonction `set_param_fn()` de votre script de simulation (`example_run_inputs.py`). Vous devrez également ajouter votre dossier de fichiers climatiques en tant que répertoire d'actifs à la tâche EMODTask dans general_sim(), ceci doit être défini après que la tâche soit définie et avant que l'expérience soit créée. Il est recommandé de mettre ce répertoire après le "set sif":
    
 ```py
 def set_param_fn():
@@ -120,7 +120,7 @@ def set_param_fn():
     config.parameters.Run_Number = 5
 ```
 
-4. Maintenant que vous avez ajouté ces changements, essayez de lancer votre nouveau script avec `python3 example_run_input.py -l`. Une fois qu'il a réussi, allez vérifier ce qui a été exécuté. Voyez-vous les modifications apportées à votre demographics.json et au dossier climate dans le répertoire `Assets` de l'expérience ? Et dans le fichier config.json ou stdout.txt ? Vous devriez également voir [`InsetChart.json`](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-inset-chart.html) dans le dossier de sortie de la simulation - c'est le rapport par défaut d'EMOD qui vous donnera une idée de ce qui se passe dans votre simulation. Nous explorerons ce sujet plus tard dans la section Analyse de la Semaine 2.
+4. Maintenant que vous avez ajouté ces changements, essayez de lancer votre nouveau script avec `python3 example_run_input.py -l`. Une fois qu'il a réussi, allez vérifier ce qui a été exécuté. Voyez-vous les modifications apportées à votre demographics.json et au dossier climate dans le répertoire `Assets` de l'expérience? Et dans le fichier config.json ou stdout.txt? Vous devriez également voir [`InsetChart.json`](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-inset-chart.html) dans le dossier de sortie de la simulation - c'est le rapport par défaut d'EMOD qui vous donnera une idée de ce qui se passe dans votre simulation. Nous explorerons ce sujet plus tard dans la section Analyse de la Semaine 2.
 
 </p>
 </details>
