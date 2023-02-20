@@ -153,6 +153,9 @@ if __name__ == "__main__":
     jdir =  '/projects/b1139/FE-2023-examples/experiments'
     wdir=os.path.join(jdir, 'simulation_outputs')
     
+    if not os.path.exists(wdir):
+        os.mkdir(wdir)
+    
     sweep_variables = ['Run_Number'] 
 
     # set desired InsetChart channels to analyze and plot
