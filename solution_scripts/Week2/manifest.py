@@ -16,9 +16,8 @@ assets_input_dir="Assets"
 plugins_folder = "download/reporter_plugins"
 
 CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
-ROOT_DIR = os.path.join(CURRENT_DIR, "..")
+ROOT_DIR = os.path.join(CURRENT_DIR, "..", "..")
 input_dir = os.path.join(ROOT_DIR, "inputs")
-#input_dir=os.path.join(os.path.expanduser('~'),"FE-2023-examples/inputs")
 
 
 ep4_path="python_scripts"

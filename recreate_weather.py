@@ -3,9 +3,11 @@ import os
 import pandas as pd
 from emodpy_malaria.weather import *
 from emodpy_malaria.weather.weather_variable import WeatherVariable
+import manifest
 
-#indir = "/home/aew2948/FE-2023-examples/Week2"
-indir = "C:/Users/annew/OneDrive/Documents/GitHub/FE-2023-examples/inputs/example_weather"
+
+indir = os.path.join(manifest.input_dir,"example_weather")
+
 df, wa = weather_to_csv(indir)
 df.to_csv(os.path.join(indir, "output.csv")) # Make a copy of CSV for manipulation if needed
 
