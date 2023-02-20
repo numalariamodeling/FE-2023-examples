@@ -24,7 +24,10 @@ Running your scripts will require that the emodpy virtual environment is loaded 
 This week we will be discussing EMOD's general structure and content as well as making sure you are ready to run the model on our linux-based HPC, QUEST. You will set up your own virtual environmet to run EMOD via emodpy and idmtools and clone this github repository to your home directory on QUEST. We will not be running any example scripts, but please familiarize yourself with the repo, website, and EMOD documentation.
 
 ### Week 2: Building Blocks
-This week's first exercise introduces the simplest version or running and analyzing a single simulation experiment in EMOD using the emodpy/idmtools infrastructure and python. Before running a simulation, one needs to check that all configurations and installations were successful and edit paths in the manifest file. The steps are generally to 1) run simulation and 2) analyze simulation outputs. 
+This week's first exercise introduces the simplest version of running and analyzing a single simulation experiment in EMOD using the emodpy/idmtools infrastructure and python. Before running a simulation, one needs to check that all configurations and installations were successful and edit paths in the manifest file. The steps are generally to
+
+1) run simulation, and   
+2) analyze simulation outputs. 
 
 This week's second exercise demonstrates how to create demographics and climate files and how to incorporate these into the simulation. The exercise further introduces how to modify config parameters (i.e. population size or simulation duration)
 
@@ -41,7 +44,7 @@ Click the arrow to expand:
 - Adjust paths in `manifest.py` by adding your username/netID to the end of the job directory: `/projects/b1139/FE-2023-examples/experiments/<username>`. This will help your track your simulations separately from other participants.  
 - Load your emodpy `SLURM_LOCAL` virtual environment  
 - Run simulation via `python3 example_run.py -l`  
-- Wait simulation to finish (~2 minutes)  
+- Wait for simulation to finish (~2 minutes)  
 - Go to the `experiments/<your username>` folder to find the generated experiment - it will be under a set of 16-digit alphanumeric strings. The structure of these strings is `Suite > Experiment > Simulations`. Due to current handling systems with SLURM you will not be able to see the experiment name given within the `example_run.py` script; however, this can be found in the experiment and simulation-level metadata.json files. You may also choose to sort your files based on time such that most recent experiments will appear first. Take a look through what was generated even in this simple run.  
 
 </p>
