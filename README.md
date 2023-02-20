@@ -35,12 +35,14 @@ This week's final exercise will focus on observing changes in simulation results
 Click the arrow to expand:
 <details><summary><span><em>Running a simple EMOD simulation</em></span></summary>
 <p>
-- Navigate to your local copy of this repository on QUEST: `cd ~/FE-2023-examples`
-- Adjust paths in `manifest.py` by adding your username/netID to the end of the job directory: `/projects/b1139/FE-2023-examples/experiments/<username>`. This will help your track your simulations separately from other participants.
-- Load your emodpy `SLURM_LOCAL` virtual environment
-- Run simulation via `python3 example_run.py -l`
-- Wait simulation to finish (~2 minutes)
-- Go to the `experiments/<your username>` folder to find the generated experiment - it will be under a set of 16-digit alphanumeric strings. The structure of these strings is `Suite > Experiment > Simulations`. Due to current handling systems with SLURM you will not be able to see the experiment name given within the `example_run.py` script; however, this can be found in the experiment and simulation-level metadata.json files. You may also choose to sort your files based on time such that most recent experiments will appear first. Take a look through what was generated even in this simple run.
+
+
+- Navigate to your local copy of this repository on QUEST: `cd ~/FE-2023-examples`  
+- Adjust paths in `manifest.py` by adding your username/netID to the end of the job directory: `/projects/b1139/FE-2023-examples/experiments/<username>`. This will help your track your simulations separately from other participants.  
+- Load your emodpy `SLURM_LOCAL` virtual environment  
+- Run simulation via `python3 example_run.py -l`  
+- Wait simulation to finish (~2 minutes)  
+- Go to the `experiments/<your username>` folder to find the generated experiment - it will be under a set of 16-digit alphanumeric strings. The structure of these strings is `Suite > Experiment > Simulations`. Due to current handling systems with SLURM you will not be able to see the experiment name given within the `example_run.py` script; however, this can be found in the experiment and simulation-level metadata.json files. You may also choose to sort your files based on time such that most recent experiments will appear first. Take a look through what was generated even in this simple run.  
 
 </p>
 </details>
