@@ -41,11 +41,12 @@ Click the arrow to expand:
 
 
 - Navigate to your local copy of this repository on QUEST: `cd ~/FE-2023-examples`  
-- Adjust paths in `manifest.py` by adding your username/netID to the end of the job directory: `/projects/b1139/FE-2023-examples/experiments/<username>`. This will help your track your simulations separately from other participants.  
+- Notice your job directory path in `manifest.py`: `/projects/b1139/FE-2023-examples/experiments/<username>`. This will help your track your simulations separately from other participants.  
 - Load your emodpy `SLURM_LOCAL` virtual environment  
 - Run simulation via `python3 example_run.py -l`  
 - Wait for simulation to finish (~2 minutes)  
-- Go to the `experiments/<your username>` folder to find the generated experiment - it will be under a set of 16-digit alphanumeric strings. The structure of these strings is `Suite > Experiment > Simulations`. Due to current handling systems with SLURM you will not be able to see the experiment name given within the `example_run.py` script; however, this can be found in the experiment and simulation-level metadata.json files. You may also choose to sort your files based on time such that most recent experiments will appear first. Take a look through what was generated even in this simple run.  
+- Go to the job directory (see `experiments/<your username>` above) folder to find the generated experiment - it will be under a set of 16-digit alphanumeric strings. The structure of these strings is `Suite > Experiment > Simulations`. Due to current handling systems with SLURM you will not be able to see the experiment name given within the `example_run.py` script; however, this can be found in the experiment and simulation-level metadata.json files. You may also choose to sort your files based on time such that most recent experiments will appear first. 
+- Take a look through what was generated even in this simple run and get familiar with the file structure.  
 
 </p>
 </details>
@@ -209,9 +210,70 @@ Now that you've learned the basics of how to run EMOD and add inputs/outputs you
 ### Week 3: Experiment Setups & Fine-Tuning
 
 **Instructions**
+
 Click the arrow to expand:
-<details><summary><span><em>Click to expand</em></span></summary>
+<details><summary><span><em>Parameter Sweeping</em></span></summary>
 <p>
+
+This exercise demonstrates how to "sweep" over parameters to have a set of different values across our experiment. For now we'll start with a simple sweep over one config parameter, such as the run number. There are additional more complicated sweeping methods, particularly with creating campaigns, that we will discuss later in the program.
+
+
+- Copy your `example_run_outputs.py` script and name it `example_run_sweeps.py`. Change the experiment name to `f'{user}_FE_example_sweep'`.
+- To sweep over variables we'll have to switch to using a simulation builder from `idmtools` rather than creating simulations directly from the task. Add `from idmtools.builders import SimulationBuilder` to your import statements. We'll modify this simulation creation in `general_sim()` shortly.
+- Beneath where you set the `sim_years`, set `num_seeds = 5`. We'll use this later to tell EMOD how many different run numbers, or stochastic realizations, we want for this experiment.
+- Next, define a simple function that will allow you to set individual config parameters under the `set_param_fn()` where you define the constant config parameters. 
+
+```py
+def set_param(simulation, param, value):
+    """
+    Set specific parameter value
+    Args:
+        simulation: idmtools Simulation
+        param: parameter
+        value: new value
+    Returns:
+        dict
+    """
+    return simulation.task.set_parameter(param, value)
+```
+
+- As mentioned, we also need to adjust the way we create our experiments in `general_sim()`. Notice that we are currently use `Experiment.from_task()` which creates the experiment and simulations directly from the defined task. To sweep over variables we'll have to switch to using `Experiment.from_builder()` that works to setup each simulation directly rather than an entire experiment with the same parameters.
+    - First, initialize the builder such that `builder = SimulationBuilder()`. This should go in `general_sim()` between adding assets and reports. 
+    - Add the sweep to the builder using `add_sweep_definition()`. Here you'll create a partial of `set_param` (defined above), pass the config parameter that you'd like to set to this partial, and then provide the range of values to sweep over. In this example, tell the function to sweep over `Run_Number` over the range of the `num_seeds` defined above (will output values of 0 - `num_seeds`).
+    - Finally, you'll need to remove the `Experiment.from_task()` creation and replace with `Experiment.from_builder(builder, task, name=<expname>)`. This will create experiments based on the task but with the additional information contained in the builder, including the added sweep. Make sure you keep the modified experiment name!
+
+```py
+def general_sim()
+    ## existing contents
+
+    # Create simulation sweep with builder
+    builder = SimulationBuilder()
+    
+    builder.add_sweep_definition(partial(set_param, param='Run_Number'), range(num_seeds))
+    
+    ## reports are still located here
+    
+    # create experiment from builder
+    experiment = Experiment.from_builder(builder, task, name="example_sim_sweep")
+```
+
+</p>
+</details>
+
+<details><summary><span><em>Serialization</em></span></summary>
+<p>
+
+1. Burning in
+2. Picking up
+
+</p>
+</details>
+
+<details><summary><span><em>Calibration</em></span></summary>
+<p>
+
+1. Running calibration sweeps
+2. Parameter selection
 
 </p>
 </details>
@@ -219,9 +281,22 @@ Click the arrow to expand:
 ### Week 4: Addressing Research Questions
 
 **Instructions**
+
 Click the arrow to expand:
-<details><summary><span><em>Click to expand</em></span></summary>
+<details><summary><span><em>Individual Properties</em></span></summary>
 <p
+
+</p>
+</details>
+
+<details><summary><span><em>Adding Interventions</em></span></summary>
+<p>
+
+</p>
+</details>
+
+<details><summary><span><em>Multi-node/Spatial Simulations</em></span></summary>
+<p>
 
 </p>
 </details>
