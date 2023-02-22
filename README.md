@@ -26,8 +26,8 @@ This week we will be discussing EMOD's general structure and content as well as 
 ### Week 2: Building Blocks
 This week's first exercise introduces the simplest version of running and analyzing a single simulation experiment in EMOD using the emodpy/idmtools infrastructure and python. Before running a simulation, one needs to check that all configurations and installations were successful and edit paths in the manifest file. The steps are generally to
 
-1) run simulation, and   
-2) analyze simulation outputs. 
+1. run simulation, and   
+2. analyze simulation outputs. 
 
 This week's second exercise demonstrates how to create demographics and climate files and how to incorporate these into the simulation. The exercise further introduces how to modify config parameters (i.e. population size or simulation duration)
 
@@ -208,6 +208,18 @@ Now that you've learned the basics of how to run EMOD and add inputs/outputs you
 </details>
 
 ### Week 3: Experiment Setups & Fine-Tuning
+This week's exercises will focus on how to design and setup more detailed experiments. We will cover sweeping over config parameters, serialization, and calibration. 
+
+This week's first exercise introduces the concept of "sweeping"
+
+the simplest version of running and analyzing a single simulation experiment in EMOD using the emodpy/idmtools infrastructure and python. Before running a simulation, one needs to check that all configurations and installations were successful and edit paths in the manifest file. The steps are generally to
+
+1. run simulation, and   
+2. analyze simulation outputs. 
+
+This week's second exercise demonstrates how to create demographics and climate files and how to incorporate these into the simulation. The exercise further introduces how to modify config parameters (i.e. population size or simulation duration)
+
+This week's final exercise will focus on observing changes in simulation results based on the InsetChart.json and MalariaSummaryReport.json model outputs.
 
 **Instructions**
 
@@ -215,7 +227,12 @@ Click the arrow to expand:
 <details><summary><span><em>Parameter Sweeping</em></span></summary>
 <p>
 
-This exercise demonstrates how to "sweep" over parameters to have a set of different values across our experiment. For now we'll start with a simple sweep over one config parameter, such as the run number. There are additional more complicated sweeping methods, particularly with creating campaigns, that we will discuss later in the program.
+This exercise demonstrates how to "sweep" over parameters to have a set of different values across our experiment. There are a variety of reasons we may want to test out a range of parameter values, some examples include:
+    - running multiple stochastic realizations (this example)
+    - testing fit for calibration, such as with amount of larval mosquito habitat (calibration example, later this week)
+    - testing different intervention configurations, such as coverage levels or repetitions (we'll look at this more next week) 
+
+For now we'll start with a simple sweep over one config parameter, such as the run number. There are additional more complicated sweeping methods, particularly with creating campaigns, that we will discuss later in the program.
 
 
 - Copy your `example_run_outputs.py` script and name it `example_run_sweeps.py`. Change the experiment name to `f'{user}_FE_example_sweep'`.
@@ -263,8 +280,15 @@ def general_sim()
 <details><summary><span><em>Serialization</em></span></summary>
 <p>
 
+This exercise demonstrates the concept of serializing populations in simulations. Serialization allows us to run simulations, save them at a certain point in time, and simulate another campaign/scenario starting from the point we saved. We can run multiple simulations on the same population in series.
+
+We often use this process to save long initial simulations called burnins, during which population immunity is established. We don't want to wait for this to run everytime, so we serialize the population at the end of the burnin and then run shorter simulations, typically with additional interventions (also called "pickup" simulations).
+
+The exercise has three parts. In part 1 you will run and save a burnin simulation. In part 2 you will "pickup" this simulation and add antimalarial interventions. In part 3 you will repeat parts 1 & 2 using a longer burnin duration, and compare the results.
+
 1. Burning in
 2. Picking up
+3. Compare pickup simulations across varying burnin durations
 
 </p>
 </details>
