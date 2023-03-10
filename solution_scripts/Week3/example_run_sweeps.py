@@ -127,7 +127,7 @@ def general_sim(selected_platform):
                        max_age_years=100)
                        
     # MalariaSummaryReport
-    add_malaria_summary_report(task, manifest, start_day=1, end_day=sim_years*365, reporting_interval=7,
+    add_malaria_summary_report(task, manifest, start_day=1, end_day=sim_years*365, reporting_interval=30,
                                age_bins=[0.25, 5, 115],
                                max_number_reports=52,
                                pretty_format=True)
