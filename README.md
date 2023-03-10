@@ -346,7 +346,7 @@ The exercise has three parts. In part 1 you will run and save a burnin simulatio
         - We may also want to adjust our sweep variables and inset chart channels. Let's try changing the channels to the four below and adding an if statement to set sweep variables for the pickup. Right now this is the same as the burnin and only sweeps over Run_Number, but this can be used for additional parameters, such as intervention coverage, as you add complexity to the pickup. 
         
         ```py
-        ## Set sweep_variables and event_list as required depending on experiment"""
+        ## Set sweep_variables and event_list as required depending on experiment
         channels_inset_chart = ['Statistical Population', 'New Clinical Cases', 'Adult Vectors', 'Infected']
         sweep_variables = ['Run_Number']
         if step == 'pickup':
