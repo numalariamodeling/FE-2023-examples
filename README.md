@@ -208,18 +208,11 @@ Now that you've learned the basics of how to run EMOD and add inputs/outputs you
 </details>
 
 ### Week 3: Experiment Setups & Fine-Tuning
-This week's exercises will focus on how to design and setup more detailed experiments. We will cover sweeping over config parameters, serialization, and calibration. 
+This week's exercises will focus on how to design and setup more detailed experiments. We will cover sweeping over config parameters, calibration, and serialization. 
 
 This week's first exercise introduces the concept of "sweeping"
 
-the simplest version of running and analyzing a single simulation experiment in EMOD using the emodpy/idmtools infrastructure and python. Before running a simulation, one needs to check that all configurations and installations were successful and edit paths in the manifest file. The steps are generally to
-
-1. run simulation, and   
-2. analyze simulation outputs. 
-
-This week's second exercise demonstrates how to create demographics and climate files and how to incorporate these into the simulation. The exercise further introduces how to modify config parameters (i.e. population size or simulation duration)
-
-This week's final exercise will focus on observing changes in simulation results based on the InsetChart.json and MalariaSummaryReport.json model outputs.
+**add description text here**
 
 **Instructions**
 
@@ -282,6 +275,30 @@ def general_sim()
 </p>
 </details>
 
+<details><summary><span><em>Calibration</em></span></summary>
+<p>
+
+This exercise will walk you through a basic model calibration workflow in EMOD. We don't always know some of the parameters in our model, yet these parameters play important role in shaping our model output. We "fit" or "calibrate" the parameters to some real data that are available to us. Essentially, we propose a range of values for these parameters, and run the model to see if the output matches the actual observed data. We do this using the "sweeping" described in the last exercise. The set of proposed values is compared to reference data and those that allow the model to best match the actual data would be chosen for subsequent modeling steps.
+
+Depending on our project and site there are a variety of different parameters you may be interested in calibrating on due to different uncertainties, including those having to do with vectors and interventions. In this example, we want to calibrate a parameter called `x_Temporary_Larval_Habitat` that controls the amount of larval mosquito habitat, and the amount of mosquitoes, accordingly. This is a common parameter in calibration efforts. We'll use our example site with some data that mimics a household survey (DHS) conducted in the site. In this hypothetical survey, a number of children under 5 years old were tested for malaria, and we know how many of them are positive. We'll use these reference points to select the best fit.
+
+1. Running calibration sweeps
+    - Copy `example_run_sweeps.py` to a new script named `example_run_calibration.py`
+    - Update `sim_years` to run for at least 20 years
+    - Beneath the sweep we added last time, add another one for `x_Temporary_Larval_Habitat` (default = 1). This parameter multiplies the default larval habitat value, so we'll want to start over a relatively small range of values. One nice way of doing this is to use a numpy command, `logspace`, that will divide the range evenly in logspace - we'll try -0.5 to 1 in logspace (0.316 to 10 in terms of actual parameter value) for 10 separate values. Logspace is particularly useful for this parameter as the actual larval habitat values can be quite large so we tend to want to explore the lower values in our range more closely. Be sure to also `import numpy as np` with the rest of your import statements.
+    
+      ```py
+      builder.add_sweep_definition(partial(set_param, param='x_Temporary_Larval_Habitat'), np.logspace(-0.5,1,10))
+      ```
+    - Add `filename_suffix='Monthly_U5'` to the end of the summary reporter. This command adds a descriptor to the report output file - it is particularly useful when you want to output multiple different reports from the same type of reporter (such as a weekly, monthly, and annual report).
+    - Update the expname and run your simulations.
+    - Update the expname and exp_id in the `calibration_analyzer.py` - check out the differences between this and previous analyzers (and their outputs).
+    
+2. Parameter selection
+
+</p>
+</details>
+
 <details><summary><span><em>Serialization</em></span></summary>
 <p>
 
@@ -319,7 +336,58 @@ The exercise has three parts. In part 1 you will run and save a burnin simulatio
               config.parameters.Serialization_Precision = "REDUCED"
           ```
     - Run the script, wait for it to finish, and checkout your outputs.
-    - Depending on what reports you included, or didn't, you may be able to run the `analyzer_W2.py` script from last week. Identify which outputs you have and update the analyzer script to only run the analyzers you have reports for as well as the experiment name and ID.
+    - While waiting for your simulations to finish, we can adapt the `analyzer_w2.py` to better meet the needs of serialization. Copy this script and name it `serialization_analyzer.py`
+        - Start by adding a section to the executable `if __name__ == "__main__":` section of the analyzer that defines the serialization duration and which step (burnin or pickup) you'd like to analyze, in this case the burnin.
+        
+        ```py
+        serialize_years = 10  # Same as in example_run_burnin.py
+        step = 'burnin'
+        ```
+        - We may also want to adjust our sweep variables and inset chart channels. Let's try changing the channels to the four below and adding an if statement to set sweep variables for the pickup. Right now this is the same as the burnin and only sweeps over Run_Number, but this can be used for additional parameters, such as intervention coverage, as you add complexity to the pickup. 
+        
+        ```py
+        ## Set sweep_variables and event_list as required depending on experiment"""
+        channels_inset_chart = ['Statistical Population', 'New Clinical Cases', 'Adult Vectors', 'Infected']
+        sweep_variables = ['Run_Number']
+        if step == 'pickup':
+            sweep_variables = ['Run_Number'] # for times when you add additional items to the pickup, you can add more sweep variables here
+        ```
+        - To use the "step" system we will want to also modify our analyzers statement. Assuming you included only the default report, `InsetChart`, in your burnin then you will want to run only that analyzer for the burnin step. For the pickup you will likely want to include a version of the summary report we've been using so we'll include that in the pickup step in the analyzer. Notice that these are largely the same as how we were calling them previously, with the addition of a `start_year` parameter. This functionality has been in the actual analyzer the whole time, but we hadn't referenced it; however, it becomes more important as we think about time in serialization. This allows us to essentially set the date for for the simulation outputs such that our burnin will end in 2023 (and such should start the number of `serialize_years` prior) and the pickup will start where the burnin leaves off in 2023. We then run the analyzer based on the step we set above. We can keep the basic plotter after this just to get an idea of what is going on in our simulations. 
+        
+        ```py
+        with Platform('SLURM_LOCAL',job_directory=jdir) as platform:
+
+            for expname, exp_id in expts.items():
+                analyzers_burnin = [InsetChartAnalyzer(expt_name=expname,
+                                           channels=channels_inset_chart,
+                                           start_year=2023 - serialize_years,
+                                           sweep_variables=sweep_variables,
+                                           working_dir=wdir),
+                                    ]
+
+                analyzers_pickup = [InsetChartAnalyzer(expt_name=expt_name,
+                                           channels=channels_inset_chart,
+                                           start_year=2023,
+                                           sweep_variables=sweep_variables,
+                                           working_dir=wdir),
+                                    MonthlyPfPRAnalyzer(expt_name=expt_name,
+                                            start_year=2023,
+                                            sweep_variables=sweep_variables,
+                                            working_dir=wdir)
+                                    ]
+
+            if step == 'burnin':
+                am = AnalyzeManager(expt_id, analyzers=analyzers_burnin)
+                am.analyze()
+                
+            elif step == 'pickup':
+                am = AnalyzeManager(expt_id, analyzers=analyzers_pickup)
+                am.analyze()
+            
+            else:
+                print('Please define step, options are burnin or pickup') 
+        ```
+    - Run the analyzer script
     
 2. Picking up
     - Create a new script, `example_run_pickup.py` that will be used to run a simulation picking up from the 10-year burnin simulations you ran in Part 1. You may choose to copy over the contents of your burnin or start fresh, being thoughtful about which parts are necessary or you expect may change for the pickup.
@@ -377,27 +445,19 @@ The exercise has three parts. In part 1 you will run and save a burnin simulatio
 
           builder.add_sweep_definition(partial(update_serialize_parameters, df=burnin_df), range(len(burnin_df.index)))
       ```
-    - Run the script, wait for it to finish, and checkout your outputs.
-    - Depending on what reports you included, or didn't, you may be able to run the `analyzer_W2.py` script from last week. Identify which outputs you have and update the analyzer script to only run the analyzers you have reports for as well as the experiment name and ID.
-    
-    **need to think about analyzer and plotter here**
+    - Run the experiment, wait for it to finish, and checkout your outputs.
+    - While waiting for it to finish, make any modifications to the analyzer that you need such as the `expname`, `exp_id`, and `step`. Once the experiment finishes you can run `serialization_analyzer.py` 
     
 3. Compare pickup simulations across varying burnin durations
     - Run a longer burnin of 50 years using `example_run_burnin.py`
     - When it finishes running (it may take a while), update the `burnin_exp_id` in `example_run_pickup.py`
     - Before running the experiment, update the `exp_name` (i.e. add 'burnin50'), to keep track of your simulation iterations. Do not change anything else in the pickup simulation, to allow for comparison across iterations picking up from different burnin durations.
-    - Run the experiment
-    - Plot results using `plot_example_pickup.py` or a custom plotter using summary report outcomes
-    - Compare the plots between the experiments with 10 and 50 year burnins. Do you notice any difference?
-</p>
-</details>
-
-<details><summary><span><em>Calibration</em></span></summary>
-<p>
-
-1. Running calibration sweeps
-2. Parameter selection
-
+    - Run the experiment, wait for it to finish, and checkout your outputs.
+    - Using `serialization_analyzer.py`, run the `InsetChartAnalyzer` for both burnin and pickup. Make sure to modify your `serialization_years`. Feel free to change the `channels_inset_chart` to other ones depending on what differences you may be most interested in exploring.
+    - Try plotting your results to show both burnin and pickup on the same plot for your channels of interest over time. You may use R or python to do so - if you get stuck there is a sample python plotting script in `Solution_scripts/Week3` called `plot_example_serialization.py` but we recommend trying to make your own version of the plot first.
+        - *NOTE: these plots and analyzer scripts are just baselines for you to go off! You may want to make changes or include additional things as you develop your project, especially as you add complexity to the pickup.*
+    - Compare the plots between the experiments with 10 and 50 year burnins. Do you notice any differences?
+    
 </p>
 </details>
 
