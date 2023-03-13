@@ -291,14 +291,17 @@ We often use this process to save long initial simulations called burnins, durin
 The exercise has three parts. In part 1 you will run and save a burnin simulation. In part 2 you will "pickup" this simulation and add antimalarial interventions. In part 3 you will repeat parts 1 & 2 using a longer burnin duration, and compare the results.
 
 1. Burning in
-     - Create a new python script named 'example_run_burnin.py'
-     - Based on what you've learned from previous examples, add the basic code chunks needed to run a simulation. Check the details below for help and additional comments.
+    - Description: Typically, we create 50-year burnin simulations to initialize transmission and immunity in our population of interest prior to trying to answer our research questions. For this example, we will start by only running the burnin for 5 years with 500 people to make sure everything is running correctly. For now we will also want to run 3 replicates.
+    - Create a new python script named 'example_run_burnin.py'. We will use this empty script to build up this exercise.
+    - Based on what you've learned from previous examples, add the basic code chunks needed to run a simulation. Think about what parts you will need and any modifications that might be necessary based on the information provided about this exercise. The serialization specific instructions will follow this initial script creation so don't worry about those details just yet.
         - Import modules
-        - Setup & simulation duration
+        - Config setup & simulation duration
+        - Campaign setup
         - Demographics
+        - EMODTask & experiment builder
         - Reporters: Reporting during the burnin simulation is optional, it depends on the simulation duration and what you want to track or to check. If not disabled, InsetChart is automatically included, and can be plotted, alternatively one can disable the InsetChart and include an annual summary report to keep track of malaria metrics in an age group that is also plotted during the main simulation.
-        - EMODTask & Builder
-     - Now, to serialize the simulations so that you can "pick up" from them again later, add the code chunk below to update the serialization configuration parameters. (see [Simple Burnin](https://faculty-enrich-2022.netlify.app/modules/emod-how-to/emod-how-to/#simple-burn-in) in EMOD How-To's). The section ideally would be placed at the end of your set_param_fn().
+        - Code execution/run script
+    - Now, to serialize the simulations so that you can "pick up" from them again later, add the code chunk below to update the serialization configuration parameters. (see [Simple Burnin](https://faculty-enrich-2022.netlify.app/modules/emod-how-to/emod-how-to/#simple-burn-in) in EMOD How-To's). The section ideally would be placed at the end of your set_param_fn().
 
 ```py
 def set_param_fn():
@@ -310,7 +313,7 @@ def set_param_fn():
     config.parameters.Serialization_Mask_Node_Write = 0
     config.parameters.Serialization_Precision = "REDUCED"
 ```
-    - If you have been testing with fewer years, run the simulation for 10 years (serialize_years = 10) and update the exp_name to reflect the duration, ex. 'burnin10'.
+    - If you have been testing with fewer years, run the simulation for 50 years (serialize_years = 50) and update the exp_name to reflect the duration, ex. 'burnin50'.
     
 2. Picking up
 3. Compare pickup simulations across varying burnin durations
