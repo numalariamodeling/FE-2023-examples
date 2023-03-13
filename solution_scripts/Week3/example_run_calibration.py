@@ -29,7 +29,7 @@ from emodpy_malaria.reporters.builtin import *
 
 import manifest
 
-serialize_years=5
+sim_years=5
 num_seeds=5
 
 def set_param_fn(config):
@@ -40,7 +40,7 @@ def set_param_fn(config):
     config = conf.set_team_defaults(config, manifest)
     conf.add_species(config, manifest, ["gambiae", "arabiensis", "funestus"])
 
-    config.parameters.Simulation_Duration = serialize_years*365
+    config.parameters.Simulation_Duration = sim_years*365
     
     
     #Add climate files
@@ -48,12 +48,6 @@ def set_param_fn(config):
     config.parameters.Land_Temperature_Filename = os.path.join('climate','example_air_temperature_daily.bin')
     config.parameters.Rainfall_Filename = os.path.join('climate','example_rainfall_daily.bin')
     config.parameters.Relative_Humidity_Filename = os.path.join('climate', 'example_relative_humidity_daily.bin')
-    
-    #Add serialization - add burnin "write" parameters to config.json
-    config.parameters.Serialized_Population_Writing_Type = "TIMESTEP"
-    config.parameters.Serialization_Time_Steps = [365 * serialize_years]
-    config.parameters.Serialization_Mask_Node_Write = 0
-    config.parameters.Serialization_Precision = "REDUCED"
 
     return config
     

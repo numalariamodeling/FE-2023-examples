@@ -144,42 +144,53 @@ if __name__ == "__main__":
     from idmtools.core.platform_factory import Platform
 
     
-    expts = {
-        #'week2_weather' : '2c090358-cb7b-44e5-a2fd-842a6c23a5b7'
-        'week2_outputs' : '26f947c3-0770-46df-bc6a-c1c77e36f686'
+    expts = { #'expname':'exp_id'
     }
     
-
     jdir =  '/projects/b1139/FE-2023-examples/experiments'
     wdir=os.path.join(jdir, 'simulation_outputs')
     
-    sweep_variables = ['Run_Number'] 
-
-    # set desired InsetChart channels to analyze and plot
-    channels_inset_chart = ['Statistical Population', 'True Prevalence', 'New Clinical Cases','Infectious Vectors','Rainfall','Air Temperature']
-
+    serialize_years = 10  # Same as in example_run_burnin.py
+    step = 'burnin'
+    
+    ## Set sweep_variables and event_list as required depending on experiment
+    channels_inset_chart = ['Statistical Population', 'New Clinical Cases', 'Adult Vectors', 'Infected']
+    sweep_variables = ['Run_Number']
+    if step == 'pickup':
+        sweep_variables = ['Run_Number'] # for times when you add additional items to the pickup, you can add more sweep variables here
     
     with Platform('SLURM_LOCAL',job_directory=jdir) as platform:
 
         for expname, exp_id in expts.items():
-          
-            analyzer = [InsetChartAnalyzer(expt_name=expname,
-                                      channels=channels_inset_chart,
-                                      sweep_variables=sweep_variables,
-                                      working_dir=wdir),
-                        MonthlyPfPRAnalyzer(exp_name=expname,
-                                      sweep_variables=sweep_variables,
-                                      working_dir=wdir)]
+            analyzers_burnin = [InsetChartAnalyzer(expt_name=expname,
+                                           channels=channels_inset_chart,
+                                           start_year=2023 - serialize_years,
+                                           sweep_variables=sweep_variables,
+                                           working_dir=wdir),
+                                ]
+
+            analyzers_pickup = [InsetChartAnalyzer(expt_name=expt_name,
+                                           channels=channels_inset_chart,
+                                           start_year=2023,
+                                           sweep_variables=sweep_variables,
+                                           working_dir=wdir),
+                                MonthlyPfPRAnalyzer(expt_name=expt_name,
+                                            start_year=2023,
+                                            sweep_variables=sweep_variables,
+                                            working_dir=wdir)
+                                ]
+
+            if step == 'burnin':
+                am = AnalyzeManager(expt_id, analyzers=analyzers_burnin)
+                am.analyze()
+                
+            elif step == 'pickup':
+                am = AnalyzeManager(expt_id, analyzers=analyzers_pickup)
+                am.analyze()
             
-            # Create AnalyzerManager with required parameters
-            manager = AnalyzeManager(configuration={},ids=[(exp_id, ItemType.EXPERIMENT)],
-                                     analyzers=analyzer, partial_analyze_ok=True)
-            # Run analyze
-            manager.analyze()
-            
-            
- 
-    # read in analyzed InsetChart data
+            else:
+                print('Please define step, options are burnin or pickup') 
+                
     expt_name=list(expts.keys())[0]
     df = pd.read_csv(os.path.join(wdir, expt_name, 'All_Age_InsetChart.csv'))
     df['date'] = pd.to_datetime(df['date'])
@@ -201,4 +212,3 @@ if __name__ == "__main__":
     if len(sweep_variables) > 0:
         axes[-1].legend(title=sweep_variables)
     fig1.savefig(os.path.join(wdir, expt_name, 'InsetChart.png'))
-    
