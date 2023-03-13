@@ -143,29 +143,29 @@ This exercise demonstrates how to add some of the malaria built-in reporters to 
 - We need to import the malaria reporters from emodpy_malaria. You'll need to add this line to the rest of your emodpy_malaria importers `from emodpy_malaria.reporters.builtin import *` at the top of your script. Notice the "*" at the end, this means we are importing all of the reporters from the builtin reporter script by their names.
 - [Report Event Recorder](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-event-recorder.html) allows us to look at various events happening to each individual in our sim, as well as some basic demographic and health status information about the individual. This report is especially useful for monitoring different interventions, such as receiving treatment, but for now we'll only look at simple events such as births or existing individuals' birthdays. We can control the time period we want to report on, from `start_day` to `end_day` as well as things like target age group and nodes while we add the reporter. For now, let's add the report for the entire simulation and targeting ages 0-100 years, so likely the whole population. It can be added to our `general_sim()` with `add_event_recorder()` after the task has been defined, around line 110:
 
-```py
-def general_sim()
-    ## existing contents
+    ```py
+    def general_sim()
+        ## existing contents
     
-    add_event_recorder(task, event_list=["HappyBirthday", "Births"],
-                       start_day=1, end_day=sim_years*365, node_ids=[1], min_age_years=0,
-                       max_age_years=100)
-```
+        add_event_recorder(task, event_list=["HappyBirthday", "Births"],
+                           start_day=1, end_day=sim_years*365, node_ids=[1], min_age_years=0,
+                           max_age_years=100)
+    ```
 
 - [Malaria Summary Report](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-malaria-summary.html) provides a population-level summary of malaria data grouped into different bins such as age, parasitemia, and infectiousness. This report will give us information such as PfPR, clinical incidence, and population stratified by time (as well as age bins, parasitemia, and infectiousness if desired). We can specify what time period of aggregation we are interested in, typically weekly, monthly, or annually through the reporting interval. The linked documentation will show you many other things we can specify as well, but for now we'll keep it simple and set our report to run monthly for the duration of the simulation with simple age groups: 0-0.25, 0.25-5, and 5-115 years. We'll also tell the report that we want a maximum of 20 intervals so we can make sure we get all our monthly reports for 1 year and use `pretty_format` to make the outputted report more readable to us. You should also add a filename suffix, in this case we'll use "monthly" to give some additional description to the report. This should be added directly after the Report Event Recorder, also in `general_sim()` with `add_malaria_summary_report()`:
 
-```py
-def general_sim()
-    ## existing contents
+    ```py
+    def general_sim()
+        ## existing contents
     
-    ## previously added event recorder
+        ## previously added event recorder
     
-    add_malaria_summary_report(task, manifest, start_day=1, end_day=sim_years*365, reporting_interval=30,
-                               age_bins=[0.25, 5, 115],
-                               max_number_reports=20,
-                               filename_suffix='monthly',
-                               pretty_format=True)
-```
+        add_malaria_summary_report(task, manifest, start_day=1, end_day=sim_years*365, reporting_interval=30,
+                                   age_bins=[0.25, 5, 115],
+                                   max_number_reports=20,
+                                   filename_suffix='monthly',
+                                   pretty_format=True)
+    ```
 
 - Now try running your new script as you learned in the past two examples and wait for it to finish before navigating to your experiment directory. When it's done running, check out the simulation outputs and your new report.
 
@@ -187,11 +187,11 @@ Now that you've learned the basics of how to run EMOD and add inputs/outputs you
     1. Set your `jdir` (short for job directory) to where your experiments are saved (*/projects/b1139/FE-2023-examples/experiments/<username>*). Notice that this is used for the platform, and we also set `wdir` (working directory) for the analyzer where the analyzers will output any results you have requested
     2. Define your experiment name and ID in the `expts` dictionary (line 147) - these should match the UID and name in the experiment level `metadata.json` for your experiment of interest:
 
-```py
- expts = {
-        '<user>_FE_example_outputs' : '<experiment UID'
-    }
-```
+    ```py
+    expts = {
+            '<user>_FE_example_outputs' : '<experiment UID'
+        }
+    ```
 
 - This week's analyzer script also includes a basic python plotter for the results from `InsetChartAnalyzer` that will help you visualize each of the `channels_inset_chart` throughout the simulation. Take a look through the code to see if you can tell what it is doing before running it.
 - Run the analyzer, you will not need the `-l` command as the platform is set to run only with `SLURM_LOCAL` right now
@@ -210,9 +210,15 @@ Now that you've learned the basics of how to run EMOD and add inputs/outputs you
 ### Week 3: Experiment Setups & Fine-Tuning
 This week's exercises will focus on how to design and setup more detailed experiments. We will cover sweeping over config parameters, calibration, and serialization. 
 
-This week's first exercise introduces the concept of "sweeping"
+This week's first exercise introduces the concept of "sweeping" over ranges of values for different parameters.  There are a variety of reasons we may want to test out a range of parameter values, some examples include:
+    - running multiple stochastic realizations (this example)
+    - testing fit for calibration, such as with amount of larval mosquito habitat (calibration example, later this week)
+    - testing different intervention configurations, such as coverage levels or repetitions (we'll look at this more next week) 
+    
+The next exercise will walk you through a basic model calibration workflow in EMOD. We don't always know some of the parameters in our model, yet these parameters play important role in shaping our model output. We "fit" or "calibrate" the parameters to some real data that are available to us. Essentially, we propose a range of values for these parameters, and run the model to see if the output matches the actual observed data. We do this using the "sweeping" described in the last exercise. The set of proposed values is compared to reference data and those that allow the model to best match the actual data would be chosen for subsequent modeling steps.
 
-**add description text here**
+
+This week's final exercise demonstrates the concept of serializing populations in simulations. Serialization allows us to run simulations, save them at a certain point in time, and simulate another campaign/scenario starting from the point we saved. We can run multiple simulations on the same population in series. We often use this process to save long initial simulations called burnins, during which population immunity is established. We don't want to wait for this to run everytime, so we serialize the population at the end of the burnin and then run shorter simulations, typically with additional interventions (also called "pickup" simulations).
 
 **Instructions**
 
@@ -220,10 +226,7 @@ Click the arrow to expand:
 <details><summary><span><em>Parameter Sweeping</em></span></summary>
 <p>
 
-This exercise demonstrates how to "sweep" over parameters to have a set of different values across our experiment. There are a variety of reasons we may want to test out a range of parameter values, some examples include:
-    - running multiple stochastic realizations (this example)
-    - testing fit for calibration, such as with amount of larval mosquito habitat (calibration example, later this week)
-    - testing different intervention configurations, such as coverage levels or repetitions (we'll look at this more next week) 
+This exercise demonstrates how to "sweep" over parameters to have a set of different values across simulations in our experiment.
 
 For now we'll start with a simple sweep over one config parameter, such as the run number. There are additional more complicated sweeping methods, particularly with creating campaigns, that we will discuss later in the program.
 
@@ -278,9 +281,8 @@ def general_sim()
 <details><summary><span><em>Calibration</em></span></summary>
 <p>
 
-This exercise will walk you through a basic model calibration workflow in EMOD. We don't always know some of the parameters in our model, yet these parameters play important role in shaping our model output. We "fit" or "calibrate" the parameters to some real data that are available to us. Essentially, we propose a range of values for these parameters, and run the model to see if the output matches the actual observed data. We do this using the "sweeping" described in the last exercise. The set of proposed values is compared to reference data and those that allow the model to best match the actual data would be chosen for subsequent modeling steps.
-
 Depending on our project and site there are a variety of different parameters you may be interested in calibrating on due to different uncertainties, including those having to do with vectors and interventions. In this example, we want to calibrate a parameter called `x_Temporary_Larval_Habitat` that controls the amount of larval mosquito habitat, and the amount of mosquitoes, accordingly. This is a common parameter in calibration efforts. We'll use our example site with some data that mimics a household survey (DHS) conducted in the site. In this hypothetical survey, a number of children under 5 years old were tested for malaria, and we know how many of them are positive. We'll use these reference points to select the best fit.
+
 
 1. Running calibration sweeps
     - Copy `example_run_sweeps.py` to a new script named `example_run_calibration.py`
@@ -305,11 +307,7 @@ Depending on our project and site there are a variety of different parameters yo
 <details><summary><span><em>Serialization</em></span></summary>
 <p>
 
-This exercise demonstrates the concept of serializing populations in simulations. Serialization allows us to run simulations, save them at a certain point in time, and simulate another campaign/scenario starting from the point we saved. We can run multiple simulations on the same population in series.
-
-We often use this process to save long initial simulations called burnins, during which population immunity is established. We don't want to wait for this to run everytime, so we serialize the population at the end of the burnin and then run shorter simulations, typically with additional interventions (also called "pickup" simulations).
-
-The exercise has three parts. In part 1 you will run and save a burnin simulation. In part 2 you will "pickup" this simulation and add antimalarial interventions. In part 3 you will repeat parts 1 & 2 using a longer burnin duration, and compare the results.
+This serialization exercise has three parts. In part 1 you will run and save a burnin simulation. In part 2 you will "pickup" this simulation and add antimalarial interventions. In part 3 you will repeat parts 1 & 2 using a longer burnin duration, and compare the results.
 
 1. Burning in
     - Description: Typically, we create 50-year burnin simulations to initialize transmission and immunity in our population of interest prior to trying to answer our research questions. For this example, we will start by only running the burnin for 10 years with 500 people to make sure everything is running correctly. For now we will also want to run 3 replicates. Be sure to use your calibrated `x_Temporary_Larval_Habitat` from the previous example.
