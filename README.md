@@ -467,16 +467,21 @@ This serialization exercise has three parts. In part 1 you will run and save a b
 
 ### Week 4: Addressing Research Questions
 
+This week will focus adding complexity to our simulations to better address our research questions through interventions, individual properties, and multi-node/spatial simulations. Each of these tools brings something beneficial to the table for many of the questions that you may be interested in answering using EMOD. There are many pre-defined interventions that can be added in EMOD -  we'll specifically focus on adding case management in these example exercises. Detailed descriptions of how-to add other interventions such as drug campaigns (SMC, PMC, MSAT, etc) and ITNs can be found in the [EMOD How-Tos](https://faculty-enrich-2022.netlify.app/modules/emod-how-to/emod-how-to/). Individual properties present a way that we can categorize and add heterogeneity to our population, such as through low and high access to care or assigning to placebo and intervention arms. We can target specific interventions and reports to individuals who meet the criteria, making these particularly useful to controlling aspects of the simulations that need not reach the entire population. Additionally, individual properties are fully customizable, so you can adapt them to fit the needs of your project. Likewise, the final exercise of this week will focus on spatial simulations which allow for multiple, separate nodes in our experimental setup. In many cases we don't need multiple nodes as we are focused on a particular area, but sometimes we are interested in multiple, notably different areas for the same questions and want to maintain their spatial relationships, particularly migration of both human and mosquito hosts. In these cases, we can add a spatial setup to the model that will work in largely the same way the individual nodes do, just in multiple locations.
+
 **Instructions**
 
 Click the arrow to expand:
-<details><summary><span><em>Individual Properties</em></span></summary>
-<p
+<details><summary><span><em>Adding Interventions</em></span></summary>
+<p>
+
+As we start thinking about adding interventions to our simulations, we should also think about how to construct the timeline. This is particularly useful for project work as you match to specific sites with data on incidence and prevalence, when (and what) interventions were implemented, etc. For now, let's think about it more simply, building off of what we learned last week. We'll first want to initialize the population through a 50 year burnin with no interventions. You can either use the 50 year burnin you created during the last exercise or increase your population size back to 1000-2000 and re-run the burnin while you work on this exercise's scripts (the pickup).
+
 
 </p>
 </details>
 
-<details><summary><span><em>Adding Interventions</em></span></summary>
+<details><summary><span><em>Individual Properties</em></span></summary>
 <p>
 
 
