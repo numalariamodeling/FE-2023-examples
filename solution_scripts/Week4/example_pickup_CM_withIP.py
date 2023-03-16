@@ -29,7 +29,7 @@ from emodpy_malaria.reporters.builtin import *
 import manifest
 
 import sys
-sys.path.append('../')
+sys.path.append('../../')
 from utils_slurm import build_burnin_df
 
 serialize_years=50
@@ -73,7 +73,7 @@ def set_param(simulation, param, value):
     """
     return simulation.task.set_parameter(param, value)
 
-def build_camp(cm_cov_U5=0.75):
+def build_camp(cm_cov_U5=0.75,cm_start=1):
     """
     This function builds a campaign input file for the DTK using emod_api.
     """
@@ -81,7 +81,7 @@ def build_camp(cm_cov_U5=0.75):
     camp.schema_path = manifest.schema_file
     
     # Calculating the coverage for low and high access groups
-    # We assume high access group = 0.5 of total population (see demographics)
+    # We assume high access group = 0.5 of total population (see demographics setup)
     frac_high = 0.5
     if cm_cov_U5 > frac_high:
         cm_cov_U5_high = 1
@@ -92,7 +92,7 @@ def build_camp(cm_cov_U5=0.75):
     
     # Add case management for the low access group by age groups and severity
     # This example assumes adults will seek treatment 75% as often as U5s and severe cases will seek treatment 15% more than U5s (up to 100% coverage)
-    cm.add_treatment_seeking(camp, start_day=1, drug=['Artemether', 'Lumefantrine'],
+    cm.add_treatment_seeking(camp, start_day=cm_start, drug=['Artemether', 'Lumefantrine'],
                        targets=[{'trigger': 'NewClinicalCase', 'coverage': cm_cov_U5_low, 'agemin': 0, 'agemax': 5,
                                  'seek': 1,'rate': 0.3},
                                  {'trigger': 'NewClinicalCase', 'coverage': cm_cov_U5_low*0.75, 'agemin': 5, 'agemax': 115,
@@ -101,7 +101,7 @@ def build_camp(cm_cov_U5=0.75):
                                  'seek': 1,'rate': 0.5}],          
                        ind_property_restrictions=[{'Access': 'Low'}],
                        broadcast_event_name="Received_Treatment")
-    cm.add_treatment_seeking(camp, start_day=1, drug=['Artemether', 'Lumefantrine'],
+    cm.add_treatment_seeking(camp, start_day=cm_start, drug=['Artemether', 'Lumefantrine'],
                        targets=[{'trigger': 'NewClinicalCase', 'coverage': cm_cov_U5_high, 'agemin': 0, 'agemax': 5,
                                  'seek': 1,'rate': 0.3},
                                  {'trigger': 'NewClinicalCase', 'coverage': cm_cov_U5_high*0.75, 'agemin': 5, 'agemax': 115,
@@ -110,12 +110,13 @@ def build_camp(cm_cov_U5=0.75):
                                  'seek': 1,'rate': 0.5}],          
                        ind_property_restrictions=[{'Access': 'High'}],
                        broadcast_event_name="Received_Treatment")
-
-                       
-                        
-    
     return camp
-    
+
+def update_campaign_multiple_parameters(simulation, cm_cov_U5, cm_start):
+
+    build_campaign_partial = partial(build_camp, cm_cov_U5=cm_cov_U5, cm_start=cm_start)
+    simulation.task.create_campaign_from_callback(build_campaign_partial)
+    return dict(cm_cov_U5=cm_cov_U5, cm_start=cm_start)
 
 def update_serialize_parameters(simulation, df, x: int):
 
@@ -125,6 +126,7 @@ def update_serialize_parameters(simulation, df, x: int):
     simulation.task.set_parameter("Serialized_Population_Filenames", df["Serialized_Population_Filenames"][x])
     simulation.task.set_parameter("Serialized_Population_Path", os.path.join(path, "output"))
     simulation.task.set_parameter("Run_Number", seed) #match pickup simulation run number to burnin simulation
+    simulation.task.set_parameter("x_Temporary_Larval_Habitat", float(df["x_Temporary_Larval_Habitat"][x])
 
     return {"Run_Number":seed}
 
@@ -180,12 +182,20 @@ def general_sim(selected_platform):
     # Create simulation sweep with builder
     builder = SimulationBuilder()
     
-    #Create burnin df, retrieved from burnin ID (defined above)
+    # Create burnin df, retrieved from burnin ID (defined above)
     burnin_df = build_burnin_df(burnin_exp_id, platform,serialize_years*365)
 
     builder.add_sweep_definition(partial(update_serialize_parameters, df=burnin_df), range(len(burnin_df.index)))
-       
-
+      
+    # Add intervention sweeps   
+    builder.add_multiple_parameter_sweep_definition(
+        update_campaign_multiple_parameters,
+        dict(
+            cm_cov_U5=[0.0, 0.5, 0.95],
+            cm_start=[1, 100, 365]
+        )
+    )
+    
     #Add reports
     #report received treatment events
     add_event_recorder(task, event_list=["Received_Treatment"],
@@ -196,14 +206,14 @@ def general_sim(selected_platform):
     # MalariaSummaryReport
     add_malaria_summary_report(task, manifest, start_day=1, end_day=serialize_years*365, reporting_interval=31,
                                age_bins=[0.25, 5, 115],
-                               max_number_reports=52,
+                               max_number_reports=pickup_years*13,
                                must_have_ip_key_value='Access:High',
                                filename_suffix='_highaccess',
                                pretty_format=True)
                                
     add_malaria_summary_report(task, manifest, start_day=1, end_day=serialize_years*365, reporting_interval=31,
                                age_bins=[0.25, 5, 115],
-                               max_number_reports=52,
+                               max_number_reports=pickup_years*13,
                                must_have_ip_key_value='Access:Low',
                                filename_suffix='_lowaccess',
                                pretty_format=True)

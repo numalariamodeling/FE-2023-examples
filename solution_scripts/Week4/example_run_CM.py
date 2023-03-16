@@ -18,18 +18,24 @@ import emod_api.config.default_from_schema_no_validation as dfs
 import emod_api.campaign as camp
 
 #emodpy-malaria
-import emodpy_malaria.interventions.treatment_seeking as ts
+import emodpy_malaria.interventions.treatment_seeking as cm
 from emodpy_malaria.reporters.builtin import *
 import emodpy_malaria.demographics.MalariaDemographics as Demographics
+
 
 # importing all the reports functions, they all start with add_
 from emodpy_malaria.reporters.builtin import *
 
-
 import manifest
 
+import sys
+sys.path.append('../../')
+from utils_slurm import build_burnin_df
+
 serialize_years=50
+pickup_years=5
 num_seeds=5
+burnin_exp_id = 'ac7d567c-aa94-4fd3-929a-f295cc682b1c'
 
 def set_param_fn(config):
     """
@@ -39,10 +45,8 @@ def set_param_fn(config):
     config = conf.set_team_defaults(config, manifest)
     conf.add_species(config, manifest, ["gambiae", "arabiensis", "funestus"])
 
-    config.parameters.Simulation_Duration = serialize_years*365
+    config.parameters.Simulation_Duration = pickup_years*365
     
-    #Add calibrated larval habitat
-    config.parameters.x_Temporary_Larval_Habitat = 0.8 #sample value - not through calibration
     
     #Add climate files
     config.parameters.Air_Temperature_Filename = os.path.join('climate','example_air_temperature_daily.bin')
@@ -50,11 +54,10 @@ def set_param_fn(config):
     config.parameters.Rainfall_Filename = os.path.join('climate','example_rainfall_daily.bin')
     config.parameters.Relative_Humidity_Filename = os.path.join('climate', 'example_relative_humidity_daily.bin')
     
-    #Add serialization - add burnin "write" parameters to config.json
-    config.parameters.Serialized_Population_Writing_Type = "TIMESTEP"
-    config.parameters.Serialization_Time_Steps = [365 * serialize_years]
-    config.parameters.Serialization_Mask_Node_Write = 0
-    config.parameters.Serialization_Precision = "REDUCED"
+    #Add serialization - add pickup "read" parameters to config.json
+    config.parameters.Serialized_Population_Reading_Type = "READ"
+    config.parameters.Serialization_Mask_Node_Read = 0
+    config.parameters.Serialization_Time_Steps = [serialize_years*365]
 
     return config
     
@@ -70,14 +73,44 @@ def set_param(simulation, param, value):
     """
     return simulation.task.set_parameter(param, value)
 
-def build_camp():
+def build_camp(cm_cov_U5=0.75, cm_start = 1):
     """
     This function builds a campaign input file for the DTK using emod_api.
     """
 
     camp.schema_path = manifest.schema_file
+
     
+    # Add case management
+    # This example assumes adults will seek treatment 75% as often as U5s and severe cases will seek treatment 15% more than U5s (up to 100% coverage)
+    cm.add_treatment_seeking(camp, start_day=cm_start, drug=['Artemether', 'Lumefantrine'],
+                       targets=[{'trigger': 'NewClinicalCase', 'coverage': cm_cov_U5, 'agemin': 0, 'agemax': 5,
+                                 'seek': 1,'rate': 0.3},
+                                 {'trigger': 'NewClinicalCase', 'coverage': cm_cov_U5*0.75, 'agemin': 5, 'agemax': 115,
+                                 'seek': 1,'rate': 0.3},
+                                 {'trigger': 'NewSevereCase', 'coverage': min(cm_cov_U5*1.15,1), 'agemin': 0, 'agemax': 115,
+                                 'seek': 1,'rate': 0.5}],
+                       broadcast_event_name="Received_Treatment")            
+                       
     return camp
+    
+def update_campaign_multiple_parameters(simulation, cm_cov_U5, cm_start):
+
+    build_campaign_partial = partial(build_camp, cm_cov_U5=cm_cov_U5, cm_start=cm_start)
+    simulation.task.create_campaign_from_callback(build_campaign_partial)
+    return dict(cm_cov_U5=cm_cov_U5, cm_start=cm_start)
+
+def update_serialize_parameters(simulation, df, x: int):
+
+    path = df["serialized_file_path"][x]
+    seed = int(df["Run_Number"][x])
+    
+    simulation.task.set_parameter("Serialized_Population_Filenames", df["Serialized_Population_Filenames"][x])
+    simulation.task.set_parameter("Serialized_Population_Path", os.path.join(path, "output"))
+    simulation.task.set_parameter("Run_Number", seed) #match pickup simulation run number to burnin simulation
+    simulation.task.set_parameter("x_Temporary_Larval_Habitat", float(df["x_Temporary_Larval_Habitat"][x])
+
+    return {"Run_Number":seed}
 
 
 def build_demog():
@@ -86,7 +119,8 @@ def build_demog():
     """
 
     demog = Demographics.from_template_node(lat=1, lon=2, pop=1000, name="Example_Site")
-    demog.SetEquilibriumVitalDynamics()
+    demog.SetEquilibriumVitalDynamics()                                
+    
                                             
     return demog
 
@@ -126,21 +160,42 @@ def general_sim(selected_platform):
     # Create simulation sweep with builder
     builder = SimulationBuilder()
     
-    builder.add_sweep_definition(partial(set_param, param='Run_Number'), range(num_seeds))
+    # Create burnin df, retrieved from burnin ID (defined above)
+    burnin_df = build_burnin_df(burnin_exp_id, platform,serialize_years*365)
 
-    #Add reports
-    add_event_recorder(task, event_list=["HappyBirthday", "Births"],
-                       start_day=1, end_day=serialize_years*365, node_ids=[1], min_age_years=0,
+    builder.add_sweep_definition(partial(update_serialize_parameters, df=burnin_df), range(len(burnin_df.index)))
+    
+    # Sweep over case management coverage levels
+    # this will sweep over the entire parameter space in a cross-product fashion
+    # you will get 3x3 simulations (x number other sweeps/sims from the burnin, such as Run_Number)
+    builder.add_multiple_parameter_sweep_definition(
+        update_campaign_multiple_parameters,
+        dict(
+            cm_cov_U5=[0.0, 0.5, 0.95],
+            cm_start=[1, 100, 365]
+        )
+    )
+       
+
+    # Add reports
+    # report received treatment events
+    add_event_recorder(task, event_list=["Received_Treatment"],
+                       start_day=1, end_day=pickup_years*365, node_ids=[1], min_age_years=0,
                        max_age_years=100)
                        
     # MalariaSummaryReport
     add_malaria_summary_report(task, manifest, start_day=1, end_day=serialize_years*365, reporting_interval=31,
                                age_bins=[0.25, 5, 115],
-                               max_number_reports=(serialize_years*13),
+                               max_number_reports=(pickup_years*13),
+                               pretty_format=True)
+                               
+    add_malaria_summary_report(task, manifest, start_day=1, end_day=serialize_years*365, reporting_interval=31,
+                               age_bins=[0.25, 5, 115],
+                               max_number_reports=(pickup_years*13),
                                pretty_format=True)
 
     # create experiment from builder
-    experiment = Experiment.from_builder(builder, task, name="example_sim_burnin")
+    experiment = Experiment.from_builder(builder, task, name="example_sim_pickup_CM")
 
 
     # The last step is to call run() on the ExperimentManager to run the simulations.

@@ -40,7 +40,9 @@ def set_param_fn(config):
     conf.add_species(config, manifest, ["gambiae", "arabiensis", "funestus"])
 
     config.parameters.Simulation_Duration = serialize_years*365
-    
+
+    #Add calibrated larval habitat
+    config.parameters.x_Temporary_Larval_Habitat = 0.8 #sample value - not through calibration   
     
     #Add climate files
     config.parameters.Air_Temperature_Filename = os.path.join('climate','example_air_temperature_daily.bin')
@@ -139,14 +141,14 @@ def general_sim(selected_platform):
     # MalariaSummaryReport
     add_malaria_summary_report(task, manifest, start_day=1, end_day=serialize_years*365, reporting_interval=365,
                                age_bins=[0.25, 5, 115],
-                               max_number_reports=52,
+                               max_number_reports=serialize_years*13,
                                must_have_ip_key_value='Access:High',
                                filename_suffix='_highaccess',
                                pretty_format=True)
                                
     add_malaria_summary_report(task, manifest, start_day=1, end_day=serialize_years*365, reporting_interval=365,
                                age_bins=[0.25, 5, 115],
-                               max_number_reports=52,
+                               max_number_reports=serialize_years*13,
                                must_have_ip_key_value='Access:Low',
                                filename_suffix='_lowaccess',
                                pretty_format=True)
