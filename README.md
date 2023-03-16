@@ -236,39 +236,39 @@ For now we'll start with a simple sweep over one config parameter, such as the r
 - Beneath where you set the `sim_years`, set `num_seeds = 5`. We'll use this later to tell EMOD how many different run numbers, or stochastic realizations, we want for this experiment.
 - Next, define a simple function that will allow you to set individual config parameters under the `set_param_fn()` where you define the constant config parameters. 
 
-```py
-def set_param(simulation, param, value):
-    """
-    Set specific parameter value
-    Args:
-        simulation: idmtools Simulation
-        param: parameter
-        value: new value
-    Returns:
-        dict
-    """
-    return simulation.task.set_parameter(param, value)
-```
+  ```py
+  def set_param(simulation, param, value):
+      """
+      Set specific parameter value
+      Args:
+          simulation: idmtools Simulation
+          param: parameter
+          value: new value
+      Returns:
+          dict
+      """
+      return simulation.task.set_parameter(param, value)
+  ```
 
 - As mentioned, we also need to adjust the way we create our experiments in `general_sim()`. Notice that we are currently use `Experiment.from_task()` which creates the experiment and simulations directly from the defined task. To sweep over variables we'll have to switch to using `Experiment.from_builder()` that works to setup each simulation directly rather than an entire experiment with the same parameters.
     - First, initialize the builder such that `builder = SimulationBuilder()`. This should go in `general_sim()` between adding assets and reports. 
     - Add the sweep to the builder using `add_sweep_definition()`. Here you'll create a partial of `set_param` (defined above), pass the config parameter that you'd like to set to this partial, and then provide the range of values to sweep over. In this example, tell the function to sweep over `Run_Number` over the range of the `num_seeds` defined above (will output values of 0 - `num_seeds`).
     - Finally, you'll need to remove the `Experiment.from_task()` creation and replace with `Experiment.from_builder(builder, task, name=<expname>)`. This will create experiments based on the task but with the additional information contained in the builder, including the added sweep. Make sure you keep the modified experiment name!
+  
+      ```py
+      def general_sim()
+          ## existing contents
 
-```py
-def general_sim()
-    ## existing contents
-
-    # Create simulation sweep with builder
-    builder = SimulationBuilder()
+          # Create simulation sweep with builder
+          builder = SimulationBuilder()
     
-    builder.add_sweep_definition(partial(set_param, param='Run_Number'), range(num_seeds))
+          builder.add_sweep_definition(partial(set_param, param='Run_Number'), range(num_seeds))
     
-    ## reports are still located here
+         ## reports are still located here
     
-    # create experiment from builder
-    experiment = Experiment.from_builder(builder, task, name="example_sim_sweep")
-```
+        # create experiment from builder
+       experiment = Experiment.from_builder(builder, task, name="example_sim_sweep")
+      ```
 
 - Run the script, wait for it to finish, and checkout your outputs.
 - Update the experiment name and ID in `analyzer_W2.py`. You'll notice that the `sweep_variable` parameter is already set to `Run_Number` so the analyzer will pull out this tag for each simulation. This list can take more parameters/tags as necessary when you start adding more complex sweeps. 
@@ -318,7 +318,7 @@ This serialization exercise has three parts. In part 1 you will run and save a b
         - Campaign setup
         - Demographics
         - EMODTask & experiment builder
-        - Reporters: Reporting during the burnin simulation is optional, it depends on the simulation duration and what you want to track or to check. If not disabled, `InsetChart` is automatically included, and can be plotted, alternatively one can disable the `InsetChart` and include an annual summary report to keep track of malaria metrics in an age group that is also plotted during the main simulation.
+        - Reporters: Reporting during the burnin simulation is optional, it depends on the simulation duration and what you want to track or to check. If not disabled, `InsetChart` is automatically included, and can be plotted, alternatively one can disable the `InsetChart` and include an annual summary report to keep track of malaria metrics in an age group that is also plotted during the main simulation. *HINT: you may want to check the max number of reports generated in the summary reporter*
         - Code execution/run script
      - Now that you've got the basics of your script, we'll add the parameters needed for serialization so that you can "pick up" from them again later. Add the code chunk below to update the serialization "writing" configuration parameters. (see [Simple Burnin](https://faculty-enrich-2022.netlify.app/modules/emod-how-to/emod-how-to/#simple-burn-in) in EMOD How-To's). The section ideally would be placed at the end of your `set_param_fn()`.
         - `Serialization_Population_Writing_Type` sets the format we want to serialize in, typically "timestep" that will save the population at a particular time step (days)
@@ -343,54 +343,54 @@ This serialization exercise has three parts. In part 1 you will run and save a b
     - While waiting for your simulations to finish, we can adapt the `analyzer_w2.py` to better meet the needs of serialization. Copy this script and name it `serialization_analyzer.py`
         - Start by adding a section to the executable `if __name__ == "__main__":` section of the analyzer that defines the serialization duration and which step (burnin or pickup) you'd like to analyze, in this case the burnin.
         
-        ```py
-        serialize_years = 10  # Same as in example_run_burnin.py
-        step = 'burnin'
-        ```
+          ```py
+          serialize_years = 10  # Same as in example_run_burnin.py
+          step = 'burnin'
+          ```
         - We may also want to adjust our sweep variables and `InsetChart` channels. Let's try changing the channels to the four below and adding an if statement to set sweep variables for the pickup. Right now this is the same as the burnin and only sweeps over Run_Number, but this can be used for additional parameters, such as intervention coverage, as you add complexity to the pickup. 
         
-        ```py
-        ## Set sweep_variables and event_list as required depending on experiment
-        channels_inset_chart = ['Statistical Population', 'New Clinical Cases', 'Adult Vectors', 'Infected']
-        sweep_variables = ['Run_Number']
-        if step == 'pickup':
-            sweep_variables = ['Run_Number'] # for times when you add additional items to the pickup, you can add more sweep variables here
-        ```
+          ```py
+          ## Set sweep_variables and event_list as required depending on experiment
+          channels_inset_chart = ['Statistical Population', 'New Clinical Cases', 'Adult Vectors', 'Infected']
+          sweep_variables = ['Run_Number']
+          if step == 'pickup':
+              sweep_variables = ['Run_Number'] # for times when you add additional items to the pickup, you can add more sweep variables here
+          ```
         - To use the "step" system we will want to also modify our analyzers run statement. Assuming you included only the default report, `InsetChart`, in your burnin then you will want to run only that analyzer for the burnin step. For the pickup you will likely want to include a version of the summary report we've been using so we'll include that in the pickup step in the analyzer. Notice that these are largely the same as how we were calling them previously, with the addition of a `start_year` parameter. This functionality has been in the actual analyzer the whole time, but we hadn't referenced it; however, it becomes more important as we think about time in serialization. This allows us to essentially set the date for for the simulation outputs such that our burnin will end in 2023 (and such should start the number of `serialize_years` prior) and the pickup will start where the burnin leaves off in 2023. We then run the analyzer based on the step we set above. We can keep the basic plotter after this just to get an idea of what is going on in our simulations. 
         
-        ```py
-        with Platform('SLURM_LOCAL',job_directory=jdir) as platform:
+          ```py
+          with Platform('SLURM_LOCAL',job_directory=jdir) as platform:
 
-            for expname, exp_id in expts.items():
-                analyzers_burnin = [InsetChartAnalyzer(expt_name=expname,
+              for expname, exp_id in expts.items():
+                  analyzers_burnin = [InsetChartAnalyzer(expt_name=expname,
                                            channels=channels_inset_chart,
                                            start_year=2023 - serialize_years,
                                            sweep_variables=sweep_variables,
                                            working_dir=wdir),
-                                    ]
+                                      ]
 
-                analyzers_pickup = [InsetChartAnalyzer(expt_name=expt_name,
+                  analyzers_pickup = [InsetChartAnalyzer(expt_name=expt_name,
                                            channels=channels_inset_chart,
                                            start_year=2023,
                                            sweep_variables=sweep_variables,
                                            working_dir=wdir),
-                                    MonthlyPfPRAnalyzer(expt_name=expt_name,
+                                      MonthlyPfPRAnalyzer(expt_name=expt_name,
                                             start_year=2023,
                                             sweep_variables=sweep_variables,
                                             working_dir=wdir)
-                                    ]
-
-            if step == 'burnin':
-                am = AnalyzeManager(expt_id, analyzers=analyzers_burnin)
-                am.analyze()
+                                      ]
+  
+              if step == 'burnin':
+                  am = AnalyzeManager(expt_id, analyzers=analyzers_burnin)
+                  am.analyze()
                 
-            elif step == 'pickup':
-                am = AnalyzeManager(expt_id, analyzers=analyzers_pickup)
-                am.analyze()
+              elif step == 'pickup':
+                  am = AnalyzeManager(expt_id, analyzers=analyzers_pickup)
+                  am.analyze()
             
-            else:
-                print('Please define step, options are burnin or pickup') 
-        ```
+              else:
+                  print('Please define step, options are burnin or pickup') 
+          ```
     - Run the analyzer script
     
 2. Picking up
@@ -475,8 +475,77 @@ Click the arrow to expand:
 <details><summary><span><em>Adding Interventions</em></span></summary>
 <p>
 
-As we start thinking about adding interventions to our simulations, we should also think about how to construct the timeline. This is particularly useful for project work as you match to specific sites with data on incidence and prevalence, when (and what) interventions were implemented, etc. For now, let's think about it more simply, building off of what we learned last week. We'll first want to initialize the population through a 50 year burnin with no interventions. You can either use the 50 year burnin you created during the last exercise or increase your population size back to 1000-2000 and re-run the burnin while you work on this exercise's scripts (the pickup).
+As we start thinking about adding interventions to our simulations, we should also think about how to construct the timeline. This is particularly useful for project work as you match to specific sites with data on incidence and prevalence, when (and what) interventions were implemented, etc. For now, let's think about it more simply, building off of what we learned last week. We'll first want to initialize the population through a 50 year burnin with no interventions. Increase your population size back to 1000 for 5 replicates and re-run the burnin while you work on this exercise's scripts (the pickup).
 
+- Copy the `example_run_pickup.py` script you made last week, rename it `example_pickup_CM.py`. *NOTE: we are adding interventions to a pickup in this example, but you do not have to serialize to use interventions, individual properties, or multi-node simulations*
+- You'll need to import the treatment seeking/case management functionalities to your script from emodpy-malaria in order to use this intervention function:
+
+    ```py
+    import emodpy_malaria.interventions.treatment_seeking as cm
+    ```
+
+- Once you have the case management functions imported, you can add them to your `build_camp()` function. We'll use `add_treatment_seeking()`, specifically - this function passes all of the important parameters for case management to our broader campaign file. There is a small set of parameters that we commonly use, below, but to see all of the available controls you can explore the [source code](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/interventions/treatment_seeking.py).
+    - `start_day`: indicates when the intervention should begin relative to the beginning of the simulation. This is particularly useful when you want interventions to start at different times in the simulations.
+    - `drug`: indicates which drugs are to be used for case management. Artemether and Lumefantrine are the default, but all available drugs are defined in emodpy-malaria's [`malaria_drug_params`](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/malaria_drug_params.csv)
+    - `targets`: controls the target populations and triggers for case management. You'll notice that we use typically use the events `NewClinicalCase` and `NewSevereCase` to trigger case management. We can further add coverage levels and minimum/maximum age targets. In this example, we assume we know case management for children under 5 years old (U5) and that coverage for everyone over 5 years of age will be 75% of the U5 coverage. We also assume that coverage for severe cases (all ages) is 115% of U5 coverage, up to 100% coverage. This means that we'll want to add multiple target dictionaries to our target parameter to capture both groups. Finally, the target dictionary also includes `seek` (the delay rate, in 1/days, to seeking care) and `rate` (the delay rate, in days, from time to seeking care to receiving care, typically 0.3 for uncomplicated cases meaning that there is a three day delay on average).
+    - `broadcast_event_name`: indicates the name of the event to be broadcast at each event for reporting purposes. This is particularly helpful if you have multiple or changing versions of the same intervention, such as with using different case management drugs, in a single simulation.
+- Add case management to your `build_camp()` function using the script below. Notice that we include `cm.` before `add_treatment_seeking()` - this is because we imported this function as `cm` so it is helpful to reference to make sure we are using the function we think we are. You'll also notice that we are adding `cm_cov_U5=0.75` and `cm_start=1` to the arguments that `build_camp()` takes - we do this so we can pass it values from a sweep over coverage and the start date for case management later in the script. The values included are defaults that you can adjust as needed but are available so you don't have to provide a sweep value if unnecessary.
+
+    ```py
+    def build_camp(cm_cov_U5=0.75, cm_start = 1):
+
+        camp.schema_path = manifest.schema_file
+
+        # Add case management
+        # This example assumes adults will seek treatment 75% as often as U5s and severe cases will seek treatment 15% more than U5s (up to 100% coverage)
+        cm.add_treatment_seeking(camp, start_day=cm_start, drug=['Artemether', 'Lumefantrine'],
+                           targets=[{'trigger': 'NewClinicalCase', 'coverage': cm_cov_U5, 
+                                     'agemin': 0, 'agemax': 5,
+                                     'seek': 1,'rate': 0.3},
+                                    {'trigger': 'NewClinicalCase', 'coverage': cm_cov_U5*0.75, 
+                                      'agemin': 5, 'agemax': 115,
+                                      'seek': 1,'rate': 0.3},
+                                    {'trigger': 'NewSevereCase', 'coverage': min(cm_cov_U5*1.15,1), 
+                                      'agemin': 0, 'agemax': 115,
+                                      'seek': 1,'rate': 0.5}],
+                           broadcast_event_name="Received_Treatment")            
+                       
+        return camp
+    ```
+
+- To help sweep over multiple campaign parameters at once, we will also add a function to update these values together after `build_camp()`. In this update function, we include a partial of `build_camp()` that takes values for both of the variables we defined in the last step. It then creates the campaign for a particular simulation from a callback of the partial. Finally, this function returns a dictionary of the parameters and values that we are updating here to add a tag for each to the simulation metadata.
+
+    ```py
+    def update_campaign_multiple_parameters(simulation, cm_cov_U5, cm_start):
+
+        build_campaign_partial = partial(build_camp, cm_cov_U5=cm_cov_U5, cm_start=cm_start)
+        simulation.task.create_campaign_from_callback(build_campaign_partial)
+    
+        return dict(cm_cov_U5=cm_cov_U5, cm_start=cm_start)
+    ```
+
+- As discussed in last week's exercise on adding parameter sweeps, we'll need to add a sweep to the builder in `general_sim()` for the campaign in addition to the config params. However, this time we will need to use `add_multiple_parameter_sweep_definition()` instead of `add_sweep_definition()` since we are updating both the coverage and start day. If you were to use `add_sweep_definition` directly with a partial of `build_camp()` for each parameter individually, the second time you call the partial would override the first so only one parameter would be updated. On the other hand, `add_multiple_parameter_sweep_definition()` allows us to sweep over the entire parameter space in a cross-product fashion. It takes our update function and we provide a dictionary of our parameters and their list of values we want to sweep over. In this example we will get 3x3x5 = 45 total simulations (coverage levels x start days x run numbers) that model each unique parameter combination.
+
+    ```py
+    def general_sim()
+        ## existing contents
+    
+        ## case management sweep 
+        builder.add_multiple_parameter_sweep_definition(
+            update_campaign_multiple_parameters,
+            dict(
+                cm_cov_U5=[0.0, 0.5, 0.95],
+                cm_start=[1, 100, 365]
+            )
+        )
+    ```
+
+- Update the `ReportEventRecorder` event list to include `Received_Treatment` from our case management campaign (either in addition to the event list we've used previously or as the only event).
+- Update the experiment name to `example_sim_pickup_CM`.
+- Run the script. While you wait, update `serialization_analyzer.py` with your new experiment name, ID, and sweep variables.
+- When the simulations finish, run the analyzer.
+- Try plotting your results. You can build off of the scripts you made for the previous serialization example, but how might you consider the changes we've made this week? Should you make changes based on the added intervention? What about the sweeps?
+- Check out some of the other [interventions](https://github.com/numalariamodeling/emodpy-malaria/tree/main/emodpy_malaria/interventions) in emodpy-malaria. [Drug campaigns](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/interventions/drug_campaign.py), [ITNs](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/interventions/bednet.py), and [IRS](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/interventions/irs.py) may be of particular interest. For an added challenge, try adding one (or more!) of these interventions to this simulation on your own or with the help of the How-Tos. An example script with multiple interventions is located in the solution scripts **IN PROGRESS**
 
 </p>
 </details>
@@ -485,12 +554,12 @@ As we start thinking about adding interventions to our simulations, we should al
 <p>
 
 
-**special test exercise to add to burnin/pickup?**
+
 </p>
 </details>
 
 <details><summary><span><em>Multi-node/Spatial Simulations</em></span></summary>
 <p>
-
+**this one we should have them start from scratch again**
 </p>
 </details>
