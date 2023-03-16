@@ -18,7 +18,6 @@ import emod_api.config.default_from_schema_no_validation as dfs
 import emod_api.campaign as camp
 
 #emodpy-malaria
-import emodpy_malaria.interventions.treatment_seeking as ts
 from emodpy_malaria.reporters.builtin import *
 import emodpy_malaria.demographics.MalariaDemographics as Demographics
 
@@ -90,6 +89,7 @@ def update_serialize_parameters(simulation, df, x: int):
     simulation.task.set_parameter("Serialized_Population_Filenames", df["Serialized_Population_Filenames"][x])
     simulation.task.set_parameter("Serialized_Population_Path", os.path.join(path, "output"))
     simulation.task.set_parameter("Run_Number", seed) #match pickup simulation run number to burnin simulation
+    simulation.task.set_parameter("x_Temporary_Larval_Habitat", float(df["x_Temporary_Larval_Habitat"][x])
 
     return {"Run_Number":seed}
 
@@ -140,25 +140,26 @@ def general_sim(selected_platform):
     # Create simulation sweep with builder
     builder = SimulationBuilder()
     
-    #Create burnin df, retrieved from burnin ID (defined above)
+    # Create burnin df, retrieved from burnin ID (defined above)
     burnin_df = build_burnin_df(burnin_exp_id, platform,serialize_years*365)
 
     builder.add_sweep_definition(partial(update_serialize_parameters, df=burnin_df), range(len(burnin_df.index)))
        
 
-    #Add reports
+    # Add reports
     add_event_recorder(task, event_list=["HappyBirthday", "Births"],
                        start_day=1, end_day=pickup_years*365, node_ids=[1], min_age_years=0,
                        max_age_years=100)
                        
     # MalariaSummaryReport
-    add_malaria_summary_report(task, manifest, start_day=1, end_day=pickup_years*365, reporting_interval=7,
+    add_malaria_summary_report(task, manifest, start_day=1, end_day=pickup_years*365, reporting_interval=30,
                                age_bins=[0.25, 5, 115],
-                               max_number_reports=52,
+                               max_number_reports=pickup_years*13,
+                               filename_suffix="monthly",
                                pretty_format=True)
 
     # create experiment from builder
-    experiment = Experiment.from_builder(builder, task, name="example_sim_burnin")
+    experiment = Experiment.from_builder(builder, task, name="example_sim_pickup")
 
 
     # The last step is to call run() on the ExperimentManager to run the simulations.

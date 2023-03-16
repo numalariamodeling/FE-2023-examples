@@ -165,7 +165,7 @@ def general_sim(selected_platform):
 
     builder.add_sweep_definition(partial(update_serialize_parameters, df=burnin_df), range(len(burnin_df.index)))
     
-    # Sweep over case management coverage levels
+    # Sweep over case management coverage levels & start day
     # this will sweep over the entire parameter space in a cross-product fashion
     # you will get 3x3 simulations (x number other sweeps/sims from the burnin, such as Run_Number)
     builder.add_multiple_parameter_sweep_definition(
@@ -184,15 +184,12 @@ def general_sim(selected_platform):
                        max_age_years=100)
                        
     # MalariaSummaryReport
-    add_malaria_summary_report(task, manifest, start_day=1, end_day=serialize_years*365, reporting_interval=31,
+    add_malaria_summary_report(task, manifest, start_day=1, end_day=pickup_years*365, reporting_interval=30,
                                age_bins=[0.25, 5, 115],
                                max_number_reports=(pickup_years*13),
                                pretty_format=True)
                                
-    add_malaria_summary_report(task, manifest, start_day=1, end_day=serialize_years*365, reporting_interval=31,
-                               age_bins=[0.25, 5, 115],
-                               max_number_reports=(pickup_years*13),
-                               pretty_format=True)
+
 
     # create experiment from builder
     experiment = Experiment.from_builder(builder, task, name="example_sim_pickup_CM")
