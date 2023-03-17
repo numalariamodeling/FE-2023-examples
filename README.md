@@ -467,7 +467,10 @@ This serialization exercise has three parts. In part 1 you will run and save a b
 
 ### Week 4: Addressing Research Questions
 
-This week will focus adding complexity to our simulations to better address our research questions through interventions, individual properties, and multi-node/spatial simulations. Each of these tools brings something beneficial to the table for many of the questions that you may be interested in answering using EMOD. There are many pre-defined interventions that can be added in EMOD -  we'll specifically focus on adding case management in these example exercises. Detailed descriptions of how-to add other interventions such as drug campaigns (SMC, PMC, MSAT, etc) and ITNs can be found in the [EMOD How-Tos](https://faculty-enrich-2022.netlify.app/modules/emod-how-to/emod-how-to/). Individual properties present a way that we can categorize and add heterogeneity to our population, such as through low and high access to care or assigning to placebo and intervention arms. We can target specific interventions and reports to individuals who meet the criteria, making these particularly useful to controlling aspects of the simulations that need not reach the entire population. Additionally, individual properties are fully customizable, so you can adapt them to fit the needs of your project. Likewise, the final exercise of this week will focus on spatial simulations which allow for multiple, separate nodes in our experimental setup. In many cases we don't need multiple nodes as we are focused on a particular area, but sometimes we are interested in multiple, notably different areas for the same questions and want to maintain their spatial relationships, particularly migration of both human and mosquito hosts. In these cases, we can add a spatial setup to the model that will work in largely the same way the individual nodes do, just in multiple locations.
+This week will focus adding complexity to our simulations to better address our research questions through interventions, individual properties, and multi-node/spatial simulations. Each of these tools brings something beneficial to the table for many of the questions that you may be interested in answering using EMOD. There are many pre-defined interventions that can be added in EMOD -  we'll specifically focus on adding case management in these example exercises. Detailed descriptions of how-to add other interventions such as drug campaigns (SMC, PMC, MSAT, etc) and ITNs can be found in the [EMOD How-Tos](https://faculty-enrich-2022.netlify.app/modules/emod-how-to/emod-how-to/). 
+Individual properties present a way that we can categorize and add heterogeneity to our population, such as through intervention access, study enrollment, and drug response groups. We can target specific interventions and reports to individuals who meet the criteria of these 'tags', making these particularly useful to controlling aspects of the simulations that need not reach the entire population. Additionally, individual properties are fully customizable, so you can adapt them to fit the needs of your project. 
+
+Likewise, the final exercise of this week will focus on spatial simulations which allow for multiple, separate nodes in our experimental setup. In many cases we don't need multiple nodes as we are focused on a particular area, but sometimes we are interested in multiple, notably different areas for the same questions and want to maintain their spatial relationships, particularly migration of both human and mosquito hosts. In these cases, we can add a spatial setup to the model that will work in largely the same way the individual nodes do, just in multiple locations.
 
 **Instructions**
 
@@ -524,7 +527,7 @@ As we start thinking about adding interventions to our simulations, we should al
         return dict(cm_cov_U5=cm_cov_U5, cm_start=cm_start)
     ```
 
-- As discussed in last week's exercise on adding parameter sweeps, we'll need to add a sweep to the builder in `general_sim()` for the campaign in addition to the config params. However, this time we will need to use `add_multiple_parameter_sweep_definition()` instead of `add_sweep_definition()` since we are updating both the coverage and start day. If you were to use `add_sweep_definition` directly with a partial of `build_camp()` for each parameter individually, the second time you call the partial would override the first so only one parameter would be updated. On the other hand, `add_multiple_parameter_sweep_definition()` allows us to sweep over the entire parameter space in a cross-product fashion. It takes our update function and we provide a dictionary of our parameters and their list of values we want to sweep over. In this example we will get 3x3x5 = 45 total simulations (coverage levels x start days x run numbers) that model each unique parameter combination.
+- As discussed in last week's exercise on adding parameter sweeps, we'll need to add a sweep to the builder in `general_sim()` for the campaign in addition to the config params. However, this time we will need to use `add_multiple_parameter_sweep_definition()` instead of `add_sweep_definition()` since we are updating both the coverage and start day. If you were to use `add_sweep_definition` directly with a partial of `build_camp()` for each parameter individually, the second time you call the partial would override the first so only one parameter would be updated. On the other hand, `add_multiple_parameter_sweep_definition()` allows us to sweep over the entire parameter space in a cross-product fashion. It takes our update function and we provide a dictionary of our parameters and their list of values we want to sweep over. We'll sweep over three coverage values (0, 50%, and 95%), and three intervention start dates (1, 100, and 365). For now these are relatively arbitrary values that are just meant to illustrate the functionality in EMOD. In this example we will get 3x3x5 = 45 total simulations (coverage levels x start days x run numbers) that model each unique parameter combination.
 
     ```py
     def general_sim()
@@ -553,8 +556,121 @@ As we start thinking about adding interventions to our simulations, we should al
 <details><summary><span><em>Individual Properties</em></span></summary>
 <p>
 
+Individual properties (IPs) can be added to any simulation to add additional information useful to specific projects. Depending on the research question individual properties might only be needed for interventions and not for the reports, or vice versa, if not both.
 
+In this example, we'll continue building off of the serialization structure, adding a case management access IP to our previous workflow.  We'll use individual properties to create 2 subgroups for this access: low access, high access. For simplicity, it is assumed that their relative size is equal (50% low access, 50% high access).
 
+1. Burnin - Adding IPs to demographics and reports
+    - Copy the `example_run_burnin.py` script to a blank python script and name it `example_burnin_IP.py`
+    - In the demographics builder, we can define and add a custom individual property that will be applied to the simulation's population. In this example, we want to include high and low levels of access to care. 
+        - Start by defining the `initial_distribution` for the property in a list where each value is the proportion of the population that will be distributed to each property level, 50% low access and 50% high access.
+        - Next use the `AddIndividualPropetyAndHINT()` from the imported `Demographics` package to add our access property to the demographics file we are building. In this function, set the `Property="Access"`, `Values=["Low","High"]`, and `InitialDistribution=initial_distribution`. The property is our high level label whereas the values represent the levels (such as high and low) of the property. The initial distribution uses the distribution we used in the last step to apply the values to the population, respectively.
+        
+      ```py
+      def build_demog():
+          demog = Demographics.from_template_node(lat=1, lon=2, pop=1000, name="Example_Site")
+          demog.SetEquilibriumVitalDynamics()
+          
+          
+          # Add age distribution
+          age_distribution = Distributions.AgeDistribution_SSAfrica
+          demog.SetAgeDistribution(age_distribution)
+      
+          # Add custom IP to demographics                              
+          initial_distribution = [0.5, 0.5]
+          demog.AddIndividualPropertyAndHINT(Property="Access", Values=["Low", "High"],
+                                              InitialDistribution=initial_distribution)                                  
+                                            
+          return demog
+      ```
+    - We can also add individual properties to our reporters. The methods for doing this between the event recorder and summary report are slightly different.
+        - In event recorder we can simply add `ips_to_record=['<property>']` which tells the report that we also want it to tell us what access level the individual experiencing the event belongs to. You are able to add multiple IPs to this list if needed.
+        - In the summary report, we ask it to include only individuals of a particular level through `must_have_ip_key_value='<property>:<value>'`. This means that the report requested below will only include individuals with high access to care. In these cases, it is also beneficial to add `filename_suffix` such as '_highacces' to tag the output for analysis. 
+      ```py
+      def general_sim()
+          ## existing contents
+          
+          # Add reports
+          add_event_recorder(task, event_list=["HappyBirthday", "Births"],
+                       start_day=1, end_day=serialize_years*365, 
+                       node_ids=[1], min_age_years=0,
+                       max_age_years=100,
+                       ips_to_record=['Access'])
+                       
+          # MalariaSummaryReport
+          add_malaria_summary_report(task, manifest, start_day=1,
+                               end_day=serialize_years*365, reporting_interval=30,
+                               age_bins=[0.25, 5, 115],
+                               max_number_reports=serialize_years,
+                               must_have_ip_key_value='Access:High',
+                               filename_suffix='_highaccess',
+                               pretty_format=True)
+
+        ```
+    - Add these changes to your burnin, including another summary report for the low access group. If we were to plot these summary reports once the burnin is finished, how do you think the low and high access groups would compare?
+        - *NOTE: in project work, you likely will not want to include monthly reporting in burnins as they can be quite space and time consuming, but they are helpful during the learning process.*
+    - Update the experiment name and run your simulations
+    - Update the experiment name and ID in the analyzer while you wait for it to finish running. You may also start part 2 while you wait.
+    
+2. Pickup - Adding IPs to interventions
+    - Copy the `example_pickup_CM.py` script to a blank python script and name it `example_pickup_CM_withIP.py`.
+    - Update the `burnin_exp_id` to the experiment you ran in part 1.
+    - In `build_camp()` we will add IPs to the case management intervention setup. A key part of this will be adjusting the coverage level to reflect the differences that the low and high access groups experience, based on a population-level coverage. Try writing your own helper to do this and when you're ready check your work below.
+      <details><summary><span><em>Check your coverage adjustment</em></span></summary>
+      <p>
+        - Add the following to `build_camp()` after defining the schema path:
+          
+          ```py
+          def build_camp():
+              ## existing contents
+        
+              # Calculating the coverage for low and high access groups
+              # We assume high access group = 0.5 of total population (see demographics setup)
+              frac_high = 0.5
+            
+              # Use an if/else to define high vs low coverage based on the proportion
+              # of the population who have high access to care
+              if cm_cov_U5 > frac_high:
+                  cm_cov_U5_high = 1
+                  cm_cov_U5_low = (cm_cov_U5 - frac_high) / (1 - frac_high)
+              else:
+                  cm_cov_U5_low = 0
+                  cm_cov_U5_high = cm_cov_U5 / frac_high
+          ```
+          - The if/else statement here uses the proportion of the population with high access to care to help define coverage levels. Based on our assumptions we expect that the high access group should reach 100% coverage before the low access group has any coverage. Under this, the low access group will get leftover coverage to get the population-level coverage to the expected level (e.g. 75% all U5 coverage = 100% high access & 50% low access coverage). Likewise, if population coverage is less than the proportion of individuals with high access, the low access group will have 0% coverage and high access will be calculated to the level to reach the expected population coverage (e.g. 25% all U5 coverage = 50% high access & 0% low access)
+          - One could include more complex relationships between individual property levels if supported by data
+      </p>
+      </details>
+      
+    - Once the high and low coverage levels are defined we can modify the case management intervention to reflect the variation between the groups. 
+        - Adjust the each of the coverage levels to use `cm_cov_U5_low` from your coverage adjustment
+        - After the targets, add `ind_property_restrictions=[{'Access': 'Low'}]` - this will restrict the intervention to only those in the low access group. Multiple IPs can be used here if desired.
+          <details><summary><span><em>Check your case management intervention</em></span></summary>
+          <p>
+          - Add the following to `build_camp()` after defining the coverage levels:
+          
+              ```py
+              cm.add_treatment_seeking(camp, start_day=cm_start, drug=['Artemether', 'Lumefantrine'],
+                       targets=[{'trigger': 'NewClinicalCase', 'coverage': cm_cov_U5_low, 
+                                 'agemin': 0, 'agemax': 5,
+                                 'seek': 1,'rate': 0.3},
+                                 {'trigger': 'NewClinicalCase', 'coverage': cm_cov_U5_low*0.75, 
+                                  'agemin': 5, 'agemax': 115,
+                                  'seek': 1,'rate': 0.3},
+                                 {'trigger': 'NewSevereCase', 'coverage': min(cm_cov_U5_low*1.15,1), 
+                                  'agemin': 0, 'agemax': 115,
+                                  'seek': 1,'rate': 0.5}],          
+                       ind_property_restrictions=[{'Access': 'Low'}],
+                       broadcast_event_name="Received_Treatment")
+              ```
+          </p>
+          </details>
+        - Duplicate the low access intervention and modify to apply case management to the high access group as well
+    - Add the same IP details from the burnin to the pickup demographics
+    - Add the IP specifications for reports discussed in part 1
+    - Update the experiment name, run the script
+    - If you did not already, run the analyzer for the burnin (part 1) then update the experiment name and ID. Be sure to check if you need to update anything such as `sweep_variables` or analyzer years. Once the pickup finishes, run the analyzer again.
+    - Try plotting your results. Feel free to start with old scripts and adapt them to try to understand differences between the IP levels.
 </p>
 </details>
 
