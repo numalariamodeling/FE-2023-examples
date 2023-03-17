@@ -236,39 +236,39 @@ For now we'll start with a simple sweep over one config parameter, such as the r
 - Beneath where you set the `sim_years`, set `num_seeds = 5`. We'll use this later to tell EMOD how many different run numbers, or stochastic realizations, we want for this experiment.
 - Next, define a simple function that will allow you to set individual config parameters under the `set_param_fn()` where you define the constant config parameters. 
 
-```py
-def set_param(simulation, param, value):
-    """
-    Set specific parameter value
-    Args:
-        simulation: idmtools Simulation
-        param: parameter
-        value: new value
-    Returns:
-        dict
-    """
-    return simulation.task.set_parameter(param, value)
-```
+  ```py
+  def set_param(simulation, param, value):
+      """
+      Set specific parameter value
+      Args:
+          simulation: idmtools Simulation
+          param: parameter
+          value: new value
+      Returns:
+          dict
+      """
+      return simulation.task.set_parameter(param, value)
+  ```
 
 - As mentioned, we also need to adjust the way we create our experiments in `general_sim()`. Notice that we are currently use `Experiment.from_task()` which creates the experiment and simulations directly from the defined task. To sweep over variables we'll have to switch to using `Experiment.from_builder()` that works to setup each simulation directly rather than an entire experiment with the same parameters.
     - First, initialize the builder such that `builder = SimulationBuilder()`. This should go in `general_sim()` between adding assets and reports. 
     - Add the sweep to the builder using `add_sweep_definition()`. Here you'll create a partial of `set_param` (defined above), pass the config parameter that you'd like to set to this partial, and then provide the range of values to sweep over. In this example, tell the function to sweep over `Run_Number` over the range of the `num_seeds` defined above (will output values of 0 - `num_seeds`).
     - Finally, you'll need to remove the `Experiment.from_task()` creation and replace with `Experiment.from_builder(builder, task, name=<expname>)`. This will create experiments based on the task but with the additional information contained in the builder, including the added sweep. Make sure you keep the modified experiment name!
+  
+      ```py
+      def general_sim()
+          ## existing contents
 
-```py
-def general_sim()
-    ## existing contents
-
-    # Create simulation sweep with builder
-    builder = SimulationBuilder()
+          # Create simulation sweep with builder
+          builder = SimulationBuilder()
     
-    builder.add_sweep_definition(partial(set_param, param='Run_Number'), range(num_seeds))
+          builder.add_sweep_definition(partial(set_param, param='Run_Number'), range(num_seeds))
     
-    ## reports are still located here
+         ## reports are still located here
     
-    # create experiment from builder
-    experiment = Experiment.from_builder(builder, task, name="example_sim_sweep")
-```
+        # create experiment from builder
+       experiment = Experiment.from_builder(builder, task, name="example_sim_sweep")
+      ```
 
 - Run the script, wait for it to finish, and checkout your outputs.
 - Update the experiment name and ID in `analyzer_W2.py`. You'll notice that the `sweep_variable` parameter is already set to `Run_Number` so the analyzer will pull out this tag for each simulation. This list can take more parameters/tags as necessary when you start adding more complex sweeps. 
@@ -318,7 +318,7 @@ This serialization exercise has three parts. In part 1 you will run and save a b
         - Campaign setup
         - Demographics
         - EMODTask & experiment builder
-        - Reporters: Reporting during the burnin simulation is optional, it depends on the simulation duration and what you want to track or to check. If not disabled, `InsetChart` is automatically included, and can be plotted, alternatively one can disable the `InsetChart` and include an annual summary report to keep track of malaria metrics in an age group that is also plotted during the main simulation.
+        - Reporters: Reporting during the burnin simulation is optional, it depends on the simulation duration and what you want to track or to check. If not disabled, `InsetChart` is automatically included, and can be plotted, alternatively one can disable the `InsetChart` and include an annual summary report to keep track of malaria metrics in an age group that is also plotted during the main simulation. *HINT: you may want to check the max number of reports generated in the summary reporter*
         - Code execution/run script
      - Now that you've got the basics of your script, we'll add the parameters needed for serialization so that you can "pick up" from them again later. Add the code chunk below to update the serialization "writing" configuration parameters. (see [Simple Burnin](https://faculty-enrich-2022.netlify.app/modules/emod-how-to/emod-how-to/#simple-burn-in) in EMOD How-To's). The section ideally would be placed at the end of your `set_param_fn()`.
         - `Serialization_Population_Writing_Type` sets the format we want to serialize in, typically "timestep" that will save the population at a particular time step (days)
@@ -343,54 +343,54 @@ This serialization exercise has three parts. In part 1 you will run and save a b
     - While waiting for your simulations to finish, we can adapt the `analyzer_w2.py` to better meet the needs of serialization. Copy this script and name it `serialization_analyzer.py`
         - Start by adding a section to the executable `if __name__ == "__main__":` section of the analyzer that defines the serialization duration and which step (burnin or pickup) you'd like to analyze, in this case the burnin.
         
-        ```py
-        serialize_years = 10  # Same as in example_run_burnin.py
-        step = 'burnin'
-        ```
+          ```py
+          serialize_years = 10  # Same as in example_run_burnin.py
+          step = 'burnin'
+          ```
         - We may also want to adjust our sweep variables and `InsetChart` channels. Let's try changing the channels to the four below and adding an if statement to set sweep variables for the pickup. Right now this is the same as the burnin and only sweeps over Run_Number, but this can be used for additional parameters, such as intervention coverage, as you add complexity to the pickup. 
         
-        ```py
-        ## Set sweep_variables and event_list as required depending on experiment
-        channels_inset_chart = ['Statistical Population', 'New Clinical Cases', 'Adult Vectors', 'Infected']
-        sweep_variables = ['Run_Number']
-        if step == 'pickup':
-            sweep_variables = ['Run_Number'] # for times when you add additional items to the pickup, you can add more sweep variables here
-        ```
+          ```py
+          ## Set sweep_variables and event_list as required depending on experiment
+          channels_inset_chart = ['Statistical Population', 'New Clinical Cases', 'Adult Vectors', 'Infected']
+          sweep_variables = ['Run_Number']
+          if step == 'pickup':
+              sweep_variables = ['Run_Number'] # for times when you add additional items to the pickup, you can add more sweep variables here
+          ```
         - To use the "step" system we will want to also modify our analyzers run statement. Assuming you included only the default report, `InsetChart`, in your burnin then you will want to run only that analyzer for the burnin step. For the pickup you will likely want to include a version of the summary report we've been using so we'll include that in the pickup step in the analyzer. Notice that these are largely the same as how we were calling them previously, with the addition of a `start_year` parameter. This functionality has been in the actual analyzer the whole time, but we hadn't referenced it; however, it becomes more important as we think about time in serialization. This allows us to essentially set the date for for the simulation outputs such that our burnin will end in 2023 (and such should start the number of `serialize_years` prior) and the pickup will start where the burnin leaves off in 2023. We then run the analyzer based on the step we set above. We can keep the basic plotter after this just to get an idea of what is going on in our simulations. 
         
-        ```py
-        with Platform('SLURM_LOCAL',job_directory=jdir) as platform:
+          ```py
+          with Platform('SLURM_LOCAL',job_directory=jdir) as platform:
 
-            for expname, exp_id in expts.items():
-                analyzers_burnin = [InsetChartAnalyzer(expt_name=expname,
+              for expname, exp_id in expts.items():
+                  analyzers_burnin = [InsetChartAnalyzer(expt_name=expname,
                                            channels=channels_inset_chart,
                                            start_year=2023 - serialize_years,
                                            sweep_variables=sweep_variables,
                                            working_dir=wdir),
-                                    ]
+                                      ]
 
-                analyzers_pickup = [InsetChartAnalyzer(expt_name=expt_name,
+                  analyzers_pickup = [InsetChartAnalyzer(expt_name=expt_name,
                                            channels=channels_inset_chart,
                                            start_year=2023,
                                            sweep_variables=sweep_variables,
                                            working_dir=wdir),
-                                    MonthlyPfPRAnalyzer(expt_name=expt_name,
+                                      MonthlyPfPRAnalyzer(expt_name=expt_name,
                                             start_year=2023,
                                             sweep_variables=sweep_variables,
                                             working_dir=wdir)
-                                    ]
-
-            if step == 'burnin':
-                am = AnalyzeManager(expt_id, analyzers=analyzers_burnin)
-                am.analyze()
+                                      ]
+  
+              if step == 'burnin':
+                  am = AnalyzeManager(expt_id, analyzers=analyzers_burnin)
+                  am.analyze()
                 
-            elif step == 'pickup':
-                am = AnalyzeManager(expt_id, analyzers=analyzers_pickup)
-                am.analyze()
+              elif step == 'pickup':
+                  am = AnalyzeManager(expt_id, analyzers=analyzers_pickup)
+                  am.analyze()
             
-            else:
-                print('Please define step, options are burnin or pickup') 
-        ```
+              else:
+                  print('Please define step, options are burnin or pickup') 
+          ```
     - Run the analyzer script
     
 2. Picking up
@@ -467,7 +467,10 @@ This serialization exercise has three parts. In part 1 you will run and save a b
 
 ### Week 4: Addressing Research Questions
 
-This week will focus adding complexity to our simulations to better address our research questions through interventions, individual properties, and multi-node/spatial simulations. Each of these tools brings something beneficial to the table for many of the questions that you may be interested in answering using EMOD. There are many pre-defined interventions that can be added in EMOD -  we'll specifically focus on adding case management in these example exercises. Detailed descriptions of how-to add other interventions such as drug campaigns (SMC, PMC, MSAT, etc) and ITNs can be found in the [EMOD How-Tos](https://faculty-enrich-2022.netlify.app/modules/emod-how-to/emod-how-to/). Individual properties present a way that we can categorize and add heterogeneity to our population, such as through low and high access to care or assigning to placebo and intervention arms. We can target specific interventions and reports to individuals who meet the criteria, making these particularly useful to controlling aspects of the simulations that need not reach the entire population. Additionally, individual properties are fully customizable, so you can adapt them to fit the needs of your project. Likewise, the final exercise of this week will focus on spatial simulations which allow for multiple, separate nodes in our experimental setup. In many cases we don't need multiple nodes as we are focused on a particular area, but sometimes we are interested in multiple, notably different areas for the same questions and want to maintain their spatial relationships, particularly migration of both human and mosquito hosts. In these cases, we can add a spatial setup to the model that will work in largely the same way the individual nodes do, just in multiple locations.
+This week will focus adding complexity to our simulations to better address our research questions through interventions, individual properties, and multi-node/spatial simulations. Each of these tools brings something beneficial to the table for many of the questions that you may be interested in answering using EMOD. There are many pre-defined interventions that can be added in EMOD -  we'll specifically focus on adding case management in these example exercises. Detailed descriptions of how-to add other interventions such as drug campaigns (SMC, PMC, MSAT, etc) and ITNs can be found in the [EMOD How-Tos](https://faculty-enrich-2022.netlify.app/modules/emod-how-to/emod-how-to/). 
+Individual properties present a way that we can categorize and add heterogeneity to our population, such as through intervention access, study enrollment, and drug response groups. We can target specific interventions and reports to individuals who meet the criteria of these 'tags', making these particularly useful to controlling aspects of the simulations that need not reach the entire population. Additionally, individual properties are fully customizable, so you can adapt them to fit the needs of your project. 
+
+Likewise, the final exercise of this week will focus on spatial simulations which allow for multiple, separate nodes in our experimental setup. In many cases we don't need multiple nodes as we are focused on a particular area, but sometimes we are interested in multiple, notably different areas for the same questions and want to maintain their spatial relationships, particularly migration of both human and mosquito hosts. In these cases, we can add a spatial setup to the model that will work in largely the same way the individual nodes do, just in multiple locations.
 
 **Instructions**
 
@@ -475,8 +478,77 @@ Click the arrow to expand:
 <details><summary><span><em>Adding Interventions</em></span></summary>
 <p>
 
-As we start thinking about adding interventions to our simulations, we should also think about how to construct the timeline. This is particularly useful for project work as you match to specific sites with data on incidence and prevalence, when (and what) interventions were implemented, etc. For now, let's think about it more simply, building off of what we learned last week. We'll first want to initialize the population through a 50 year burnin with no interventions. You can either use the 50 year burnin you created during the last exercise or increase your population size back to 1000-2000 and re-run the burnin while you work on this exercise's scripts (the pickup).
+As we start thinking about adding interventions to our simulations, we should also think about how to construct the timeline. This is particularly useful for project work as you match to specific sites with data on incidence and prevalence, when (and what) interventions were implemented, etc. For now, let's think about it more simply, building off of what we learned last week. We'll first want to initialize the population through a 50 year burnin with no interventions. Increase your population size back to 1000 for 5 replicates and re-run the burnin while you work on this exercise's scripts (the pickup).
 
+- Copy the `example_run_pickup.py` script you made last week, rename it `example_pickup_CM.py`. *NOTE: we are adding interventions to a pickup in this example, but you do not have to serialize to use interventions, individual properties, or multi-node simulations*
+- You'll need to import the treatment seeking/case management functionalities to your script from emodpy-malaria in order to use this intervention function:
+
+    ```py
+    import emodpy_malaria.interventions.treatment_seeking as cm
+    ```
+
+- Once you have the case management functions imported, you can add them to your `build_camp()` function. We'll use `add_treatment_seeking()`, specifically - this function passes all of the important parameters for case management to our broader campaign file. There is a small set of parameters that we commonly use, below, but to see all of the available controls you can explore the [source code](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/interventions/treatment_seeking.py).
+    - `start_day`: indicates when the intervention should begin relative to the beginning of the simulation. This is particularly useful when you want interventions to start at different times in the simulations.
+    - `drug`: indicates which drugs are to be used for case management. Artemether and Lumefantrine are the default, but all available drugs are defined in emodpy-malaria's [`malaria_drug_params`](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/malaria_drug_params.csv)
+    - `targets`: controls the target populations and triggers for case management. You'll notice that we use typically use the events `NewClinicalCase` and `NewSevereCase` to trigger case management. We can further add coverage levels and minimum/maximum age targets. In this example, we assume we know case management for children under 5 years old (U5) and that coverage for everyone over 5 years of age will be 75% of the U5 coverage. We also assume that coverage for severe cases (all ages) is 115% of U5 coverage, up to 100% coverage. This means that we'll want to add multiple target dictionaries to our target parameter to capture both groups. Finally, the target dictionary also includes `seek` (the delay rate, in 1/days, to seeking care) and `rate` (the delay rate, in days, from time to seeking care to receiving care, typically 0.3 for uncomplicated cases meaning that there is a three day delay on average).
+    - `broadcast_event_name`: indicates the name of the event to be broadcast at each event for reporting purposes. This is particularly helpful if you have multiple or changing versions of the same intervention, such as with using different case management drugs, in a single simulation.
+- Add case management to your `build_camp()` function using the script below. Notice that we include `cm.` before `add_treatment_seeking()` - this is because we imported this function as `cm` so it is helpful to reference to make sure we are using the function we think we are. You'll also notice that we are adding `cm_cov_U5=0.75` and `cm_start=1` to the arguments that `build_camp()` takes - we do this so we can pass it values from a sweep over coverage and the start date for case management later in the script. The values included are defaults that you can adjust as needed but are available so you don't have to provide a sweep value if unnecessary.
+
+    ```py
+    def build_camp(cm_cov_U5=0.75, cm_start = 1):
+
+        camp.schema_path = manifest.schema_file
+
+        # Add case management
+        # This example assumes adults will seek treatment 75% as often as U5s and severe cases will seek treatment 15% more than U5s (up to 100% coverage)
+        cm.add_treatment_seeking(camp, start_day=cm_start, drug=['Artemether', 'Lumefantrine'],
+                           targets=[{'trigger': 'NewClinicalCase', 'coverage': cm_cov_U5, 
+                                     'agemin': 0, 'agemax': 5,
+                                     'seek': 1,'rate': 0.3},
+                                    {'trigger': 'NewClinicalCase', 'coverage': cm_cov_U5*0.75, 
+                                      'agemin': 5, 'agemax': 115,
+                                      'seek': 1,'rate': 0.3},
+                                    {'trigger': 'NewSevereCase', 'coverage': min(cm_cov_U5*1.15,1), 
+                                      'agemin': 0, 'agemax': 115,
+                                      'seek': 1,'rate': 0.5}],
+                           broadcast_event_name="Received_Treatment")            
+                       
+        return camp
+    ```
+
+- To help sweep over multiple campaign parameters at once, we will also add a function to update these values together after `build_camp()`. In this update function, we include a partial of `build_camp()` that takes values for both of the variables we defined in the last step. It then creates the campaign for a particular simulation from a callback of the partial. Finally, this function returns a dictionary of the parameters and values that we are updating here to add a tag for each to the simulation metadata.
+
+    ```py
+    def update_campaign_multiple_parameters(simulation, cm_cov_U5, cm_start):
+
+        build_campaign_partial = partial(build_camp, cm_cov_U5=cm_cov_U5, cm_start=cm_start)
+        simulation.task.create_campaign_from_callback(build_campaign_partial)
+    
+        return dict(cm_cov_U5=cm_cov_U5, cm_start=cm_start)
+    ```
+
+- As discussed in last week's exercise on adding parameter sweeps, we'll need to add a sweep to the builder in `general_sim()` for the campaign in addition to the config params. However, this time we will need to use `add_multiple_parameter_sweep_definition()` instead of `add_sweep_definition()` since we are updating both the coverage and start day. If you were to use `add_sweep_definition` directly with a partial of `build_camp()` for each parameter individually, the second time you call the partial would override the first so only one parameter would be updated. On the other hand, `add_multiple_parameter_sweep_definition()` allows us to sweep over the entire parameter space in a cross-product fashion. It takes our update function and we provide a dictionary of our parameters and their list of values we want to sweep over. We'll sweep over three coverage values (0, 50%, and 95%), and three intervention start dates (1, 100, and 365). For now these are relatively arbitrary values that are just meant to illustrate the functionality in EMOD. In this example we will get 3x3x5 = 45 total simulations (coverage levels x start days x run numbers) that model each unique parameter combination.
+
+    ```py
+    def general_sim()
+        ## existing contents
+    
+        ## case management sweep 
+        builder.add_multiple_parameter_sweep_definition(
+            update_campaign_multiple_parameters,
+            dict(
+                cm_cov_U5=[0.0, 0.5, 0.95],
+                cm_start=[1, 100, 365]
+            )
+        )
+    ```
+
+- Update the `ReportEventRecorder` event list to include `Received_Treatment` from our case management campaign (either in addition to the event list we've used previously or as the only event).
+- Update the experiment name to `example_sim_pickup_CM`.
+- Run the script. While you wait, update `serialization_analyzer.py` with your new experiment name, ID, and sweep variables.
+- When the simulations finish, run the analyzer.
+- Try plotting your results. You can build off of the scripts you made for the previous serialization example, but how might you consider the changes we've made this week? Should you make changes based on the added intervention? What about the sweeps?
+- Check out some of the other [interventions](https://github.com/numalariamodeling/emodpy-malaria/tree/main/emodpy_malaria/interventions) in emodpy-malaria. [Drug campaigns](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/interventions/drug_campaign.py), [ITNs](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/interventions/bednet.py), and [IRS](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/interventions/irs.py) may be of particular interest. For an added challenge, try adding one (or more!) of these interventions to this simulation on your own or with the help of the How-Tos. An example script with multiple interventions is located in the solution scripts **IN PROGRESS**
 
 </p>
 </details>
@@ -484,13 +556,126 @@ As we start thinking about adding interventions to our simulations, we should al
 <details><summary><span><em>Individual Properties</em></span></summary>
 <p>
 
+Individual properties (IPs) can be added to any simulation to add additional information useful to specific projects. Depending on the research question individual properties might only be needed for interventions and not for the reports, or vice versa, if not both.
 
-**special test exercise to add to burnin/pickup?**
+In this example, we'll continue building off of the serialization structure, adding a case management access IP to our previous workflow.  We'll use individual properties to create 2 subgroups for this access: low access, high access. For simplicity, it is assumed that their relative size is equal (50% low access, 50% high access).
+
+1. Burnin - Adding IPs to demographics and reports
+    - Copy the `example_run_burnin.py` script to a blank python script and name it `example_burnin_IP.py`
+    - In the demographics builder, we can define and add a custom individual property that will be applied to the simulation's population. In this example, we want to include high and low levels of access to care. 
+        - Start by defining the `initial_distribution` for the property in a list where each value is the proportion of the population that will be distributed to each property level, 50% low access and 50% high access.
+        - Next use the `AddIndividualPropetyAndHINT()` from the imported `Demographics` package to add our access property to the demographics file we are building. In this function, set the `Property="Access"`, `Values=["Low","High"]`, and `InitialDistribution=initial_distribution`. The property is our high level label whereas the values represent the levels (such as high and low) of the property. The initial distribution uses the distribution we used in the last step to apply the values to the population, respectively.
+        
+      ```py
+      def build_demog():
+          demog = Demographics.from_template_node(lat=1, lon=2, pop=1000, name="Example_Site")
+          demog.SetEquilibriumVitalDynamics()
+          
+          
+          # Add age distribution
+          age_distribution = Distributions.AgeDistribution_SSAfrica
+          demog.SetAgeDistribution(age_distribution)
+      
+          # Add custom IP to demographics                              
+          initial_distribution = [0.5, 0.5]
+          demog.AddIndividualPropertyAndHINT(Property="Access", Values=["Low", "High"],
+                                              InitialDistribution=initial_distribution)                                  
+                                            
+          return demog
+      ```
+    - We can also add individual properties to our reporters. The methods for doing this between the event recorder and summary report are slightly different.
+        - In event recorder we can simply add `ips_to_record=['<property>']` which tells the report that we also want it to tell us what access level the individual experiencing the event belongs to. You are able to add multiple IPs to this list if needed.
+        - In the summary report, we ask it to include only individuals of a particular level through `must_have_ip_key_value='<property>:<value>'`. This means that the report requested below will only include individuals with high access to care. In these cases, it is also beneficial to add `filename_suffix` such as '_highacces' to tag the output for analysis. 
+      ```py
+      def general_sim()
+          ## existing contents
+          
+          # Add reports
+          add_event_recorder(task, event_list=["HappyBirthday", "Births"],
+                       start_day=1, end_day=serialize_years*365, 
+                       node_ids=[1], min_age_years=0,
+                       max_age_years=100,
+                       ips_to_record=['Access'])
+                       
+          # MalariaSummaryReport
+          add_malaria_summary_report(task, manifest, start_day=1,
+                               end_day=serialize_years*365, reporting_interval=30,
+                               age_bins=[0.25, 5, 115],
+                               max_number_reports=serialize_years,
+                               must_have_ip_key_value='Access:High',
+                               filename_suffix='_highaccess',
+                               pretty_format=True)
+
+        ```
+    - Add these changes to your burnin, including another summary report for the low access group. If we were to plot these summary reports once the burnin is finished, how do you think the low and high access groups would compare?
+        - *NOTE: in project work, you likely will not want to include monthly reporting in burnins as they can be quite space and time consuming, but they are helpful during the learning process.*
+    - Update the experiment name and run your simulations
+    - Update the experiment name and ID in the analyzer while you wait for it to finish running. You may also start part 2 while you wait.
+    
+2. Pickup - Adding IPs to interventions
+    - Copy the `example_pickup_CM.py` script to a blank python script and name it `example_pickup_CM_withIP.py`.
+    - Update the `burnin_exp_id` to the experiment you ran in part 1.
+    - In `build_camp()` we will add IPs to the case management intervention setup. A key part of this will be adjusting the coverage level to reflect the differences that the low and high access groups experience, based on a population-level coverage. Try writing your own helper to do this and when you're ready check your work below.
+      <details><summary><span><em>Check your coverage adjustment</em></span></summary>
+      <p>
+        - Add the following to `build_camp()` after defining the schema path:
+          
+          ```py
+          def build_camp():
+              ## existing contents
+        
+              # Calculating the coverage for low and high access groups
+              # We assume high access group = 0.5 of total population (see demographics setup)
+              frac_high = 0.5
+            
+              # Use an if/else to define high vs low coverage based on the proportion
+              # of the population who have high access to care
+              if cm_cov_U5 > frac_high:
+                  cm_cov_U5_high = 1
+                  cm_cov_U5_low = (cm_cov_U5 - frac_high) / (1 - frac_high)
+              else:
+                  cm_cov_U5_low = 0
+                  cm_cov_U5_high = cm_cov_U5 / frac_high
+          ```
+          - The if/else statement here uses the proportion of the population with high access to care to help define coverage levels. Based on our assumptions we expect that the high access group should reach 100% coverage before the low access group has any coverage. Under this, the low access group will get leftover coverage to get the population-level coverage to the expected level (e.g. 75% all U5 coverage = 100% high access & 50% low access coverage). Likewise, if population coverage is less than the proportion of individuals with high access, the low access group will have 0% coverage and high access will be calculated to the level to reach the expected population coverage (e.g. 25% all U5 coverage = 50% high access & 0% low access)
+          - One could include more complex relationships between individual property levels if supported by data
+      </p>
+      </details>
+      
+    - Once the high and low coverage levels are defined we can modify the case management intervention to reflect the variation between the groups. 
+        - Adjust the each of the coverage levels to use `cm_cov_U5_low` from your coverage adjustment
+        - After the targets, add `ind_property_restrictions=[{'Access': 'Low'}]` - this will restrict the intervention to only those in the low access group. Multiple IPs can be used here if desired.
+          <details><summary><span><em>Check your case management intervention</em></span></summary>
+          <p>
+          - Add the following to `build_camp()` after defining the coverage levels:
+          
+              ```py
+              cm.add_treatment_seeking(camp, start_day=cm_start, drug=['Artemether', 'Lumefantrine'],
+                       targets=[{'trigger': 'NewClinicalCase', 'coverage': cm_cov_U5_low, 
+                                 'agemin': 0, 'agemax': 5,
+                                 'seek': 1,'rate': 0.3},
+                                 {'trigger': 'NewClinicalCase', 'coverage': cm_cov_U5_low*0.75, 
+                                  'agemin': 5, 'agemax': 115,
+                                  'seek': 1,'rate': 0.3},
+                                 {'trigger': 'NewSevereCase', 'coverage': min(cm_cov_U5_low*1.15,1), 
+                                  'agemin': 0, 'agemax': 115,
+                                  'seek': 1,'rate': 0.5}],          
+                       ind_property_restrictions=[{'Access': 'Low'}],
+                       broadcast_event_name="Received_Treatment")
+              ```
+          </p>
+          </details>
+        - Duplicate the low access intervention and modify to apply case management to the high access group as well
+    - Add the same IP details from the burnin to the pickup demographics
+    - Add the IP specifications for reports discussed in part 1
+    - Update the experiment name, run the script
+    - If you did not already, run the analyzer for the burnin (part 1) then update the experiment name and ID. Be sure to check if you need to update anything such as `sweep_variables` or analyzer years. Once the pickup finishes, run the analyzer again.
+    - Try plotting your results. Feel free to start with old scripts and adapt them to try to understand differences between the IP levels.
 </p>
 </details>
 
 <details><summary><span><em>Multi-node/Spatial Simulations</em></span></summary>
 <p>
-
+**this one we should have them start from scratch again**
 </p>
 </details>
