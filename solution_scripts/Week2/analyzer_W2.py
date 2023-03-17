@@ -150,7 +150,7 @@ if __name__ == "__main__":
     }
     
 
-    jdir =  '/projects/b1139/FE-2023-examples/experiments'
+    jdir = manifest.job_directory
     wdir=os.path.join(jdir, 'simulation_outputs')
     
     if not os.path.exists(wdir):
@@ -183,7 +183,6 @@ if __name__ == "__main__":
             
  
     # read in analyzed InsetChart data
-    sweep_variables=['Run_Number']
     expt_name=list(expts.keys())[0]
     df = pd.read_csv(os.path.join(wdir, expt_name, 'All_Age_InsetChart.csv'))
     df['date'] = pd.to_datetime(df['date'])

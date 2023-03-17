@@ -18,7 +18,6 @@ import emod_api.config.default_from_schema_no_validation as dfs
 import emod_api.campaign as camp
 
 #emodpy-malaria
-import emodpy_malaria.interventions.treatment_seeking as ts
 from emodpy_malaria.reporters.builtin import *
 import emodpy_malaria.demographics.MalariaDemographics as Demographics
 import emod_api.demographics.PreDefinedDistributions as Distributions

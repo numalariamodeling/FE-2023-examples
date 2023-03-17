@@ -101,8 +101,11 @@ if __name__ == "__main__":
     }
     
 
-    jdir =  '/projects/b1139/FE-2023-examples/experiments'
+    jdir = manifest.job_directory
     wdir=os.path.join(jdir, 'simulation_outputs')
+    
+    if not os.path.exists(wdir):
+        os.mkdir(wdir)
     
     sweep_variables = ['Run_Number','x_Temporary_Larval_Habitat'] 
     
