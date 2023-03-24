@@ -5,13 +5,33 @@ import numpy as np
 import sys
 import re
 import random
-from idmtools.entities import IAnalyzer	
+import argparse
+from idmtools.entities import IAnalyzer
 from idmtools.entities.simulation import Simulation
 
 ## For plotting
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import matplotlib.dates as mdates
+
+import manifest
+
+
+def parse_args():
+    description = "Simulation specifications"
+    parser = argparse.ArgumentParser(description=description)
+
+    parser.add_argument(
+        "-n",
+        "--expname",
+        type=str,
+    )
+    parser.add_argument(
+        "-i",
+        "--expid",
+        type=str,
+    )
+    return parser.parse_args()
 
 
 class InsetChartAnalyzer(IAnalyzer):
@@ -64,10 +84,10 @@ class MonthlyPfPRAnalyzer(IAnalyzer):
     def __init__(self, exp_name, sweep_variables=None, working_dir='./', start_year=2020, end_year=2025,
                  burnin=None, filter_exists=False):
 
-        super(WeeklyPfPRAnalyzer, self).__init__(working_dir=working_dir,
-                                                   filenames=["output/MalariaSummaryReport_monthly.json"]
-                                                   )
-     
+        super(MonthlyPfPRAnalyzer, self).__init__(working_dir=working_dir,
+                                                  filenames=["output/MalariaSummaryReport_monthly.json"]
+                                                  )
+
         self.sweep_variables = sweep_variables or ["Run_Number"]
         self.exp_name = exp_name
         self.start_year = start_year
@@ -143,12 +163,15 @@ if __name__ == "__main__":
     from idmtools.core import ItemType
     from idmtools.core.platform_factory import Platform
 
-    
-    expts = {
-        #'week2_weather' : '2c090358-cb7b-44e5-a2fd-842a6c23a5b7'
-        'week2_outputs' : '26f947c3-0770-46df-bc6a-c1c77e36f686'
-    }
-    
+    use_parse = True
+    if use_parse:
+        args = parse_args()
+        expts = {args.expname: args.expid}
+    else:
+        expts = {
+            # 'week2_weather' : '2c090358-cb7b-44e5-a2fd-842a6c23a5b7'
+            'week2_outputs': 'bacbf3fa-c1c5-4c6f-a14a-727a7844e673'
+        }
 
     jdir = manifest.job_directory
     wdir=os.path.join(jdir, 'simulation_outputs')
@@ -167,13 +190,13 @@ if __name__ == "__main__":
         for expname, exp_id in expts.items():
           
             analyzer = [InsetChartAnalyzer(expt_name=expname,
-                                      channels=channels_inset_chart,
-                                      sweep_variables=sweep_variables,
-                                      working_dir=wdir),
-                        WeeklyPfPRAnalyzer(exp_name=expname,
-                                      sweep_variables=sweep_variables,
-                                      working_dir=wdir)]
-            
+                                           channels=channels_inset_chart,
+                                           sweep_variables=sweep_variables,
+                                           working_dir=wdir),
+                        MonthlyPfPRAnalyzer(exp_name=expname,
+                                            sweep_variables=sweep_variables,
+                                            working_dir=wdir)]
+
             # Create AnalyzerManager with required parameters
             manager = AnalyzeManager(configuration={},ids=[(exp_id, ItemType.EXPERIMENT)],
                                      analyzers=analyzer, partial_analyze_ok=True)

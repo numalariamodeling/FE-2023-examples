@@ -31,7 +31,7 @@ import manifest
 
 import sys
 sys.path.append('../../')
-from utils_slurm import build_burnin_df
+from utils_slurm import build_burnin_df, submit_scheduled_analyzer
 
 serialize_years=50
 pickup_years=5
@@ -225,6 +225,8 @@ def general_sim(selected_platform):
     # create experiment from builder
     experiment = Experiment.from_builder(builder, task, name="example_sim_pickup_IP_CM")
 
+    # Additional step to schedule analyzer to run after simulation finished running
+    #submit_scheduled_analyzer(experiment, platform, analyzer_script='<NAME_OF_ANALYZER>')
 
     # The last step is to call run() on the ExperimentManager to run the simulations.
     experiment.run(wait_until_done=True, platform=platform)

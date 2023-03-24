@@ -1,5 +1,6 @@
 import pathlib
 import os
+import sys
 from functools import \
     partial 
  
@@ -22,8 +23,10 @@ from emodpy_malaria.reporters.builtin import *
 import emodpy_malaria.demographics.MalariaDemographics as Demographics
 import emod_api.demographics.PreDefinedDistributions as Distributions
 
-
 import manifest
+
+sys.path.append('../')
+from utils_slurm import submit_scheduled_analyzer
 
 sim_years=1
 
@@ -126,6 +129,8 @@ def general_sim(selected_platform):
     # The last step is to call run() on the ExperimentManager to run the simulations.
     experiment.run(wait_until_done=True, platform=platform)
 
+    # Additional step to schedule analyzer to run after simulation finished running
+    submit_scheduled_analyzer(experiment, platform, analyzer_script='analyzer_W2.py')
 
     # Check result
     if not experiment.succeeded:

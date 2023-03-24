@@ -1,13 +1,14 @@
 import copy
 import os
 from typing import List, Dict
-
+import subprocess
+import re
 import pandas as pd
 from COMPS import AuthManager
 from COMPS.Data import QueryCriteria, Simulation
 from idmtools.core import ItemType
 from idmtools.entities.iplatform import IPlatform
-
+from idmtools_platform_slurm.slurm_operations.operations_interface import SlurmOperations
 
 def _get_serialized_filenames(num_cores, timesteps):
     if num_cores == 1:
@@ -109,3 +110,59 @@ def build_burnin_df(exp_id: str, platform,serialize_days):
     df["Serialized_Population_Filenames"] = df["Num_Cores"].apply(_get_serialized_filenames, timesteps=burnin_length_in_days)
     df = df.reset_index(drop=True)
     return df
+    
+### TODO idmtools probably has a predefined shell template   
+def shell_header_quest(A='b1139', p='b1139', t='02:00:00', N=1, ntasks_per_node=1, memG=8, job_name='myjob',
+                       arrayJob=None):
+    """Requires a 'log' subfolder to write in .err and .out files, alternatively log/ needs to be removed"""
+    if not os.path.exists('log'):
+        os.makedirs(os.path.join('log'))
+   
+    header = f'#!/bin/bash\n' \
+             f'#SBATCH -A {A}\n' \
+             f'#SBATCH -p {p}\n' \
+             f'#SBATCH -t {t}\n' \
+             f'#SBATCH -N {N}\n' \
+             f'#SBATCH --ntasks-per-node={ntasks_per_node}\n' \
+             f'#SBATCH --mem={memG}G\n' \
+             f'#SBATCH --job-name="{job_name}"\n'
+    if arrayJob is not None:
+        array = arrayJob
+        err = '#SBATCH --error=log/slurm_%A_%a.err\n'
+        out = '#SBATCH --output=log/slurm_%A_%a.out\n'
+        header = header + array + err + out
+    else:
+        err = f'#SBATCH --error=log/{job_name}.%j.err\n'
+        out = f'#SBATCH --output=log/{job_name}.%j.out\n'
+        header = header + err + out
+    return header
+        
+def submit_scheduled_analyzer(experiment, platform, analyzer_script):
+    wdir = os.path.abspath(os.path.dirname(__file__))
+    ## Write bash file to submit
+    header_post = shell_header_quest(job_name=f'analyze_exp', t='01:00:00')
+    pymodule = '\n\nmodule purge all' \
+               '\nsource activate /projects/b1139/environments/pytorch-1.11-emodpy-py39/\n'
+    ### pycommand(s) - additional python or R scripts to directly run after analyzer can be added below
+    pycommand = f'\ncd {wdir}' \
+                f'\npython {analyzer_script} --expname {experiment.name} --expid {experiment.id}' 
+                
+    file = open(os.path.join(wdir,f'run_analyzer_{experiment.uid}.sh'), 'w')
+    file.write(header_post + pymodule + pycommand)
+    file.close()
+    
+    ## get job_id
+    job_id = platform._op_client.get_job_id(experiment.id, experiment.item_type)
+    
+    script_path = os.path.join(wdir,f'run_analyzer_{experiment.uid}.sh') # save under different names, will require cleanup
+    result = subprocess.run([f'sbatch --dependency=afterok:{job_id} {script_path}'], shell=True, stdout=subprocess.PIPE)
+    result = result.stdout.decode('utf-8').strip()
+    SBATCH_REGEX = re.compile('^[a-zA-Z ]+(?P<id>\d+)$')
+    job_id_analyzer = SBATCH_REGEX.match(result).group('id')
+
+    print(f"Experiment job id: {job_id}")
+    print(f"Analyzer job id: {job_id_analyzer}")
+    
+    #return (job_id_analyzer)  # if needed to add another dependency slurm submission
+    return () 
+    
