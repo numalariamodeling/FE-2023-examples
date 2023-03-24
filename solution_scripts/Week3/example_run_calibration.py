@@ -1,5 +1,6 @@
 import pathlib
 import os
+import sys
 import numpy as np
 from functools import \
     partial 
@@ -28,6 +29,8 @@ from emodpy_malaria.reporters.builtin import *
 
 
 import manifest
+sys.path.append('../')
+from utils_slurm import submit_scheduled_analyzer
 
 sim_years=5
 num_seeds=5
@@ -142,6 +145,8 @@ def general_sim(selected_platform):
     # The last step is to call run() on the ExperimentManager to run the simulations.
     experiment.run(wait_until_done=True, platform=platform)
 
+    # Additional step to schedule analyzer to run after simulation finished running
+    #submit_scheduled_analyzer(experiment, platform, analyzer_script='calibration_analyzer.py')
 
     # Check result
     if not experiment.succeeded:

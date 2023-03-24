@@ -142,6 +142,8 @@ def general_sim(selected_platform):
     # The last step is to call run() on the ExperimentManager to run the simulations.
     experiment.run(wait_until_done=True, platform=platform)
 
+    # Additional step to schedule analyzer to run after simulation finished running
+    #submit_scheduled_analyzer(experiment, platform, analyzer_script='<NAME_OF_ANALYZER>')
 
     # Check result
     if not experiment.succeeded:

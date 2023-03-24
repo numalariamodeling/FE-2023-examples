@@ -5,6 +5,7 @@ import numpy as np
 import sys
 import re
 import random
+import argparse
 from idmtools.entities import IAnalyzer	
 from idmtools.entities.simulation import Simulation
 
@@ -14,6 +15,23 @@ import matplotlib as mpl
 import matplotlib.dates as mdates
 
 import manifest
+
+def parse_args():
+    description = "Simulation specifications"
+    parser = argparse.ArgumentParser(description=description)
+
+    parser.add_argument(
+        "-n",
+        "--expname",
+        type=str,
+    )
+    parser.add_argument(
+        "-i",
+        "--expid",
+        type=str,
+    )
+    return parser.parse_args()
+
 class InsetChartAnalyzer(IAnalyzer):
 
     @classmethod
@@ -143,10 +161,14 @@ if __name__ == "__main__":
     from idmtools.core import ItemType
     from idmtools.core.platform_factory import Platform
 
-    
-    expts = { #'expname':'exp_id'
-    }
-    
+    use_parse = True
+    if use_parse:
+        args = parse_args()
+        expts = {args.expname: args.expid}
+    else:
+        expts =  { #'expname':'exp_id'} ## to be defined by user
+
+
     jdir = manifest.job_directory
     wdir=os.path.join(jdir, 'simulation_outputs')
     
