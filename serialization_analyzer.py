@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import matplotlib.dates as mdates
 
-
+import manifest
 class InsetChartAnalyzer(IAnalyzer):
 
     @classmethod

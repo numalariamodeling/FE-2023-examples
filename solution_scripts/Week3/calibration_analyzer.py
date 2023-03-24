@@ -8,6 +8,8 @@ import random
 from idmtools.entities import IAnalyzer	
 from idmtools.entities.simulation import Simulation
 
+import manifest
+
 class MonthlyPfPRAnalyzerU5(IAnalyzer):
 
     def __init__(self, expt_name, sweep_variables=None, working_dir='./', start_year=2020, end_year=2023,

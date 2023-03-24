@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import matplotlib.dates as mdates
 
+import manifest
 
 class InsetChartAnalyzer(IAnalyzer):
 
@@ -64,10 +65,10 @@ class MonthlyPfPRAnalyzer(IAnalyzer):
     def __init__(self, exp_name, sweep_variables=None, working_dir='./', start_year=2020, end_year=2025,
                  burnin=None, filter_exists=False):
 
-        super(WeeklyPfPRAnalyzer, self).__init__(working_dir=working_dir,
-                                                   filenames=["output/MalariaSummaryReport_monthly.json"]
-                                                   )
-     
+        super(MonthlyPfPRAnalyzer, self).__init__(working_dir=working_dir,
+                                                  filenames=["output/MalariaSummaryReport_monthly.json"]
+                                                  )
+
         self.sweep_variables = sweep_variables or ["Run_Number"]
         self.exp_name = exp_name
         self.start_year = start_year
@@ -167,13 +168,13 @@ if __name__ == "__main__":
         for expname, exp_id in expts.items():
           
             analyzer = [InsetChartAnalyzer(expt_name=expname,
-                                      channels=channels_inset_chart,
-                                      sweep_variables=sweep_variables,
-                                      working_dir=wdir),
-                        WeeklyPfPRAnalyzer(exp_name=expname,
-                                      sweep_variables=sweep_variables,
-                                      working_dir=wdir)]
-            
+                                           channels=channels_inset_chart,
+                                           sweep_variables=sweep_variables,
+                                           working_dir=wdir),
+                        MonthlyPfPRAnalyzer(exp_name=expname,
+                                            sweep_variables=sweep_variables,
+                                            working_dir=wdir)]
+
             # Create AnalyzerManager with required parameters
             manager = AnalyzeManager(configuration={},ids=[(exp_id, ItemType.EXPERIMENT)],
                                      analyzers=analyzer, partial_analyze_ok=True)

@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import matplotlib.dates as mdates
 
+import manifest
 
 class InsetChartAnalyzer(IAnalyzer):
 
@@ -64,7 +65,7 @@ class MonthlyPfPRAnalyzer(IAnalyzer):
     def __init__(self, exp_name, sweep_variables=None, working_dir='./', start_year=2020, end_year=2025,
                  burnin=None, filter_exists=False):
 
-        super(WeeklyPfPRAnalyzer, self).__init__(working_dir=working_dir,
+        super(MonthlyPfPRAnalyzer, self).__init__(working_dir=working_dir,
                                                    filenames=["output/MalariaSummaryReport_monthly.json"]
                                                    )
      
@@ -170,7 +171,7 @@ if __name__ == "__main__":
                                       channels=channels_inset_chart,
                                       sweep_variables=sweep_variables,
                                       working_dir=wdir),
-                        WeeklyPfPRAnalyzer(exp_name=expname,
+                        MonthlyPfPRAnalyzer(exp_name=expname,
                                       sweep_variables=sweep_variables,
                                       working_dir=wdir)]
             
