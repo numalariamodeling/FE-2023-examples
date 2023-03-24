@@ -5,7 +5,8 @@ import numpy as np
 import sys
 import re
 import random
-from idmtools.entities import IAnalyzer	
+import argparse
+from idmtools.entities import IAnalyzer
 from idmtools.entities.simulation import Simulation
 
 ## For plotting
@@ -14,6 +15,24 @@ import matplotlib as mpl
 import matplotlib.dates as mdates
 
 import manifest
+
+
+def parse_args():
+    description = "Simulation specifications"
+    parser = argparse.ArgumentParser(description=description)
+
+    parser.add_argument(
+        "-n",
+        "--expname",
+        type=str,
+    )
+    parser.add_argument(
+        "-i",
+        "--expid",
+        type=str,
+    )
+    return parser.parse_args()
+
 
 class InsetChartAnalyzer(IAnalyzer):
 
@@ -144,12 +163,15 @@ if __name__ == "__main__":
     from idmtools.core import ItemType
     from idmtools.core.platform_factory import Platform
 
-    
-    expts = {
-        #'week2_weather' : '2c090358-cb7b-44e5-a2fd-842a6c23a5b7'
-        'week2_outputs' : '26f947c3-0770-46df-bc6a-c1c77e36f686'
-    }
-    
+    use_parse = True
+    if use_parse:
+        args = parse_args()
+        expts = {args.expname: args.expid}
+    else:
+        expts = {
+            # 'week2_weather' : '2c090358-cb7b-44e5-a2fd-842a6c23a5b7'
+            'week2_outputs': 'bacbf3fa-c1c5-4c6f-a14a-727a7844e673'
+        }
 
     jdir = manifest.job_directory
     wdir=os.path.join(jdir, 'simulation_outputs')
