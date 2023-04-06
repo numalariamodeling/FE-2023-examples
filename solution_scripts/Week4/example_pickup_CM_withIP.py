@@ -21,6 +21,7 @@ import emod_api.campaign as camp
 import emodpy_malaria.interventions.treatment_seeking as cm
 from emodpy_malaria.reporters.builtin import *
 import emodpy_malaria.demographics.MalariaDemographics as Demographics
+import emod_api.demographics.PreDefinedDistributions as Distributions
 
 
 # importing all the reports functions, they all start with add_
@@ -139,6 +140,9 @@ def build_demog():
     demog = Demographics.from_template_node(lat=1, lon=2, pop=1000, name="Example_Site")
     demog.SetEquilibriumVitalDynamics()
     
+    age_distribution = Distributions.AgeDistribution_SSAfrica
+    demog.SetAgeDistribution(age_distribution)
+    
     initial_distribution = [0.5, 0.5]
     demog.AddIndividualPropertyAndHINT(Property="Access", Values=["Low", "High"],
                                        InitialDistribution=initial_distribution)                                  
@@ -196,8 +200,8 @@ def general_sim(selected_platform):
         )
     )
     
-    #Add reports
-    #report received treatment events
+    # Add reports
+    # report received treatment events
     add_event_recorder(task, event_list=["Received_Treatment"],
                        start_day=1, end_day=pickup_years*365, node_ids=[1], min_age_years=0,
                        max_age_years=100,

@@ -21,6 +21,7 @@ import emod_api.campaign as camp
 import emodpy_malaria.interventions.treatment_seeking as cm
 from emodpy_malaria.reporters.builtin import *
 import emodpy_malaria.demographics.MalariaDemographics as Demographics
+import emod_api.demographics.PreDefinedDistributions as Distributions
 
 
 # importing all the reports functions, they all start with add_
@@ -119,8 +120,10 @@ def build_demog():
     """
 
     demog = Demographics.from_template_node(lat=1, lon=2, pop=1000, name="Example_Site")
-    demog.SetEquilibriumVitalDynamics()                                
+    demog.SetEquilibriumVitalDynamics()   
     
+    age_distribution = Distributions.AgeDistribution_SSAfrica
+    demog.SetAgeDistribution(age_distribution)                             
                                             
     return demog
 

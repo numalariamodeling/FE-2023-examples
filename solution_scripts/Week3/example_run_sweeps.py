@@ -18,9 +18,9 @@ import emod_api.config.default_from_schema_no_validation as dfs
 import emod_api.campaign as camp
 
 #emodpy-malaria
-import emodpy_malaria.interventions.treatment_seeking as ts
 from emodpy_malaria.reporters.builtin import *
 import emodpy_malaria.demographics.MalariaDemographics as Demographics
+import emod_api.demographics.PreDefinedDistributions as Distributions
 
 # importing all the reports functions, they all start with add_
 from emodpy_malaria.reporters.builtin import *
@@ -80,6 +80,9 @@ def build_demog():
 
     demog = Demographics.from_template_node(lat=1, lon=2, pop=1000, name="Example_Site")
     demog.SetEquilibriumVitalDynamics()
+    
+    age_distribution = Distributions.AgeDistribution_SSAfrica
+    demog.SetAgeDistribution(age_distribution)
                                             
     return demog
 

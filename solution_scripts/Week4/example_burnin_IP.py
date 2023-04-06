@@ -18,9 +18,9 @@ import emod_api.config.default_from_schema_no_validation as dfs
 import emod_api.campaign as camp
 
 #emodpy-malaria
-import emodpy_malaria.interventions.treatment_seeking as ts
 from emodpy_malaria.reporters.builtin import *
 import emodpy_malaria.demographics.MalariaDemographics as Demographics
+import emod_api.demographics.PreDefinedDistributions as Distributions
 
 # importing all the reports functions, they all start with add_
 from emodpy_malaria.reporters.builtin import *
@@ -87,7 +87,11 @@ def build_demog():
 
     demog = Demographics.from_template_node(lat=1, lon=2, pop=1000, name="Example_Site")
     demog.SetEquilibriumVitalDynamics()
-                                  
+    
+    age_distribution = Distributions.AgeDistribution_SSAfrica
+    demog.SetAgeDistribution(age_distribution)
+      
+    # Add custom IP to demographics                              
     initial_distribution = [0.5, 0.5]
     demog.AddIndividualPropertyAndHINT(Property="Access", Values=["Low", "High"],
                                        InitialDistribution=initial_distribution)                                  
@@ -139,14 +143,14 @@ def general_sim(selected_platform):
                        ips_to_record=['Access'])
                        
     # MalariaSummaryReport
-    add_malaria_summary_report(task, manifest, start_day=1, end_day=serialize_years*365, reporting_interval=365,
+    add_malaria_summary_report(task, manifest, start_day=1, end_day=serialize_years*365, reporting_interval=30,
                                age_bins=[0.25, 5, 115],
                                max_number_reports=serialize_years*13,
                                must_have_ip_key_value='Access:High',
                                filename_suffix='_highaccess',
                                pretty_format=True)
                                
-    add_malaria_summary_report(task, manifest, start_day=1, end_day=serialize_years*365, reporting_interval=365,
+    add_malaria_summary_report(task, manifest, start_day=1, end_day=serialize_years*365, reporting_interval=30,
                                age_bins=[0.25, 5, 115],
                                max_number_reports=serialize_years*13,
                                must_have_ip_key_value='Access:Low',
