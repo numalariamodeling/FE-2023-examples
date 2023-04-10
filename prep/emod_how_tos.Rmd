@@ -36,8 +36,21 @@ are connected by human and/or vector migration.
 
 **adjust for IDM**
 ```{python, eval=F}
-# Structure of Demographics File for a simulation with 1 node
+# Basic structure of Demographics File for a simulation with 1 node
   {
+     "Defaults": {
+          "IndividualAttributes": {...},
+          "IndividualProperties": [...],
+          "NodeAttributes": {
+            ...
+            "BirthRateSource": "World Bank",
+            "CountryBirthRate": 31.047,
+            "World Bank Year": "2016",
+            ...
+          },
+          
+          
+     },
      "Metadata": {
           "DateCreated": "dateTime",
           "Tool": "scriptUsedToGenerate",
@@ -48,17 +61,7 @@ are connected by human and/or vector migration.
      "NodeProperties": [
           {...}
      ],
-     "Defaults": {
-          "NodeAttributes": {
-            ...
-            "BirthRateSource": "World Bank",
-            "CountryBirthRate": 31.047,
-            "World Bank Year": "2016",
-            ...
-          },
-          "IndividualAttributes": {...},
-          "IndividualProperties": {...}
-     },
+     
      "Nodes": [{
           "NodeID": 1,
           "NodeAttributes": {
@@ -78,7 +81,38 @@ are connected by human and/or vector migration.
 <details><summary><span style="color: blue";">2. Creating a demographics file</span></summary>
 <p>
 
-**include from csv and template?**
+*Single-node Sims*
+The [emod-api](https://docs.idmod.org/projects/emod-api/en/latest/emod_api.demographics.html) package contains most of the major functionality to create a demographics file. It is supported by `emodpy-malaria` to add parameters that are more specific to the malaria workflow, imported as `Demographics` in the code chunk below. For single node, non-spatial simulations the `from_template_node` command is most commonly used; however, you may also choose to read in pre-made json files for these types of simulations. We include this command in our demographics builder with it's basic parameters:
+    - latitude
+    - longitude
+    - population size
+    - site name
+    - forced node ID (if desired)
+    
+With this saved as the `demog` item, we can add additional complexity as needed. This may include things like setting equilibrium vital dynamics so birth and mortality rates are equal, producing a relatively stable population size, or an age distribution for our population. In this example, we pull the age distribution of all of Sub-Saharan Africa from the `emod-api` and then apply it to our demographics item. You may also add complexity through individual properties and other specific parameters as desired.
+
+```{python, eval=F}
+import emodpy_malaria.demographics.MalariaDemographics as Demographics
+import emod_api.demographics.PreDefinedDistributions as Distributions
+
+def build_demog():
+    """
+    This function builds a demographics input file for the DTK using emod_api.
+    """
+
+    demog = Demographics.from_template_node(lat=1.00, lon=1.00, pop=1000, name="Example_Site_Name", forced_id=1)
+    
+    # Add equal birth and mortality rates
+    demog.SetEquilibriumVitalDynamics()
+    
+    # Call and add age distribution
+    age_distribution = Distributions.AgeDistribution_SSAfrica
+    demog.SetAgeDistribution(age_distribution)
+
+    return demog
+```
+
+**Spatial Sims -FIX**
 
 First, create a file "my_node.csv" with the following columns:
 
@@ -93,9 +127,9 @@ First, create a file "my_node.csv" with the following columns:
 
 Example "my_node.csv":
 
-| nodeid      | population  |  Village | lat     |  lon    |
-| ----------- | ----------- | -------- |-------- |-------- |
-| 1           | 1400        | "Obom"   | 5.760759  | -0.4473415  |
+| nodeid      | population  |  Village | lat        |  lon        |
+| ----------- | ----------- | -------- |----------- |------------ |
+| 1           | 1400        | "Obom"   | 5.760759   | -0.4473415  |
 
 Next, run `generate_demographics()`:
 
@@ -403,8 +437,6 @@ or stay in their current location.
 
 ### Forced Migration
 
-![figure](/images/04_highlighted.png)
-
 You may want to incorporate migration that is different from the normal migration patterns described above: for example, 
 to specify a certain demographic group to move at a certain time of year.
 
@@ -533,11 +565,17 @@ add_vector_migration_report(cb)
 
 ## Create climate files
 
-![figure](/images/01_highlighted.png)
+Once we have generated a demographics file describing the nodes for a simulation, we can request and download weather files using the idmtools API for COMPS SSMT. The simplest way to do this is to provide your script with a csv containing the basics of the site request, including site name, latitude, longitude, and node ID, such as in the "example_site.csv" here:
 
-Once we have generated a demographics file describing the nodes for a simulation, we can construct climate files by accessing IDM's climate database on Calculon.
+|      name     |   lat   |   lon   |   nodes   |
+| ------------- | ------- | ------- | --------- |
+|  example_site |   1.00  |   1.00  |     1     |
 
-**check all the details**
+This csv is passed as the `site_file` to `emodpy-malaria's` `generate_weather()` function along with the `node_column` that provides the name of our node ID column in the csv and `local_dir` which specifies that output directory. From there we can also specify:
+    - `platform`: where the request work item will run (Calculon if associated with IDM)
+    - `start_date` and `end_dates`: identify the period of time we are interested in requesting weather for
+    - `id_reference`: specify the IDReference attribute for the weather metadata
+    - `force`: flag ensuring that a new request is submitted even if the files exist in the `local_dir`
 
 ```{python, eval=F}
 import tempfile
@@ -559,12 +597,6 @@ wr = generate_weather(platform="Calculon",
 
 print("\n".join(wr.files))
 
-# Rename climate files and metadata
-for tag in ['air_temperature', 'rainfall', 'relative_humidity'] :
-            os.replace(os.path.join(inputs_path, input_file_name,'COUNTRY_30arcsec_%s_daily.bin' % tag),
-                       os.path.join(inputs_path, 'climate', '%s_%s_daily.bin' % (input_file_name, tag)))
-            os.replace(os.path.join(inputs_path, input_file_name, 'COUNTRY_30arcsec_%s_daily.bin.json' % tag),
-                       os.path.join(inputs_path, 'climate', '%s_%s_daily.bin.json' % (input_file_name, tag)))
 ```
 
 After completing these steps, there should be climate files for air_temperature, rainfall, and relative_humidity in your 
