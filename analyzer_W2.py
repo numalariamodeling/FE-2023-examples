@@ -101,7 +101,7 @@ class MonthlyPfPRAnalyzer(IAnalyzer):
             d = data[fname]['DataByTimeAndAgeBins']['Average Population by Age Bin'][:-1]
             pop = [x[age] for x in d]
 
-            simdata = pd.DataFrame({'week': range(1, len(pfpr)+1),
+            simdata = pd.DataFrame({'month': range(1, len(pfpr)+1),
                                     'PfPR': pfpr,
                                     'Cases': clinical_cases,
                                     'Severe cases': severe_cases,
@@ -170,7 +170,7 @@ if __name__ == "__main__":
                                       channels=channels_inset_chart,
                                       sweep_variables=sweep_variables,
                                       working_dir=wdir),
-                        WeeklyPfPRAnalyzer(exp_name=expname,
+                        MonthlyPfPRAnalyzer(exp_name=expname,
                                       sweep_variables=sweep_variables,
                                       working_dir=wdir)]
             
