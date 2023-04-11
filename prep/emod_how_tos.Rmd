@@ -600,7 +600,7 @@ print("\n".join(wr.files))
 ```
 
 After completing these steps, there should be climate files for air_temperature, rainfall, and relative_humidity in your 
-inputs folder. To reference these when running a simulation, update the configuration parameters:
+inputs folder. To reference these when running a simulation, update the configuration parameters to reflect the name and location of your climate files:
 
 ```{python, eval=F}
 def set_param_fn(config):
@@ -674,7 +674,7 @@ drug_campaign.add_drug_campaign(campaign,
 
 Individual properties can also be used in reporting to limit the report to only those individuals in the specified group, to track the number of individuals with an IP or combination of IPs, or to report the IPs of individuals.
 
-For the [summary report](https://faculty-enrich-2022.netlify.app/modules/emod-how-to/emod-how-to/#add-summary-reports), aggregation can be restricted by IP using the `ipfilter` argument. For example, the following function will report, on
+For the [`MalariaSummaryReport`](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-malaria-summary.html), aggregation can be restricted by IP using the `ipfilter` argument. For example, the following function will report, on
 aggregate, every 30 days on new infections and other infection updates in the Placebo group across the three age bins.
 
 ```{python,eval=F}
@@ -691,16 +691,16 @@ add_malaria_summary_report(task, manifest,
 </p>
 </details>
 
-The [PropertyReport](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-property.html) outputs select channels (population, infected, new infections, and disease deaths) for all combinations of IPs and IP values. This output can get very large if there are many IPs and/or IP values in play.
+The [`PropertyReport`](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-property.html) outputs select channels (population, infected, new infections, and disease deaths) for all combinations of IPs and IP values. This output can get very large if there are many IPs and/or IP values in play.
 
-To request the PropertyReport:
+To request the `PropertyReport`:
 
 ```{python,eval=F}
 # add to config parameter setup
 config.parameters.Enable_Property_Output = 1
 ```
 
-The [NodeDemographicsReport](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-malaria-node-demographics.html), added using [add_node_demographics_report()](https://github.com/InstituteforDiseaseModeling/dtk-tools/blob/master/dtk/utils/reports/CustomReport.py#L210), reports on node-level counts of individuals by age bin, infection status, and IP if requested:
+The [`NodeDemographicsReport`](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-malaria-node-demographics.html) reports on node-level counts of individuals by age bin, infection status, and IPs if requested through `IP_key_to_collect`:
 
 ```{python,eval=F}
 from emodpy_malaria.reporters.builtin import *
@@ -708,20 +708,17 @@ add_report_node_demographics(task, manifest,
                              IP_key_to_collect='StudyCohort')
 ```
 
-To add an IP column to [ReportEventRecorder](https://faculty-enrich-2022.netlify.app/modules/emod-how-to/emod-how-to/#individual-events)
-that reports the IP value for each individual experiencing the requested events:
+To add an IP column to [`ReportEventRecorder`](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-event-recorder.html) that reports the IP value for each individual experiencing the requested events, use `ips_to_record`:
+
 ```{python, eval=F}
-cb.update_params({
-  'Report_Event_Recorder': 1,  # Enable generation of ReportEventRecorder.csv
-  'Report_Event_Recorder_Ignore_Events_In_List': 0, # Logical indicating whether to include or exclude the events specified in the list
-  'Report_Event_Recorder_Events': ['NewClinicalCase', 'Received_Treatment'], # List of events to include
-  'Report_Event_Recorder_Individual_Properties': ['StudyCohort', 'DrugResponseGroup'],
-})
+from emodpy_malaria.reporters.builtin import *
+  add_event_recorder(task, event_list=["NewClinicalCase","Received_Treatment"],
+                     start_day=1, end_day=365, node_ids=[1], min_age_years=0,
+                     max_age_years=100,
+                     ips_to_record=['StudyCohort'])
 ```
 
-## Create a model
-
-![figure](/images/02_highlighted.png)
+## Create a model - *move to top?*
 
 EMOD configuration scripts begin by creating a configbuilder object (the **cb**), then adding and changing it. The *cb* is 
 created by loading default parameters:
@@ -732,27 +729,91 @@ from simtools.ModBuilder import ModBuilder, ModFn
 cb = DTKConfigBuilder.from_defaults('MALARIA_SIM')
 ```
 
-One can also specify different simulation types such as **VECTOR_SIM** to simulate just the vector model without the 
-malaria within-host model, or other simulation types listed [here](https://docs.idmod.org/projects/emod-malaria/en/latest/glossary.html?highlight=Sim_Type#term-simulation-type).
+One can also specify different simulation types such as **VECTOR_SIM** to simulate just the vector model without the malaria within-host model, or other simulation types listed [here](https://docs.idmod.org/projects/emod-malaria/en/latest/glossary.html?highlight=Sim_Type#term-simulation-type). After setting the team config defaults, reset the simulation type wtih `config.parameters.Simulation_Type = "MALARIA_SIM"`.
 
+EMOD configuration scripts contain five primary components:
+    1. Import modules
+        - Import all necessary modules and functions to run subsequent script
+    2. Config setup & simulation duration
+        - Set `config.json` parameters to team defaults and update additional parameters as needed using a callback to the `emod-api` config. For example, one can specify different simulation types such as **VECTOR_SIM** to simulate just the vector model without the malaria within-host model, or other simulation types listed [here](https://docs.idmod.org/projects/emod-malaria/en/latest/glossary.html?highlight=Sim_Type#term-simulation-type).
+        
+          ```{python, eval=F}
+          def set_param_fn(config):
+              import emodpy_malaria.malaria_config as conf
+              config = conf.set_team_defaults(config, manifest)
+              
+              #if desired, set simulation type, default MALARIA_SIM below
+              config.parameters.Simulation_Type = "MALARIA_SIM"
+              return config
+          ```
+    3. Campaign setup
+        - Build a campaign file using the `emod-api` schema. This is where desired interventions should be added.
+        
+          ```{python, eval=F}
+          def build_camp():
+              camp.schema_path = manifest.schema_file
+              return camp
+          ```
+    4. Demographics
+        - Build a demographics file using `emod-api`. This is typically done through `from_template_node` for single node sims, but there are other methods available if needed (*see demographics how to*)
+          
+          ```{python, eval=F}
+          def build_demog():
+              demog = Demographics.from_template_node(lat=1, lon=2, pop=10, name="Example_Site")
+              return demog
+          ```
+    5. EMODTask & experiment builder
+        - Set the platform with details for where we will run the simulations and create the `EMODTask` that that references the above builders, schema, and model executable
+        - Reporters can be added after the task to monitor simulation outputs (*see reporters section below*)
+        - The experiment can be built using `from_task` or `from_builder` depending on simulation complexity. When changes, such as with sweeps, are made outside of the initial campaign builder then `from_builder` is need (*see model builder section below*)
+        
+          ```{python, eval=F}
+          def general_sim(selected_platform):
+              # Set platform and associated values, such as the maximum number of jobs to run at one time and other platform specifics
+              platform = Platform(<platform>, job_directory=manifest.job_directory,
+                                  partition=<SLURM partition>, time=<'HH:MM:SS'>,
+                                  account=<SLURM account>, modules=['singularity'],
+                                  max_running_jobs=10)
+
+              # create EMODTask using previously defined builders
+              print("Creating EMODTask (from files)...")
+              task = EMODTask.from_default2(
+                        config_path="config.json",
+                        eradication_path=manifest.eradication_path,
+                        campaign_builder=build_camp,
+                        schema_path=manifest.schema_file,
+                        param_custom_cb=set_param_fn,
+                        ep4_custom_cb=None,
+                        demog_builder=build_demog,
+                        plugin_report=None
+                        )
+    
+              # set the singularity image to be used when running this experiment
+              task.set_sif(manifest.SIF_PATH, platform)
+    
+              # create experiment from builder
+              user = os.getlogin()
+              experiment = Experiment.from_task(task, name= 'experiment_name')
+
+              # The last step is to call run() on the ExperimentManager to run the simulations.
+              experiment.run(wait_until_done=True, platform=platform)
+          ```
 
 ## Set up mosquito species
-
-![figure](/images/02_highlighted.png)
 
 EMOD allows us to specify the distribution of mosquito species in the simulation, and to specify life cycle, larval habitat, and transmission parameters for each species. 
 
 <details><summary><span style="color: blue";">Single Vector Species</span></summary>
 <p>
 
-The example below would populate the model with 100% gambiae mosquitoes.
+The example below would populate the model with 100% gambiae mosquitoes and can be included in the config builder.
 
 ```{python, eval=F}
-from dtk.vector.species import set_species
-set_species(cb, ['gambiae'])
+import emodpy_malaria.malaria_config as conf
+conf.add_species(config, manifest, ["gambiae"])
 ```
 
-The following default parameters appear in the config file for A. gambiae. Some of the default parameters vary between different vector species:
+The following default parameters appear in the config file for *A. gambiae*. Some of the default parameters vary between different vector species:
 
 ```{python, eval=F}
 {
@@ -794,8 +855,8 @@ The following default parameters appear in the config file for A. gambiae. Some 
 We can also include a mix of vector species, adding multiple vector populations with species-specific parameters.
 
 ```{python, eval=F}
-from dtk.vector.species import set_species
-set_species(cb, ['gambiae','arabiensis'])
+import emodpy_malaria.malaria_config as conf
+conf.add_species(config, manifest, ["gambiae", "arabiensis"])
 ```
 
 For each species listed in Vector_Species_Params, a “VectorPopulation” object will be added to the simulation at each node. Each species will be defined by parameters in the simulation configuration file for the vector ecology and behavior of the species. This allows for a mechanistic description of vector abundances and behavior through the effects of climate and weather on different preferred larval habitats.
@@ -861,12 +922,12 @@ For each species listed in Vector_Species_Params, a “VectorPopulation” objec
 <details><summary><span style="color: blue";">Modify vector species parameters</span></summary>
 <p>
 
-To change vector species parameters from defaults, use the update_species_param() function.
+To change vector species parameters from defaults, use the set_species_param() function.
 
 ```{python, eval=F}
-from dtk.vector.species import update_species_param
+import emodpy_malaria.malaria_config as conf
 # Example: Decrease the 'Transmission_Rate' of A. arabiensis from 0.9 (default) to 0.75.
-update_species_param(cb, 
+conf.set_species_param(config, 
                      species="arabiensis", 
                      parameter="Transmission_Rate", 
                      value=0.75, 
@@ -882,11 +943,11 @@ update_species_param(cb,
 The larval habitat parameters for each vector species can also be modified.
 
 ```{python, eval=F}
-from dtk.vector.species import update_species_param
+import emodpy_malaria.malaria_config as conf
 # Example: Add brackish swamp habitat availability for A. arabiensis only. 
 new_habitats = {"arabiensis": {"BRACKISH_SWAMP": 1.7e9, "Max_Larval_Capacity": 30000000.0}}
 for species, habitat in new_habitats.items():
-    update_species_param(cb, species,
+    conf.set_species_param(config, species,
                          parameter="Larval_Habitat_Types", 
                          value= habitat, 
                          overwrite=False # Does not delete previous habitat types
@@ -897,43 +958,32 @@ for species, habitat in new_habitats.items():
 
 ## Change mosquito abundance
 
-After adding vectors to your model, you may want to alter their abundance in order to reach a desired entomological 
-innoculation rate (EIR), malaria prevalence, or malaria incidence. In EMOD this is often done by re-scaling the amount 
-of habitat available for larval development: Available habitat is 
-directly related to mosquito abundance, and mosquito abundance in turn is directly related to biting rate. 
+After adding vectors to your model, you may want to alter their abundance in order to reach a desired entomological innoculation rate (EIR), malaria prevalence, or malaria incidence. In EMOD this is often done by re-scaling the amount of habitat available for larval development: Available habitat is directly related to mosquito abundance, and mosquito abundance in turn is directly related to biting rate. 
 
-There are several options for configuring habitat. You can first set habitat parameters and modify them directly as 
-detailed in the section [Set up mosquito species](https://faculty-enrich-2022.netlify.app/modules/emod-how-to/emod-how-to/#set-up-mosquito-species).
+There are several options for configuring habitat. You can first set habitat parameters and modify them directly as detailed in the section [Set up mosquito species](https://faculty-enrich-2022.netlify.app/modules/emod-how-to/emod-how-to/#set-up-mosquito-species).
 
 After those initial parameters are set, habitat can be modified with scaling parameters.
 
 <details><summary><span style="color: blue";">Universal Habitat Scaling</span></summary>
 <p>
 
-![figure](/images/02_highlighted.png)
+To apply a constant scale factor to all habitats equally for all species, use the **x_Temporary_Larval_Habitat** configuration parameter.
 
-To apply a constant scale factor to all habitats equally for all species, use the **x_Temporary_Larval_Habitat** 
-configuration parameter.
-
-This parameter will scale all habitat parameters for the entire simulation duration without changing the temporal 
-dynamics, so that a new transmission is 
-achieved with the same ratios among the species and same time profile. For example, setting **x_Temporary_Larval_Habitat** 
+This parameter will scale all habitat parameters for the entire simulation duration without changing the temporal dynamics, so that a new transmission is achieved with the same ratios among the species and same time profile. For example, setting `x_Temporary_Larval_Habitat` 
 to 0.1 would reduce habitat by 90%. 
 
 ```{python, eval=F}
 # Ex: Reduce habitat (and thus, adult vectors and biting rate) by 90%.
-cb.update_params({'x_Temporary_Larval_Habitat': 0.1})    
+config.parameters.x_Temporary_Larval_Habitat = 0.1  
 ```
 </p></details>
 
 <details><summary><span style="color: blue";">Node-Specific Habitat Scaling in Demographics</span></summary>
 <p>
 
-![figure](/images/01_highlighted.png)
+Node- and species-specific habitat scaling can be set in the demographics file through the NodeAttributes parameter `LarvalHabitatMultiplier`. Multipliers can be set by species as in the example below, or `'ALL_SPECIES'` to target the specified habitat for all species.
 
-Node- and species-specific habitat scaling can be set in the demographics file through the NodeAttributes parameter 
-**LarvalHabitatMultiplier**. Multipliers can be set by species as in the example below, or `'ALL_SPECIES'` to target 
-the specified habitat for all species.
+**needs demog setting instructions**
 
 ```{python, eval=F}
 "NodeAttributes: {
@@ -959,51 +1009,36 @@ the specified habitat for all species.
 <details><summary><span style="color: blue";">Dynamic Habitat Scaling during Simulation</span></summary>
 <p>
 
-![figure](/images/02_highlighted.png)
-
-The [ScaleLarvalHabitat](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-campaign-node-scalelarvalhabitat.html) 
-intervention allows the user to scale habitats by type and species at a specified time during the simulation. The `dtk-tools` 
-function [scale_larval_habitats()](https://github.com/InstituteforDiseaseModeling/dtk-tools/blob/master/dtk/interventions/habitat_scale.py) 
-takes a dataframe argument to construct the campaign events for habitat scaling:
+The [`ScaleLarvalHabitat`](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-campaign-node-scalelarvalhabitat.html) intervention allows the user to scale habitats by type and species at a specified time during the simulation. The `emodpy-malaria` function `add_scale_larval_habitats()` takes a dataframe argument to construct the campaign events for habitat scaling:
 
 ```{python, eval=F}
-from dtk.interventions.habitat_scale import scale_larval_habitats
-scale_larval_habitats(cb, df=habitat_df, start_day=0)
+from emodpy_malaria.interventions.scale_larval_habitat import add_scale_larval_habitats
+add_scale_larval_habitats(campaign, df=habitat_df, start_day=0)
 ```
 
-The `habitat_df` argument requires column name(s) for each habitat type being scaled, with column values being the 
-scale factor(s). Many configuration options are available, including by species, by node, and by date. See documentation in 
-[scale_larval_habitats()](https://github.com/InstituteforDiseaseModeling/dtk-tools/blob/master/dtk/interventions/habitat_scale.py).
-
+The `habitat_df` argument requires column name(s) for each habitat type being scaled, with column values being the scale factor(s). Many configuration options are available, including by species, by node, and by date.
 
 </p></details>
 
 ## Update config parameters
 
-![figure](/images/02_highlighted.png)
+You may need to update a variety of configuration parameters for your simulations. These parameters can be explored more in depth in the [EMOD config documentation](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-configuration.html). Broadly, configuration parameters can be used to set up certain things in these categories: drugs and treatments, enable/disable features, general disease, geography and the environment, immunity, incubation, infectivity and transmission, input files, larval habitat, migration, mortality and survival, output settings, parasite dynamics, population dynamics, sampling, scalars and multipliers, simulation setup, symptoms and diagnosis, vector control, and vector life cycle. 
 
-You may need to update a variety of configuration parameters for your simulations. These parameters can be explored more 
-in depth in the [EMOD config documentation](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-configuration.html). 
-Broadly, configuration parameters can be used to set up certain things in these categories: drugs and treatments, 
-enable/disable features, general disease, geography and the environment, immunity, incubation, infectivity and 
-transmission, input files, larval habitat, migration, mortality and survival, output settings, parasite dynamics, 
-population dynamics, sampling, scalars and multipliers, simulation setup, symptoms and diagnosis, vector control, and 
-vector life cycle. Generally, we create a setup_simulation() function that contains the configuration update function 
-for the config_builder (cb). For parameters that won't often change you can hard code them directly into this function, 
-while it may be beneficial to call others as a variable, such as sim_years, that can be set when the function itself is 
-called later. This can be done inline in the code or within the model builder. 
+For parameters that won't often change you can hard code them directly into the config building function (`set_param_fn()` in the how-tos), while it may be beneficial to call others as a global variable, such as sim_years, that can be set and then referenced within the setup function.
 
-In this example, we show how to change the **demographics** (Demographics_Filenames) and **simulation duration** 
-(Simulation_Duration) parameters. Simulation duration is set in days, and in this example is set to last 7 years 
-(7 yrs * 365 days/yr).
+In this example, we show how to change the `Simulation_Duratiion` and `Run_Number` parameters. Simulation duration is set in days, and in this example is set to last 5 years (5 yrs * 365 days/yr).
 
 ```{python,eval=F}
-from dtk.utils.core.DTKConfigBuilder import DTKConfigBuilder
-                      
-cb = DTKConfigBuilder.from_defaults('MALARIA_SIM')
-cb.update_params({'Demographics_Filenames': ['my_demographics.json'],
-                  'Simulation_Duration': 7*365,
-                  })
+sim_years = 5
+
+def set_param_fn(config):
+    import emodpy_malaria.malaria_config as conf
+    config = conf.set_team_defaults(config, manifest)
+              
+    #update simulation duration and run number
+    config.parameters.Simulation_Duration = sim_years*365
+    config.parameters.Run_Number = 5
+    return config
 ```
 
 <details><summary><span style="color: blue";">Enable Births and Deaths</span></summary>
