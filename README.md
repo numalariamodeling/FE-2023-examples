@@ -696,9 +696,10 @@ We will cover advanced applications of spatial modeling in another exercise. Thi
         
         Note: *node_id* must be positive numbers, but do not have to be sequential.
         Note: lat/lon values should represent real places with climates suitable for malaria transmission (for step 3).
-3. Generate climate from **nodes.csv**
+3. Generate climate from **nodes.csv**  
+    - For simplicity: just use a single-year series from 2019
 
-Now, referring to the scripts you wrote for previous examples, you should be able to outline - or in some cases complete - the code sections needed to:  
+Now, referring to the scripts you wrote for previous examples, you should be able to start with a blank `run_spatial.py` and outline - or in some cases complete - the code sections needed to:  
 
 4. Import modules  
 5. **Set Configuration Parameters**  
