@@ -676,7 +676,7 @@ In this example, we'll continue building off of the serialization structure, add
 
 <details><summary><span><em>Multi-node/Spatial Simulations</em></span></summary>
 <p>
-Most of the time, we consider our geographical units of interest (the 'nodes' - whether they represents districts, regions, countries, or abstract populations) to be independent from one another. Usually, it's better to simulate different locales separately, but you may want to run 'spatial' simulations involving multiple nodes and the connections between them (ex. migration). 
+Most of the time, we consider our geographical units of interest (the 'nodes' - whether they represent districts, regions, countries, or abstract populations) to be independent from one another. Usually, it's better to simulate different locales separately, but you may want to run 'spatial' simulations involving multiple nodes and the connections between them (ex. migration). 
 
 We will cover advanced applications of spatial modeling in another exercise. This exercise will allow you to practice combining parts from previous examples to run a simple spatial simulation and produce spatial outputs. Afterward, you can add code to introduce migration between nodes, and see how that changes things, but we will not deal with this in any detail here.
 
@@ -695,6 +695,7 @@ We will cover advanced applications of spatial modeling in another exercise. Thi
         | 17 | 12.06 | -1.48 | 1000 |
         
         Note: *node_id* must be positive numbers, but do not have to be sequential.
+        Note: lat/lon values should represent real places with climates suitable for malaria transmission (for step 3).
 3. Generate climate from **nodes.csv**
 
 Now, referring to the scripts you wrote for previous examples, you should be able to outline - or in some cases complete - the code sections needed to:
