@@ -18,7 +18,7 @@ For each week suggested simulation scripts for comparison or help during the exe
 Before running the weekly example scripts, please ensure that emodpy has been successfully [installed](https://faculty-enrich-2022.netlify.app/modules/install-emod/)
 and that the [repository has been cloned](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository)
 to your home directory on QUEST, ideally as _/home/<.username>/FE-2023-examples_.
-Running your scripts will require that the emodpy virtual environment is loaded and assumes files are run from a working directory set to where the script is located. Before you start on an exercise, make sure that you have pulled or fetched the latest changes from the repository (see git-guides [git-pull](https://github.com/git-guides/git-pull)).
+Running your scripts will require that the emodpy virtual environment is loaded and assumes files are run from a working directory set to where the script is located. On QUEST there is an existing venv that can be loaded using `source activate /projects/b1139/environments/emodpy_alt` - this environment uses the idmtools platform `SLURM_LOCAL`. Otherwise, you may follow these directions to install your own environment. **TOADD** Before you start on an exercise, make sure that you have pulled or fetched the latest changes from the repository (see git-guides [git-pull](https://github.com/git-guides/git-pull)).
 
 ### Week 1: Overview of EMOD
 This week we will be discussing EMOD's general structure and content as well as making sure you are ready to run the model on our linux-based HPC, QUEST. You will set up your own virtual environmet to run EMOD via emodpy and idmtools and clone this github repository to your home directory on QUEST. We will not be running any example scripts, but please familiarize yourself with the repo, website, and EMOD documentation.
@@ -42,11 +42,13 @@ Click the arrow to expand:
 
 - Navigate to your local copy of this repository on QUEST: `cd ~/FE-2023-examples`  
 - Notice your job directory path in `manifest.py`: `/projects/b1139/FE-2023-examples/experiments/<username>`. This will help your track your simulations separately from other participants.  
-- Load your emodpy `SLURM_LOCAL` virtual environment  
-- Run simulation via `python3 example_run.py -l`  
+- Load your emodpy `SLURM_LOCAL` virtual environment (see prerequisites)  
+- Run simulation via `python3 example_run.py -l`
+    - The `-l` argument allows you to use `SLURM_LOCAL` platform as the `selected_platform` in this example
 - Wait for simulation to finish (~2 minutes)  
 - Go to the job directory (see `experiments/<your username>` above) folder to find the generated experiment - it will be under a set of 16-digit alphanumeric strings. The structure of these strings is `Suite > Experiment > Simulations`. Due to current handling systems with SLURM you will not be able to see the experiment name given within the `example_run.py` script; however, this can be found in the experiment and simulation-level metadata.json files. You may also choose to sort your files based on time such that most recent experiments will appear first. 
 - Take a look through what was generated even in this simple run and get familiar with the file structure.  
+    - *NOTE: be sure to go all the way into the folder structure to see your simulations & their outputs*
 
 </p>
 </details>
