@@ -40,7 +40,6 @@ def build_camp():
     """
 
     camp.schema_path = manifest.schema_file
-
     
     return camp
 
@@ -52,7 +51,6 @@ def build_demog():
 
     demog = Demographics.from_template_node(lat=1, lon=2, pop=10, name="Example_Site")
 
-    
     return demog
 
 
@@ -88,7 +86,7 @@ def general_sim(selected_platform):
 
     # create experiment from builder
     user = os.getlogin()
-    experiment = Experiment.from_task(task, name= f'{user}_FE_example_outputs')
+    experiment = Experiment.from_task(task, name= f'{user}_FE_example_basic')
 
 
     # The last step is to call run() on the ExperimentManager to run the simulations.
