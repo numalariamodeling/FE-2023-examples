@@ -678,17 +678,91 @@ In this example, we'll continue building off of the serialization structure, add
 <p>
 Most of the time, we consider our geographical units of interest (the 'nodes' - whether they represents districts, regions, countries, or abstract populations) to be independent from one another. Usually, it's better to simulate different locales separately, but you may want to run 'spatial' simulations involving multiple nodes and the connections between them (ex. migration). 
 
-We will cover advanced applications of spatial modeling in another exercise. This exercise will allow you to practice combining parts from previous examples to run a simple spatial simulation and produce spatial outputs.
+We will cover advanced applications of spatial modeling in another exercise. This exercise will allow you to practice combining parts from previous examples to run a simple spatial simulation and produce spatial outputs. Afterward, you can add code to introduce migration between nodes, and see how that changes things, but we will not deal with this in any detail here.
+
+**Steps**
 
 1. Create a spreadsheet **nodes.csv** with the columns *node_id*, *lat*, *lon*, and *pop*. EMODpy will be expecting these column names!  
-2. Fill in the spreadsheet with the information for 4 nodes:
+2. Fill in the spreadsheet with the information for 4 nodes
 
-| node_id | lat    | lon   | pop  |
-|:-------:|:------:|:-----:|:----:|
-| 1       | 12.11 | -1.47 | 1000 |
-| 2 | 12.0342 | -1.44 | 1000 | 
-| 3 | 12.13 | -1.59 | 1000 | 
-| 17 | 12.06 | -1.48 | 1000 |
+        Example:
+
+        | node_id | lat    | lon   | pop  |
+        |:-------:|:------:|:-----:|:----:|
+        | 1       | 12.11 | -1.47 | 1000 |
+        | 2 | 12.0342 | -1.44 | 1000 | 
+        | 3 | 12.13 | -1.59 | 1000 | 
+        | 17 | 12.06 | -1.48 | 1000 |
+        
+        Note: *node_id* must be positive numbers, but do not have to be sequential.
+3. Generate climate from **nodes.csv**
+
+Now, referring to the scripts you wrote for previous examples, you should be able to outline - or in some cases complete - the code sections needed to:
+4. Import modules
+5. **Set Configuration Parameters**
+    - You can keep the simulation duration short (1-2 years) while testing / debugging.
+6. **Sweep configuration parameters***
+7. **Build campaign**
+8. Sweep campaign parameters (optional for this exercise)  
+9. Serialize burnin & pickup
+10. **Build demographics**  
+11. **Run Experiment [`general_sim()`]**
+    a. Set platform
+    b. Create EMODTask
+    c. Set singularity image
+    d. Add weather directory asset*
+    e. Use `SimulationBuilder()`
+    f. Reports*
+    g. Create, run, and check result of experiment
+
+**Additional Specifications for Spatial Model Example**
+
+*Burnin*
+- Duration: 30 years
+- Vary `x_Temporary_Larval_Habitat`
+    - `np.logspace(0,1,10)` will use 10 evenly log-spaced values between 10^0 and 10^1 
+- No interventions
+- 1 stochastic realization / random seed
+    **Hint**: don't forget to point toward the correct demographics 
+        - Use `Demographics.from_csv(input_file=<path_to_file>, id_ref=<same id_ref used for climate files>, init_prev=0.01, include_biting_heterogeneity=True)`
+    **Hint**: check `set_param_fn()` to make sure you added vectors, point to the corresponding climate files, and allow for serialization.
+
+*Pickup*
+- Duration: 10 years
+- Carry `x_Temporary_Larval_Habitat` over from burnin
+- Interventions deployed differently in each node:
+    - For simplicity, you can choose fixed "optimal" coverages (~80%) for these interventions, instead of sweeping over these campaign parameters.
+    - One node receives case management, and ITNs every 3 years
+    - One node receives case management only
+    - One node receives ITNs every 3 years only
+    - One node receives no interventions   
+- 10 stochastic realizations / random seeds each (sweep over `Run_Number`)
+- add Spatial Reports/Outputs, inside `general_sim()`, 
+    -  `add_spatial_report_malaria_filtered(...)`
+        - Filter to final year 3 years of the simulation
+        - For a daily report, use `reporting_interval = 1`
+        - Filter to ages 0.25-100
+        - include spatial_output_channels 'Population', 'PCR_Parasite_Prevalence', and 'New_Clinical_Cases' (though any InsetChart Channels will work)
+   - `add_event_recorder(...)`
+        - the `event_list` should include 'Received_Treatment' and 'Received_ITN'
+            - These events need to be added to `config.parameters.Custom_Individual_Events` inside `set_param_fn()` as well.
+            
+ 
+OPTIONAL BONUS: Add migration to the pickup simulations and see if/how connecting the nodes affects the distinctions between them.
+- `import emod_api.migration.migration as migration`
+- inside `set_param_fn()`: 
+    - set `config.parameters.Enable_Migration_Heterogeneity = 0`
+- Migration gets added inside `build_demog()`:
+    - `migration_partial=partial(migration.from_demog_and_param_gravity, 
+                                 gravity_params=[7.50395776e-06,
+                                                 9.65648371e-01, 
+                                                 9.65648371e-01, 
+                                                 -1.10305489e+00].
+                                 id_ref=<same id_ref from demographics>,
+                                 migration_type=migration.Migration.Regional)`
+   - and the function should now end with `return demog, migration_partial`
+    
+
 
 **IN PROGRESS**
 
