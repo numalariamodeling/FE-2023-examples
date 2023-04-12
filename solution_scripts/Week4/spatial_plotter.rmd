@@ -1,0 +1,73 @@
+---
+title: "FE Example Spatial Plotter"
+author: "Tobias Holden"
+date: "4/11/2023"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(data.table)
+
+# EDIT THE SECTIONS BELOW #
+
+# Path to SpatialReportMalariaFiltered.csv
+sr_path <- '/projects/b1139/indie_emodpy/simulation_output/baseline/spatial_output/FE_example'
+sr <- fread(paste(sr_path,
+                  'SpatialReportMalariaFiltered.csv',
+                  sep='/'))
+```
+
+After editing the above, run this chunk to visualize the spatial channels by node.
+
+```{r}
+node_list <- paste("Node",unique(sr$node))
+origin <- min(sr$time)
+start_year <- "2000"
+sr %>%
+  select(-Run_Number, -experiment) %>%
+  group_by(time, node, xTLH) %>%
+  summarize_all(mean) %>%
+  gather("variable","value",4:6) %>%
+  mutate(node_f=factor(paste("Node",node),levels=node_list))%>%
+  mutate(variable_c = gsub("_"," ", variable)) %>% 
+  mutate(time=time-origin) %>%
+  mutate(time=as.Date(time,origin=paste(start_year,01,01,sep="-"))) -> SRMF
+  
+SRMF %>%
+  ggplot(aes(x=time, y=value)) +
+  facet_grid(variable_c~node_f, scales="free", switch = "y") +
+  geom_path(aes(group=xTLH, color=xTLH), 
+            alpha=0.3, size=1) +
+  xlab("") + ylab("") +
+  scale_color_distiller(palette="Spectral") +
+  scale_x_date(date_minor_breaks = "6 months", 
+               date_breaks = "1 year",
+               date_labels = "%Y", expand = c(0,0)) +
+  theme(panel.grid = element_line(color="gray"),
+        panel.background = element_rect(fill='transparent'))
+
+ggsave('Example_SRMG_Plot1.png', height=7, width = 14)
+
+SRMF %>%
+  ggplot(aes(x=time, y=value)) +
+  facet_grid(variable_c~round(xTLH,2), scales="free", switch = "y") +
+  geom_path(aes(group=factor(node), color=factor(node)), 
+            alpha=0.7, size=1) +
+  xlab("") + ylab("") +
+  scale_color_brewer(palette="Spectral") +
+  scale_x_date(date_minor_breaks = "6 months", 
+               date_breaks = "1 year",
+               date_labels = "%Y", expand = c(0,0)) +
+  theme(panel.grid = element_line(color="gray"),
+        panel.background = element_rect(fill='transparent')) +
+  ggtitle("","x_Temporary_Larval_Habitat") +
+  labs(color="Node")
+
+ggsave('Example_SRMG_Plot2.png', height=7, width = 14)
+  
+```
