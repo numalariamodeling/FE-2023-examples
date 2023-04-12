@@ -676,6 +676,22 @@ In this example, we'll continue building off of the serialization structure, add
 
 <details><summary><span><em>Multi-node/Spatial Simulations</em></span></summary>
 <p>
-**this one we should have them start from scratch again**
+Most of the time, we consider our geographical units of interest (the 'nodes' - whether they represents districts, regions, countries, or abstract populations) to be independent from one another. Usually, it's better to simulate different locales separately, but you may want to run 'spatial' simulations involving multiple nodes and the connections between them (ex. migration). 
+
+We will cover advanced applications of spatial modeling in another exercise. This exercise will allow you to practice combining parts from previous examples to run a simple spatial simulation and produce spatial outputs.
+
+1. Create a spreadsheet **nodes.csv** with the columns *node_id*, *lat*, *lon*, and *pop*. EMODpy will be expecting these column names!  
+2. Fill in the spreadsheet with the information for 4 nodes:
+
+| node_id | lat    | lon   | pop  |
+|:-------:|:------:|:-----:|:----:|
+| 1       | 12.11 | -1.47 | 1000 |
+| 2 | 12.0342 | -1.44 | 1000 | 
+| 3 | 12.13 | -1.59 | 1000 | 
+| 17 | 12.06 | -1.48 | 1000 |
+
+**IN PROGRESS**
+
+
 </p>
 </details>
