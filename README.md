@@ -5,7 +5,7 @@ Example scripts for 2023 faculty enrichment program in applied malaria modeling 
 [![fr](https://img.shields.io/badge/lang-fr-red.svg)](https://github.com/numalariamodeling/FE-2023-examples/blob/main/README.fr.md)
 
 
-## Technical track (EMOD)
+### Technical track (EMOD)
 
 **Overview:**
 Exercises usually consist of a simulation and an analyzer of simulation outputs. 
@@ -14,20 +14,43 @@ In some weeks, additional scripts exist to prepare simulation inputs or generate
 **Checking results:**
 For each week suggested simulation scripts for comparison or help during the exercise are provided in the respective week's folder.
 
-**Prerequisites**: 
-Before running the weekly example scripts, please ensure that emodpy has been successfully [installed](https://faculty-enrich-2022.netlify.app/modules/install-emod/)
-and that the [repository has been cloned](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository)
-to your home directory on QUEST, ideally as _/home/<.username>/FE-2023-examples_.
-Running your scripts will require that the emodpy virtual environment is loaded and assumes files are run from a working directory set to where the script is located. On QUEST there is an existing venv that can be loaded using `source activate /projects/b1139/environments/emodpy_alt` - this environment uses the idmtools platform `SLURM_LOCAL`. Otherwise, you may follow these directions to install your own environment. **TOADD** Before you start on an exercise, make sure that you have pulled or fetched the latest changes from the repository (see git-guides [git-pull](https://github.com/git-guides/git-pull)).
+**Prerequisites:** 
+Before running the weekly example scripts, please ensure that the emodpy virtual environment has been successfully [installed](https://faculty-enrich-2022.netlify.app/modules/install-emod/) **UPDATE LINK**
+and that this [repository has been cloned](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) to your home directory on QUEST, ideally as _/home/<.username>/FE-2023-examples_. Running your scripts will require that the emodpy virtual environment is loaded and assumes files are run from a working directory set to where the script is located. On QUEST there is an existing venv that can be loaded using `source activate /projects/b1139/environments/emodpy_alt` - this environment uses the idmtools platform `SLURM_LOCAL`. Before you start on an exercise, make sure that you have pulled or fetched the latest changes from the repository (see git-guides [git-pull](https://github.com/git-guides/git-pull)).
 
 ### Week 1: Overview of EMOD
-This week we will be discussing EMOD's general structure and content as well as making sure you are ready to run the model on our linux-based HPC, QUEST. You will set up your own virtual environmet to run EMOD via emodpy and idmtools and clone this github repository to your home directory on QUEST. We will not be running any example scripts, but please familiarize yourself with the repo, website, and EMOD documentation.
+This week we will be discussing EMOD's general structure and content as well as making sure you are ready to run the model on our linux-based HPC, QUEST. You will set up your own virtual environment to run EMOD via emodpy and idmtools and clone this github repository to your home directory on QUEST. We will not be running any example scripts, but please familiarize yourself with the repo, website, and EMOD documentation.
 
-### Week 2: Building Blocks
+**What to expect**
+
+When you run an EMOD simulation script on QUEST, it will generate a set of initial messages. You will see a warning about no "idmtools.ini" - this is perfectly normal as we do not typically need the ini file to run with emodpy. Following this warning, you will see a segment that tells you some basic details about the idmtools platform you are using to run the script as well as the job directory, where all your simulation outputs will be stored.
+
+![](static/example_run.png)
+
+After a short waiting period, you will also see additional lines providing information on the commissioning of your simulation(s). You can expect to see a line saying that the EMODTask is being created, a few warnings and notices about file creation, then the bars showing progress on asset discovery and simulation commissioning. Once fully commissioned, you will also see the QUEST job ID, job directory, suite ID, and experiment ID. A line in the [example_run.py](https://github.com/numalariamodeling/FE-2023-examples/blob/main/example_run.py) tells the terminal to wait until all of the simulations are finished running, so there is an additional progress bar and assertion that the experiment succeeded, or failed, (once complete) that may not be present in all runs if this line is excluded. Notice that we have commissioned and successfully run 1 simulation here (see 1/1 at end of progress bars).
+
+![](static/example_commission.png)
+
+If you navigate to the job directory, the file structure should look similar to that below. It can be summarized as:
+    -Job Directory
+        - Suite ID
+            - Experiment ID
+                - Experiment Assets (e.g. demographics, EMOD executable, climate files, etc)
+                - Simulation ID(s)
+                    - Output folder (e.g. reporters specified in run script)
+                    - General simulation outputs (e.g. campaign and config files, status/error tracking, simulation metadata)
+                - General experiment outputs (e.g. status/error tracking, experiment metadata)
+            - Suite metadata file
+            
+*NOTE: All of the ID folders are the 16-digit alphanumeric strings generated by idmtools, there is currently no way to modify them to use more human readable names*
+
+![](static/example_file_structure.png)
+
+## Week 2: Building Blocks
 This week's first exercise introduces the simplest version of running and analyzing a single simulation experiment in EMOD using the emodpy/idmtools infrastructure and python. Before running a simulation, one needs to check that all configurations and installations were successful and edit paths in the manifest file. The steps are generally to
 
-1. run simulation, and   
-2. analyze simulation outputs. 
+1. run the simulation, and   
+2. analyze simulation outputs 
 
 This week's second exercise demonstrates how to create demographics and climate files and how to incorporate these into the simulation. The exercise further introduces how to modify config parameters (i.e. population size or simulation duration)
 
@@ -48,7 +71,7 @@ Click the arrow to expand:
 - Wait for simulation to finish (~2 minutes)  
 - Go to the job directory (see `experiments/<your username>` above) folder to find the generated experiment - it will be under a set of 16-digit alphanumeric strings. The structure of these strings is `Suite > Experiment > Simulations`. Due to current handling systems with SLURM you will not be able to see the experiment name given within the `example_run.py` script; however, this can be found in the experiment and simulation-level metadata.json files. You may also choose to sort your files based on time such that most recent experiments will appear first. 
 - Take a look through what was generated even in this simple run and get familiar with the file structure.  
-    - *NOTE: be sure to go all the way into the folder structure to see your simulations & their outputs*
+    - *NOTE: be sure to go all the way into the folder structure to see your simulations & their outputs. For more information on what to expect, see [Week 1](https://github.com/numalariamodeling/FE-2023-examples#week-1-overview-of-emod)*
 
 </p>
 </details>
@@ -209,7 +232,7 @@ Now that you've learned the basics of how to run EMOD and add inputs/outputs you
 </p>
 </details>
 
-### Week 3: Experiment Setups & Fine-Tuning
+## Week 3: Experiment Setups & Fine-Tuning
 This week's exercises will focus on how to design and setup more detailed experiments. We will cover sweeping over config parameters, calibration, and serialization. 
 
 This week's first exercise introduces the concept of "sweeping" over ranges of values for different parameters.  There are a variety of reasons we may want to test out a range of parameter values, some examples include:
@@ -467,7 +490,7 @@ This serialization exercise has three parts. In part 1 you will run and save a b
 </p>
 </details>
 
-### Week 4: Addressing Research Questions
+## Week 4: Addressing Research Questions
 
 This week will focus adding complexity to our simulations to better address our research questions through interventions, individual properties, and multi-node/spatial simulations. Each of these tools brings something beneficial to the table for many of the questions that you may be interested in answering using EMOD. There are many pre-defined interventions that can be added in EMOD -  we'll specifically focus on adding case management in these example exercises. Detailed descriptions of how-to add other interventions such as drug campaigns (SMC, PMC, MSAT, etc) and ITNs can be found in the [EMOD How-Tos](https://faculty-enrich-2022.netlify.app/modules/emod-how-to/emod-how-to/). 
 Individual properties present a way that we can categorize and add heterogeneity to our population, such as through intervention access, study enrollment, and drug response groups. We can target specific interventions and reports to individuals who meet the criteria of these 'tags', making these particularly useful to controlling aspects of the simulations that need not reach the entire population. Additionally, individual properties are fully customizable, so you can adapt them to fit the needs of your project. 
