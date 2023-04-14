@@ -712,7 +712,7 @@ To add an IP column to [`ReportEventRecorder`](https://docs.idmod.org/projects/e
 
 ```{python, eval=F}
 from emodpy_malaria.reporters.builtin import *
-  add_event_recorder(task, event_list=["NewClinicalCase","Received_Treatment"],
+add_event_recorder(task, event_list=["NewClinicalCase","Received_Treatment"],
                      start_day=1, end_day=365, node_ids=[1], min_age_years=0,
                      max_age_years=100,
                      ips_to_record=['StudyCohort'])
@@ -720,22 +720,11 @@ from emodpy_malaria.reporters.builtin import *
 
 ## Create a model - *move to top?*
 
-EMOD configuration scripts begin by creating a configbuilder object (the **cb**), then adding and changing it. The *cb* is 
-created by loading default parameters:
-
-```{python, eval=F}
-from dtk.utils.core.DTKConfigBuilder import DTKConfigBuilder
-from simtools.ModBuilder import ModBuilder, ModFn
-cb = DTKConfigBuilder.from_defaults('MALARIA_SIM')
-```
-
-One can also specify different simulation types such as **VECTOR_SIM** to simulate just the vector model without the malaria within-host model, or other simulation types listed [here](https://docs.idmod.org/projects/emod-malaria/en/latest/glossary.html?highlight=Sim_Type#term-simulation-type). After setting the team config defaults, reset the simulation type wtih `config.parameters.Simulation_Type = "MALARIA_SIM"`.
-
 EMOD configuration scripts contain five primary components:
     1. Import modules
         - Import all necessary modules and functions to run subsequent script
     2. Config setup & simulation duration
-        - Set `config.json` parameters to team defaults and update additional parameters as needed using a callback to the `emod-api` config. For example, one can specify different simulation types such as **VECTOR_SIM** to simulate just the vector model without the malaria within-host model, or other simulation types listed [here](https://docs.idmod.org/projects/emod-malaria/en/latest/glossary.html?highlight=Sim_Type#term-simulation-type).
+        - Set `config.json` parameters to team defaults and update additional parameters as needed using a callback to the `emod-api` config. For example, one can specify different simulation types such as **MALARIA_SIM** or **VECTOR_SIM** to simulate just the vector model without the malaria within-host model, or other simulation types listed [here](https://docs.idmod.org/projects/emod-malaria/en/latest/glossary.html?highlight=Sim_Type#term-simulation-type).
         
           ```{python, eval=F}
           def set_param_fn(config):
@@ -816,35 +805,42 @@ conf.add_species(config, manifest, ["gambiae"])
 The following default parameters appear in the config file for *A. gambiae*. Some of the default parameters vary between different vector species:
 
 ```{python, eval=F}
-{
-    "Vector_Species_Params": [{
-    "Name": "gambiae",
-    "Larval_Habitat_Types": {
-        "TEMPORARY_RAINFALL": 8e8,
-        "CONSTANT": 8e7
-    },
-    "Aquatic_Arrhenius_1": 84200000000,
-    "Aquatic_Arrhenius_2": 8328,
-    "Aquatic_Mortality_Rate": 0.1,
-    "Immature_Duration": 2,
-    "Male_Life_Expectancy": 10,
-    "Adult_Life_Expectancy": 20,
-    "Days_Between_Feeds": 3,
-    "Anthropophily": 0.85,  # species- and site-specific feeding parameters
-    "Indoor_Feeding_Fraction": 0.95,
-    "Egg_Batch_Size": 100,
-    "Vector_Sugar_Feeding_Frequency": "VECTOR_SUGAR_FEEDING_NONE",
-    "Acquire_Modifier": 0.2,
+"Vector_Species_Params": [{
+    "Acquire_Modifier": 0.8, 
+    "Adult_Life_Expectancy": 20, 
+    "Anthropophily": 0.65, # species- and site-specific feeding parameters
+    "Aquatic_Arrhenius_1": 84200000000.0, 
+    "Aquatic_Arrhenius_2": 8328, 
+    "Aquatic_Mortality_Rate": 0.1, 
+    "Days_Between_Feeds": 3, 
+    "Drivers": [], 
+    "Egg_Batch_Size": 100, 
+    "Gene_To_Trait_Modifiers": [], 
+    "Genes": [], 
+    "Habitats": [{"Habitat_Type": "WATER_VEGETATION", "Max_Larval_Capacity": 20000000}], 
+    "Immature_Duration": 2, 
+    "Indoor_Feeding_Fraction": 0.95, 
     # VECTOR_SIM uses a factor here for human-to-mosquito infectiousness, while 
     # MALARIA_SIM explicitly models gametocytes
-    "Infected_Arrhenius_1": 117000000000,
-    "Infected_Arrhenius_2": 8336,
-    "Infected_Egg_Batch_Factor": 0.8,
-    "Infectious_Human_Feed_Mortality_Factor": 1.5,
-    "Nighttime_Feeding_Fraction": 1,
-    "Transmission_Rate": 0.9  # Based on late-2013 calibration of PfPR vs EIR favoring 1.0 to 0.5
-    }]
-}
+    "Infected_Arrhenius_1": 117000000000.0, 
+    "Infected_Arrhenius_2": 8336, 
+    "Infected_Egg_Batch_Factor": 0.8, 
+    "Infectious_Human_Feed_Mortality_Factor": 1.5, 
+    "Male_Life_Expectancy": 10, 
+    "Microsporidia_Duration_To_Disease_Acquisition_Modification": {"Times": [], "Values": []}, 
+    "Microsporidia_Duration_To_Disease_Transmission_Modification": {"Times": [], "Values": []}, 
+    "Microsporidia_Female_Mortality_Modifier": 1, 
+    "Microsporidia_Female_To_Egg_Transmission_Probability": 0, 
+    "Microsporidia_Female_To_Male_Transmission_Probability": 0, 
+    "Microsporidia_Larval_Growth_Modifier": 1, 
+    "Microsporidia_Male_Mortality_Modifier": 1, 
+    "Microsporidia_Male_To_Female_Transmission_Probability": 0, 
+    "Name": "gambiae", 
+    "Temperature_Dependent_Feeding_Cycle": "NO_TEMPERATURE_DEPENDENCE",
+    "Transmission_Rate": 0.9,  # Based on late-2013 calibration of PfPR vs EIR favoring 1.0 to 0.5
+    "Vector_Sugar_Feeding_Frequency": "VECTOR_SUGAR_FEEDING_NONE"
+    }
+]
 ```
 
 </p> </details>
@@ -861,61 +857,77 @@ conf.add_species(config, manifest, ["gambiae", "arabiensis"])
 
 For each species listed in Vector_Species_Params, a “VectorPopulation” object will be added to the simulation at each node. Each species will be defined by parameters in the simulation configuration file for the vector ecology and behavior of the species. This allows for a mechanistic description of vector abundances and behavior through the effects of climate and weather on different preferred larval habitats.
 
-```{python, eval=F}
-{
-    "Vector_Species_Params": [{
-    "Name": "gambiae",              #First Species
-    "Larval_Habitat_Types": {
-        "TEMPORARY_RAINFALL": 8e8,
-        "CONSTANT": 8e7
-    },
-    "Aquatic_Arrhenius_1": 84200000000,
-    "Aquatic_Arrhenius_2": 8328,
-    "Aquatic_Mortality_Rate": 0.1,
-    "Immature_Duration": 2,
-    "Male_Life_Expectancy": 10,
-    "Adult_Life_Expectancy": 20,
-    "Days_Between_Feeds": 3,
-    "Anthropophily": 0.85,  
+```{python,eval=F}
+"Vector_Species_Params": [{
+    "Acquire_Modifier": 0.8, 
+    "Adult_Life_Expectancy": 20, 
+    "Anthropophily": 0.65, 
+    "Aquatic_Arrhenius_1": 84200000000.0, 
+    "Aquatic_Arrhenius_2": 8328, 
+    "Aquatic_Mortality_Rate": 0.1, 
+    "Days_Between_Feeds": 3, 
+    "Drivers": [], 
+    "Egg_Batch_Size": 100, 
+    "Gene_To_Trait_Modifiers": [], 
+    "Genes": [], 
+    "Habitats": [{"Habitat_Type": "WATER_VEGETATION", "Max_Larval_Capacity": 20000000}], 
+    "Immature_Duration": 2, 
     "Indoor_Feeding_Fraction": 0.95, 
-    "Egg_Batch_Size": 100,
-    "Vector_Sugar_Feeding_Frequency": "VECTOR_SUGAR_FEEDING_NONE",
-    "Acquire_Modifier": 0.2,
-    "Infected_Arrhenius_1": 117000000000,
-    "Infected_Arrhenius_2": 8336,
-    "Infected_Egg_Batch_Factor": 0.8,
-    "Infectious_Human_Feed_Mortality_Factor": 1.5,
-    "Nighttime_Feeding_Fraction": 1,
-    "Transmission_Rate": 0.9
+    "Infected_Arrhenius_1": 117000000000.0, 
+    "Infected_Arrhenius_2": 8336, 
+    "Infected_Egg_Batch_Factor": 0.8, 
+    "Infectious_Human_Feed_Mortality_Factor": 1.5, 
+    "Male_Life_Expectancy": 10, 
+    "Microsporidia_Duration_To_Disease_Acquisition_Modification": {"Times": [], "Values": []}, 
+    "Microsporidia_Duration_To_Disease_Transmission_Modification": {"Times": [], "Values": []}, 
+    "Microsporidia_Female_Mortality_Modifier": 1, 
+    "Microsporidia_Female_To_Egg_Transmission_Probability": 0, 
+    "Microsporidia_Female_To_Male_Transmission_Probability": 0, 
+    "Microsporidia_Larval_Growth_Modifier": 1, 
+    "Microsporidia_Male_Mortality_Modifier": 1, 
+    "Microsporidia_Male_To_Female_Transmission_Probability": 0, 
+    "Name": "gambiae", 
+    "Temperature_Dependent_Feeding_Cycle": "NO_TEMPERATURE_DEPENDENCE", 
+    "Transmission_Rate": 0.9, 
+    "Vector_Sugar_Feeding_Frequency": "VECTOR_SUGAR_FEEDING_NONE"
     },
+    #second species starts here
     {
-    "Name": "arabiensis",          # Second species 
-    "Larval_Habitat_Types": {
-        "TEMPORARY_RAINFALL": 8e8,
-        "CONSTANT": 8e7
-    },
-    "Aquatic_Arrhenius_1": 84200000000,
-    "Aquatic_Arrhenius_2": 8328,
-    "Aquatic_Mortality_Rate": 0.1,
-    "Immature_Duration": 2,
-    "Male_Life_Expectancy": 10,
-    "Adult_Life_Expectancy": 20,
-    "Days_Between_Feeds": 3,
-    "Anthropophily": 0.85,  
-    "Indoor_Feeding_Fraction": 0.5, # This value is different
-    "Egg_Batch_Size": 100,
-    "Vector_Sugar_Feeding_Frequency": "VECTOR_SUGAR_FEEDING_NONE",
-    "Acquire_Modifier": 0.2,
-    "Infected_Arrhenius_1": 117000000000,
-    "Infected_Arrhenius_2": 8336,
-    "Infected_Egg_Batch_Factor": 0.8,
-    "Infectious_Human_Feed_Mortality_Factor": 1.5,
-    "Nighttime_Feeding_Fraction": 1,
-    "Transmission_Rate": 0.9  
-    }]
-}
+    "Acquire_Modifier": 0.8,
+    "Adult_Life_Expectancy": 20, 
+    "Anthropophily": 0.65, 
+    "Aquatic_Arrhenius_1": 84200000000.0, 
+    "Aquatic_Arrhenius_2": 8328, 
+    "Aquatic_Mortality_Rate": 0.1, 
+    "Days_Between_Feeds": 3, 
+    "Drivers": [], 
+    "Egg_Batch_Size": 100, 
+    "Gene_To_Trait_Modifiers": [], 
+    "Genes": [], 
+    "Habitats": [  #different habitats from gambiae
+        {"Habitat_Type": "TEMPORARY_RAINFALL", "Max_Larval_Capacity": 800000000}, 
+        {"Habitat_Type": "CONSTANT", "Max_Larval_Capacity": 80000000}
+        ], 
+    "Immature_Duration": 2, 
+    "Indoor_Feeding_Fraction": 0.5, #different indoor feeding fraction
+    "Infected_Arrhenius_1": 117000000000.0, 
+    "Infected_Arrhenius_2": 8336, 
+    "Infected_Egg_Batch_Factor": 0.8, 
+    "Infectious_Human_Feed_Mortality_Factor": 1.5, 
+    "Male_Life_Expectancy": 10, 
+    "Microsporidia_Duration_To_Disease_Acquisition_Modification": {"Times": [], "Values": []},
+    "Microsporidia_Duration_To_Disease_Transmission_Modification": {"Times": [], "Values": []},
+    "Microsporidia_Female_Mortality_Modifier": 1, 
+    "Microsporidia_Female_To_Egg_Transmission_Probability": 0, 
+    "Microsporidia_Female_To_Male_Transmission_Probability": 0, 
+    "Microsporidia_Larval_Growth_Modifier": 1, 
+    "Microsporidia_Male_Mortality_Modifier": 1, 
+    "Microsporidia_Male_To_Female_Transmission_Probability": 0, 
+    "Name": "arabiensis", 
+    "Temperature_Dependent_Feeding_Cycle": "NO_TEMPERATURE_DEPENDENCE", 
+    "Transmission_Rate": 0.9, 
+    "Vector_Sugar_Feeding_Frequency": "VECTOR_SUGAR_FEEDING_NONE"},
 ```
-
 
 </p> </details>
 
@@ -969,13 +981,13 @@ After those initial parameters are set, habitat can be modified with scaling par
 
 To apply a constant scale factor to all habitats equally for all species, use the **x_Temporary_Larval_Habitat** configuration parameter.
 
-This parameter will scale all habitat parameters for the entire simulation duration without changing the temporal dynamics, so that a new transmission is achieved with the same ratios among the species and same time profile. For example, setting `x_Temporary_Larval_Habitat` 
-to 0.1 would reduce habitat by 90%. 
+This parameter will scale all habitat parameters for the entire simulation duration without changing the temporal dynamics, so that a new transmission is achieved with the same ratios among the species and same time profile. For example, setting `x_Temporary_Larval_Habitat` to 0.1 would reduce habitat by 90%. 
 
 ```{python, eval=F}
 # Ex: Reduce habitat (and thus, adult vectors and biting rate) by 90%.
 config.parameters.x_Temporary_Larval_Habitat = 0.1  
 ```
+
 </p></details>
 
 <details><summary><span style="color: blue";">Node-Specific Habitat Scaling in Demographics</span></summary>
@@ -986,7 +998,7 @@ Node- and species-specific habitat scaling can be set in the demographics file t
 **needs demog setting instructions**
 
 ```{python, eval=F}
-"NodeAttributes: {
+"NodeAttributes": {
     ...
     "LarvalHabitatMultiplier": [
         {
@@ -1026,7 +1038,7 @@ You may need to update a variety of configuration parameters for your simulation
 
 For parameters that won't often change you can hard code them directly into the config building function (`set_param_fn()` in the how-tos), while it may be beneficial to call others as a global variable, such as sim_years, that can be set and then referenced within the setup function.
 
-In this example, we show how to change the `Simulation_Duratiion` and `Run_Number` parameters. Simulation duration is set in days, and in this example is set to last 5 years (5 yrs * 365 days/yr).
+In this example, we show how to change the `Simulation_Duration` and `Run_Number` parameters. Simulation duration is set in days, and in this example is set to last 5 years (5 yrs * 365 days/yr).
 
 ```{python,eval=F}
 sim_years = 5
@@ -1044,9 +1056,7 @@ def set_param_fn(config):
 <details><summary><span style="color: blue";">Enable Births and Deaths</span></summary>
 <p>
 
-Vital dynamics can be specified in the same way as general config parameters. To enable either births or deaths, 
-**Enable_Vital_Dynamics** must be set to 1. Births and deaths can then be modified as needed ("enable" parameters set 
-to 0 = false, 1 = true). Birth rates can be specified by **Birth_Rate_Dependence** to be dependent on a number of 
+Vital dynamics can be specified in the same way as general config parameters; however, emodpy includes [functionality](https://docs.idmod.org/projects/emodpy-malaria/en/latest/faq.html#what-are-some-of-the-key-differences-for-people-used-to-using-dtk-tools) to automatically keep the demographics and config files aligned. For example, if a birth rate is set in the demographics, `Enable_Vital_Dynamics` and `Enable_Birth` will automatically be turned on, and vice versa. Birth rates can be specified by `Birth_Rate_Dependence` to be dependent on a number of 
 factors:  
 - "NONE"
 - "FIXED_BIRTH_RATE"
@@ -1055,127 +1065,85 @@ factors:
 - "INDIVIDUAL_PREGNANCIES"
 - "INDIVIDUAL_PREGNANCIES_BY_AGE_AND_YEAR"
 
-Likewise, **Death_Rate_Dependence** determines individuals likelihood of dying from natural, non-disease causes 
-when **Enable_Natural_Mortality**=1, and can be set to 
+Likewise, `Death_Rate_Dependence` determines individuals likelihood of dying from natural, non-disease causes 
+when `Enable_Natural_Mortality`=1, and can be set to 
 - "NOT_INITIALIZED" 
 - "NONDISEASE_MORTALITY_BY_AGE_AND_GENDER"
 - "NONDISEASE_MORTALITY_BY_YEAR_AND_AGE_FOR_EACH_GENDER"
 
 Detailed descriptions of dependencies can be found [here](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-configuration-population.html).
 
-In this example, we have a fixed birth rate (number of infants born each year is independent of modeled population), age- 
-and gender-specific overall mortality rates (defined in demographics file), and no malaria mortality.
+In this example, we have a fixed birth rate (number of infants born each year is independent of modeled population), age- and gender-specific overall mortality rates (defined in demographics file), and no malaria mortality. These parameters should be set in the config builder function. Based on a demographics including equilibrium vital dynamics, `EEnable_Vital_Dynamics`, `Enable_Birth`, and `Enable_Natural_Mortality` will already be set to 1 (turned on) and `Enable_Disease_Mortality` will be set to 0 (turned off), so we only need to set the rate dependencies.
 
 ```{python,eval=F}
-from dtk.utils.core.DTKConfigBuilder import DTKConfigBuilder
-                      
-cb = DTKConfigBuilder.from_defaults('MALARIA_SIM')
-cb.update_params({'Enable_Vital_Dynamics': 1,
-                  'Enable_Birth': 1,
-                  'Birth_Rate_Dependence' : 'FIXED_BIRTH_RATE'
-                  'Enable_Natural_Mortality': 1,
-                  'Death_Rate_Dependence': 'NONDISEASE_MORTALITY_BY_AGE_AND_GENDER',
-                  'Enable_Disease_Mortality': 0,
-                  })
+def set_param_fn(config):
+    import emodpy_malaria.malaria_config as conf
+    config = conf.set_team_defaults(config, manifest)
+              
+    #update birth and death rate dependence
+    config.parameters.Birth_Rate_Dependence = 'FIXED_BIRTH_RATE'
+    config.parameters.Death_Rate_Dependence = 'NONDISEASE_MORTALITY_BY_AGE_AND_GENDER'
+    return config
 ```
 </p>
 </details>
 
-<details><summary><span style="color: blue";">Configure Log-Levels</span></summary>
-<p>
-
-Log-levels dictate which logging messages will be included in the standard output for simulations. It can be set for all 
-files in the Eradication executable using **logLevel_default** or for specific files where more information is desired 
-with **logLevel_<file_name>**. There are five logging levels:
-
-    1. ERROR: only errors logged
-    2. WARNING: warning and errors logged
-    3. INFO: default; informational messages, warnings, and errors logged
-    4. DEBUG: debug information, informational messages, warnings, and errors logged. May require a special version of the executable (--TestSugar enabled)
-    5. VALID: validation information, debug information, informational messages, warnings, and errors logged. Requires special build.
-
-Lower levels (DEBUG and VALID) should be used sparingly but can be useful to understand if certain things, such as 
-immunity variation, are working as expected.
-
-In this example, we set the default reporting level of all modules to **WARNING**, then set the 
-logLevel_SusceptibilityMalaria module to **DEBUG**.
-```{python, eval=F}
-cb.update_params({'logLevel_default' : 'WARNING',
-                  'logLevel_SusceptibilityMalaria': 'DEBUG' #file-specific example
-})
-```
-</p>
-</details>
 
 ## Add summary reports
 
-![figure](/images/03_highlighted.png)
+The [MalariaSummaryReport](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-malaria-summary.html) is a useful output that reports infection data (prevalence, clinical incidence, parasitemia, infectivity) by age group and aggregated over a user-defined time interval such as years or months. 
 
-The [MalariaSummaryReport](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-malaria-summary.html) 
-is a useful output that reports infection data (prevalence, clinical incidence, parasitemia, infectivity) by age group 
-and aggregated over a user-defined time interval such as years or months. Specific events of interest can be set with **event_trigger_list=** - defaults include 'EveryUpdate' and 'NewInfectionEvent'.
-
-In this example, simulation data is reported starting at day 365, with a monthly aggregation, in 3 age bins. 
+In this example, simulation data is reported starting at day 365 and ending at day 1825 (the end of a sim with a duration of 5 years), with a monthly aggregation, in 3 age bins (0 - 0.25, 0.25 - 5, and 5 - 115 years). The report name will also include a suffix of "monthly_report" to keep separate multiple summary reports with different outputs, such as monthly vs annual or including different IPs.
 
 ```{python,eval=F}
-from dtk.utils.core.DTKConfigBuilder import DTKConfigBuilder
-from malaria.reports.MalariaReport import add_summary_report
-cb = DTKConfigBuilder.from_defaults('MALARIA_SIM')
-add_summary_report(cb, start=365, interval=30,
-                   age_bins=[0.25,5,100],
-                   description='Monthly_Report')
+from emodpy_malaria.reporters.builtin import *
+
+sim_years=5
+
+add_malaria_summary_report(task, manifest, start_day=365, end_day=sim_years*365, 
+                               reporting_interval=30,
+                               age_bins=[0.25, 5, 115],
+                               max_number_reports=20,
+                               filename_suffix="monthly",
+                               pretty_format=True)                   
 ```
 
 ## Event reporting
 
-![figure](/images/03_highlighted.png)
-
-EMOD is capable of tracking a variety of [built-in events](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-campaign-event-list.html) 
-as well as custom campaign events. Custom events can be particularly useful for explicitly tracking and counting the number 
-of interventions distributed. For example, in the simple SMC intervention (see [Add drug campaigns](https://faculty-enrich-2022.netlify.app/modules/emod-how-to/emod-how-to/#add-drug-campaigns)) 
-we defined an event called `'Received_SMC'` to describe children who actually received SMC drugs in the simulation. The 
-[add_health_seeking](https://faculty-enrich-2022.netlify.app/modules/emod-how-to/emod-how-to/#add-case-management) function 
-automatically generates a `'Received_Treatment'` event for each individual receiving treatment for symptomatic malaria. 
-Adding custom events to the config parameter `'Custom_Individual_Events'` is automatically handled by `dtk-tools`.
+EMOD is capable of tracking a variety of [built-in events](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-campaign-event-list.html) as well as custom campaign events. Custom events can be particularly useful for explicitly tracking and counting the number of interventions distributed. For example, in the simple SMC intervention (see [Add drug campaigns](https://faculty-enrich-2022.netlify.app/modules/emod-how-to/emod-how-to/#add-drug-campaigns)) we defined an event called `'Received_SMC'` to describe children who actually received SMC drugs in the simulation. The [add_health_seeking](https://faculty-enrich-2022.netlify.app/modules/emod-how-to/emod-how-to/#add-case-management) function automatically generates a `'Received_Treatment'` event for each individual receiving treatment for symptomatic malaria. Adding custom events to the config parameter `'Custom_Individual_Events'` is automatically handled by `emodpy` during campaign creation.
 
 ### Aggregate Events
 
-To track how many events are occurring each day, request [ReportEventCounter](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-event-counter.html) 
-and specify the list of events you would like to track:
+To track how many events are occurring each day, request [ReportEventCounter](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-event-counter.html) and specify the list of events you would like to track, in this case receiving either of the two above drug-based interventions:
 
 ```{python, eval=F}
-from malaria.reports.MalariaReport import add_event_counter_report
-add_event_counter_report(cb, event_trigger_list=['Received_SMC', 'Received_Treatment'])
+from emodpy_malaria.reporters.builtin import *
+
+sim_years = 5
+add_report_event_counter(task, manifest, start_day=365, end_day=sim_years*365,
+                             event_trigger_list=['Received_SMC', 'Received_Treatment'],
+                             filename_suffix="drug_interventions")
 ```
 
-This generates a ReportEventCounter.json file that reports that total number of events in each day of the simulation. 
-Reporting a subset of node IDs, restricting on age, and restricing on individual property are all configurable. 
-The format of the .json is identical to InsetChart.json, so analyzers written for InsetChart.json can be easily adapted 
-for ReportEventCounter.
+This generates a ReportEventCounter.json file that reports that total number of the specified events in each day of the simulation. Reporting a subset of node IDs (`node_ids`), restricting on age (`min_age_years`, `max_age_years`), and restricting on individual property (`must_have_ip_key_value`) are all configurable. The format of the .json is identical to InsetChart.json, so analyzers written for InsetChart.json can be easily adapted for ReportEventCounter.
 
 ### Individual Events
 
-Sometimes you may want to track individual-level events. To do so, we use [ReportEventRecorder](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-event-recorder.html), 
-which is similar to ReportEventCounter but lists each event as it occurs and provides information about the person experiencing 
-the event.
+Sometimes you may want to track individual-level events. To do so, we use [ReportEventRecorder](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-event-recorder.html), which is similar to `ReportEventCounter` but lists each event as it occurs and provides information about the person experiencing the event. The calls for these two reports are quite similar but the recorder uses `event_list` rather than `event_trigger_list` and has no `filename_suffix`:
 
-1. Update configuration parameters
 ```{python, eval=F}
-cb.update_params({
-  'Report_Event_Recorder': 1,  # Enable generation of ReportEventRecorder.csv  
-  'Report_Event_Recorder_Ignore_Events_In_List': 0, # Logical indicating whether to include or exclude the events specified in the list 
-  'Report_Event_Recorder_Events': ['NewClinicalCase', 'Received_Treatment'], # List of events to include
-  'Report_Event_Recorder_Individual_Properties' : []
-})
+from emodpy_malaria.reporters.builtin import *
+
+sim_years = 5
+add_event_recorder(task, start_day=365, end_day=sim_years*365,
+                       event_list=['Received_SMC', 'Received_Treatment'],
+                       node_ids=[1], min_age_years=0,
+                       max_age_years=100)
 ```
 
-*Note*: If you want to return all events from the simulation, leave the "Events" array empty and set "Ignore_Events_In_List" to 1.
+*Note*: If you want to return all events from the simulation, leave the "events" array empty and set `only_include_events_in_list` to `False`.
 
-There are additional optional parameters that you can specify to refine your report: see full list [here](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-event-recorder.html). 
-This can help reduce file sizes and speed up processing if you know you'll only a subset of the simulation data.
-
-After running, a file called ReportEventRecorder.csv will be generated in the output/ folder for the simulation. Each 
-row of the report represents a distinct event, with the following information in its columns:
+After running, a file called ReportEventRecorder.csv will be generated in the output/ folder for the simulation. Each row of the report represents a distinct event, with the following information in its columns:
 
 Event Details:
 - **Time** (when did event occur)
@@ -1191,14 +1159,13 @@ Individual Details (who did it happen to?):
 - **RelativeBitingRate**
 - **TrueParasiteDensity**
 - **TrueGametocyteDensity**
+- **HasClinicalSymptoms**
 
-Plus an additional column for the value of each additional Individual Property included in the 
-'Report_Event_Recorder_Individual_Properties' list.
+Plus an additional column for the value of any IPs requested through `ips_to_record`.
 
 
 ## Add malaria
 
-![figure](/images/02_highlighted.png)
 
 There are 4 ways to add malaria into a simulation. Ways #1, 2, and 3 are used for idealized situations while #4 is the 
 standard method to use when modeling a specific geography.
