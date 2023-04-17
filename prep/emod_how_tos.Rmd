@@ -88,6 +88,7 @@ The [emod-api](https://docs.idmod.org/projects/emod-api/en/latest/emod_api.demog
     - population size
     - site name
     - forced node ID (if desired)
+    - initial prevalence value (if desired)
     
 With this saved as the `demog` item, we can add additional complexity as needed. This may include things like setting equilibrium vital dynamics so birth and mortality rates are equal, producing a relatively stable population size, or an age distribution for our population. In this example, we pull the age distribution of all of Sub-Saharan Africa from the `emod-api` and then apply it to our demographics item. You may also add complexity through individual properties and other specific parameters as desired.
 
@@ -100,7 +101,7 @@ def build_demog():
     This function builds a demographics input file for the DTK using emod_api.
     """
 
-    demog = Demographics.from_template_node(lat=1.00, lon=1.00, pop=1000, name="Example_Site_Name", forced_id=1)
+    demog = Demographics.from_template_node(lat=1.00, lon=1.00, pop=1000, name="Example_Site_Name", forced_id=1, init_prev=0.1)
     
     # Add equal birth and mortality rates
     demog.SetEquilibriumVitalDynamics()
@@ -491,7 +492,7 @@ time-interval within add_migration_event():
 ```{python, eval=F}
 add_migration_event(cb,
                     ...
-                    repititions=4,
+                    repetitions=4,
                     tsteps_btwn=365 # annual event
                     )
 ```
@@ -1049,7 +1050,7 @@ def set_param_fn(config):
               
     #update simulation duration and run number
     config.parameters.Simulation_Duration = sim_years*365
-    config.parameters.Run_Number = 5
+    config.parameters.Run_Number = 0
     return config
 ```
 
@@ -1065,8 +1066,7 @@ factors:
 - "INDIVIDUAL_PREGNANCIES"
 - "INDIVIDUAL_PREGNANCIES_BY_AGE_AND_YEAR"
 
-Likewise, `Death_Rate_Dependence` determines individuals likelihood of dying from natural, non-disease causes 
-when `Enable_Natural_Mortality`=1, and can be set to 
+Likewise, `Death_Rate_Dependence` determines individuals likelihood of dying from natural, non-disease causes when `Enable_Natural_Mortality`=1, and can be set to 
 - "NOT_INITIALIZED" 
 - "NONDISEASE_MORTALITY_BY_AGE_AND_GENDER"
 - "NONDISEASE_MORTALITY_BY_YEAR_AND_AGE_FOR_EACH_GENDER"
@@ -1184,80 +1184,72 @@ add_challenge_trial(cb, start_day=0)
 
 ### 2. Outbreaks
 
-Force a given % of the simulated population to experience a new infection on a specified date or dates. Definition 
-[here](https://github.com/InstituteforDiseaseModeling/dtk-tools/blob/master/dtk/interventions/outbreakindividual.py).
+Force a given fraction (`demographic_coverage`) of the simulated population to experience a new infection on a specified date or dates.
 
 This example infects 5% of the population every year for 5 years, beginning on day 0:
+
 ```{python,eval=F}
-from dtk.utils.core.DTKConfigBuilder import DTKConfigBuilder
-from dtk.interventions.outbreak_individual import recurring_outbreak
-cb = DTKConfigBuilder.from_defaults('MALARIA_SIM')
-recurring_outbreak(cb,
-                   outbreak_fraction=0.05,
-                   start_day=0,
-                   repetitions=5,
-                   tsteps_btwn=365
+from emodpy_malaria.interventions.outbreak import add_outbreak_individual
+
+def add_outbreak_individual(campaign,
+                            start_day = 0,
+                            demographic_coverage = 0.05,
+                            repetitions = 5,
+                            timesteps_between_repetitions = 365
                    )
 ```
 
+Additional targeting of the outbreak can be added with:
+- `ind_property_restrictions`: target specific IP {key:value} pairs
+- `target_age_min`: minimum age (years)
+- `target_age_max`: maximum age (years)
+- `target_gender`: gender targets ("All", "Female", "Male")
+- `ignore_immunity`: force infection despite immunity when "True"
+- `antigen`: antigenic base strain ID of the outbreak infection
+- `genome`: genetic substrain ID of the outbreak infection
+
 ### 3. Forced EIR
 
-See next section on [forced EIR](/modules/emod-how-to/emod-how-to/#set-forced-eir).
+For simulations without mosquitoes, a forced EIR can be used to impose infectious bites. EIR timeseries data are typically recreated from previous literature sources that provide monthly EIR levels, input here as a monthly_site_EIR_annualized list. The `add_scheduled_input_eir` function is called and given the calculated monthly EIR (the annual values divided by 12) to apply to the simulations. You may also choose to use daily values if you interpolate from monthly using the `daily_eir` argument instead of `monthly_eir`. The EIR can be scaled up or down using a `scaling_factor` to apply the same change to all EIR timepoints, in this example we scale the EIR to be 75% of the input values. Additionally, EIR can be setup to be age-dependent with `age_dependence` set to "OFF", "LINEAR", or "SURFACE_AREA_DEPENDENT".
+
+```{python,eval=F}
+from emodpy_malaria.interventions.inputeir import add_scheduled_input_eir
+
+monthly_site_EIR_annualized = [15.99, 5.41, 2.23, 10.33, 7.44, 11.77, 79.40, 85.80, 118.59, 82.97, 46.62, 33.49]
+monthly_EIR = [x/12 for x in site_EIR_annualized]
+EIR_scale_factor = 0.75
+add_scheduled_input_eir(campaign=campaign, start_day=1, monthly_eir=monthly_EIR,
+                            age_dependence="SURFACE_AREA_DEPENDENT",
+                            scaling_factor=EIR_scale_factor)
+```
 
 ### 4. Setting initial prevalence
 
-Initial prevalence is set in the demographics file, in the `['Defaults']['IndividualAttributes']` block. See 
-[documentation on the demographics file](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-demographics.html) for more information.
+Initial prevalence is set in the demographics file, in the `['Defaults']['IndividualAttributes']` block. See [documentation on the demographics file](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-demographics.html) for more information.
 
-In this example, initial prevalence is drawn from a uniform distribution between 0.13 and 0.15:
-```{python,eval=F}
-{
-    "Defaults": {
-        "IndividualAttributes": {
-            ...
-            "PrevalenceDistribution1": 0.13,
-            "PrevalenceDistribution2": 0.15,
-            "PrevalenceDistributionFlag": 1,
-            ...
-        }
-    },
-    ...
-}
-```
-
-## Set forced EIR 
-
-![figure](/images/04_highlighted.png)
-
-For simulations without mosquitoes, a forced EIR can be used to impose infectious bites. EIR timeseries data are 
-typically recreated from previous literature sources that provide monthly EIR levels, input here as a monthly_site_EIR 
-list. This can then be converted to a daily EIR using the `monthly_to_daily_EIR` helper function and summed to calculate 
-the annual EIR for the site. The [add_InputEIR](https://github.com/InstituteforDiseaseModeling/dtk-tools/blob/master/dtk/interventions/input_EIR.py)
- function is called and given the calculated daily EIR to apply to the simulations. It can be scaled using a 
- scaling_factor to apply the same scale factor to all EIR timepoints.
+It can be set simply, as in the demographics example (link to demog), or you can also add a initial prevalence value draw from a uniform distribution if desired. In this example, the value is pulled in a uniform draw from 0.1 to 0.2.
 
 ```{python,eval=F}
-from dtk.utils.core.DTKConfigBuilder import DTKConfigBuilder
-from dtk.interventions.input_EIR import add_InputEIR, monthly_to_daily_EIR
-cb = DTKConfigBuilder.from_defaults('MALARIA_SIM')
-monthly_site_EIR = [15.99, 5.41, 2.23, 10.33, 7.44, 11.77, 79.40, 85.80, 118.59, 82.97, 46.62, 33.49]
-daily_EIR = monthly_to_daily_EIR(monthly_site_EIR)
-EIRscale_factor = 1
-add_InputEIR(cb, start_day=0, EIR_type='DAILY', dailyEIRs=daily_EIR, scaling_factor=EIRscale_factor)
+import emodpy_malaria.demographics.MalariaDemographics as Demographics
+
+def build_demog():
+  
+    demog = Demographics.from_template_node(lat=1.00, lon=1.00, pop=1000, name="Example_Site_Name", forced_id=1)
+    demog.SetInitPrevFromUniformDraw(min_init_prev=0.1, max_init_prev=0.2, description="prevalence_draw_example" )
+    
+    return demog
 ```
+
 
 ## Add ITN
 
-![figure](/images/04_highlighted.png)
-
 ### Basic ITN without seasonal usage
 
-Insecticide-treated bednets can be distributed with the [add_ITN()](https://github.com/InstituteforDiseaseModeling/dtk-tools/blob/master/dtk/interventions/itn.py)
-function, which has many options to configure who is targeted for ITN distribution.
+Insecticide-treated bednets can be distributed with the `add_itn_scheduled()` function, which has many options to configure who is targeted for ITN distribution.
 
 ```{python,eval=F}
-from dtk.interventions.itn import add_ITN
-add_ITN(cb,
+from emodpy_malaria.interventions.bednet import add_itn_scheduled
+add_itn_scheduled(campaign,
         start=365, # starts on first day of second year
         coverage_by_ages=[
           {"coverage":1,"min": 0, "max": 10},     # 100% for 0-10 years old
@@ -1265,7 +1257,7 @@ add_ITN(cb,
           {"coverage":0.6,"min": 50, "max": 125}  # 60% for everyone else
         ],
         repetitions=5, # ITN will be distributed 5 times
-        tsteps_btwn_repetitions= 365*3 # three years between ITN distributions
+        timesteps_between_repetitions= 365*3 # three years between ITN distributions
 )
 ```
 The default `coverage_by_age` sets coverage to 100% for everyone regardless of age.
@@ -1284,17 +1276,16 @@ add_ITN(cb,
 )
 ```
 
-The `waning` arguments configure the strength and duration of the ITN's effects. `dtk-tools` will provide
-[default](https://github.com/InstituteforDiseaseModeling/dtk-tools/blob/master/dtk/interventions/itn.py#L82)
-killing, blocking, and usage decay profiles if none are specified by the user:
+The `waning` arguments configure the strength and duration of the ITN's effects. `dtk-tools` will provide [default](https://github.com/InstituteforDiseaseModeling/dtk-tools/blob/master/dtk/interventions/itn.py#L82) killing, blocking, and usage decay profiles if none are specified by the user:
 1. `Killing_Config`: how well the ITN kills the vector
 2. `Blocking_Config`: how well the ITN blocks the vector from biting
 3. `Repelling_Config`: how well the ITN repels the vector
 4. `Usage_Config`: how long before the user discards their net
 
-The decay profile of any of these configs are specified using
-[WaningEffect classes](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-campaign-waningeffects.html).
+The decay profile of any of these configs are specified using [WaningEffect classes](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-campaign-waningeffects.html).
+
 For example, to change the killing of the ITN to last 10 years at 0.6:
+
 ```{python,eval=F}
 from dtk.interventions.itn import add_ITN
 add_ITN(cb,
