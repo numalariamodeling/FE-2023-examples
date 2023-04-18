@@ -7,6 +7,7 @@ import re
 import random
 from idmtools.entities import IAnalyzer	
 from idmtools.entities.simulation import Simulation
+import manifest
 
 class MonthlyPfPRAnalyzerU5IP(IAnalyzer):
 
@@ -111,15 +112,15 @@ if __name__ == "__main__":
     
     with Platform('SLURM_LOCAL',job_directory=jdir) as platform:
 
-        for expname, exp_id in expts.items():
+        for expt_name, exp_id in expts.items():
           
-            analyzer = [MonthlyPfPRAnalyzerU5IP(expt_name=expname,
+            analyzer = [MonthlyPfPRAnalyzerU5IP(expt_name=expt_name,
                                       start_year=2010,
                                       end_year=2015,
                                       sweep_variables=sweep_variables,
                                       working_dir=wdir,
                                       ipfilter='_highaccess'),
-                        MonthlyPfPRAnalyzerU5IP(expt_name=expname,
+                        MonthlyPfPRAnalyzerU5IP(expt_name=expt_name,
                                       start_year=2010,
                                       end_year=2015,
                                       sweep_variables=sweep_variables,

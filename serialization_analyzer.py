@@ -7,6 +7,7 @@ import re
 import random
 from idmtools.entities import IAnalyzer	
 from idmtools.entities.simulation import Simulation
+import manifest
 
 ## For plotting
 import matplotlib.pyplot as plt
@@ -61,7 +62,7 @@ class InsetChartAnalyzer(IAnalyzer):
 
 class MonthlyPfPRAnalyzer(IAnalyzer):
 
-    def __init__(self, exp_name, sweep_variables=None, working_dir='./', start_year=2020, end_year=2025,
+    def __init__(self, expt_name, sweep_variables=None, working_dir='./', start_year=2020, end_year=2025,
                  burnin=None, filter_exists=False):
 
         super(WeeklyPfPRAnalyzer, self).__init__(working_dir=working_dir,
@@ -69,7 +70,7 @@ class MonthlyPfPRAnalyzer(IAnalyzer):
                                                    )
      
         self.sweep_variables = sweep_variables or ["Run_Number"]
-        self.exp_name = exp_name
+        self.expt_name = expt_name
         self.start_year = start_year
         self.end_year = end_year
         self.burnin = burnin
@@ -128,13 +129,13 @@ class MonthlyPfPRAnalyzer(IAnalyzer):
             print("\nWarning: No data have been returned... Exiting...")
             return
 
-        if not os.path.exists(os.path.join(self.working_dir, self.exp_name)):
-            os.mkdir(os.path.join(self.working_dir, self.exp_name))
+        if not os.path.exists(os.path.join(self.working_dir, self.expt_name)):
+            os.mkdir(os.path.join(self.working_dir, self.expt_name))
 
-        print(f'\nSaving outputs to: {os.path.join(self.working_dir, self.exp_name)}')
+        print(f'\nSaving outputs to: {os.path.join(self.working_dir, self.expt_name)}')
 
         adf = pd.concat(selected).reset_index(drop=True)
-        adf.to_csv((os.path.join(self.working_dir, self.exp_name, 'PfPR_ClinicalIncidence_monthly.csv')),
+        adf.to_csv((os.path.join(self.working_dir, self.expt_name, 'PfPR_ClinicalIncidence_monthly.csv')),
                    index=False)
         
 if __name__ == "__main__":
@@ -144,7 +145,7 @@ if __name__ == "__main__":
     from idmtools.core.platform_factory import Platform
 
     
-    expts = { #'expname':'exp_id'
+    expts = { #'expt_name':'exp_id'
     }
     
     jdir = manifest.job_directory
@@ -161,8 +162,8 @@ if __name__ == "__main__":
     
     with Platform('SLURM_LOCAL',job_directory=jdir) as platform:
 
-        for expname, exp_id in expts.items():
-            analyzers_burnin = [InsetChartAnalyzer(expt_name=expname,
+        for expt_name, exp_id in expts.items():
+            analyzers_burnin = [InsetChartAnalyzer(expt_name=expt_name,
                                            channels=channels_inset_chart,
                                            start_year=2023 - serialize_years,
                                            sweep_variables=sweep_variables,

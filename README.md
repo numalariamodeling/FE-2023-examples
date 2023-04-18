@@ -167,7 +167,7 @@ def set_param_fn():
     config.parameters.Run_Number = 5
 ```
 
-4. Now that you've added these changes, try running your new script with `python3 example_run_input.py -l`. Once it has succeeded go check on what has run. Do you see the changes to your demographics.json and the climate folder in the experiment's `Assets` directory? How about to config.json or stdout.txt? You should also see [`InsetChart.json`](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-inset-chart.html) in the simulation's output folder - this is EMOD's default report that will give you an idea of what's going on in your simulation. We'll explore this more later in the Analysis section of Week 2.
+4. Now that you've added these changes, try running your new script with `python3 example_run_inputs.py -l`. Once it has succeeded go check on what has run. Do you see the changes to your demographics.json and the climate folder in the experiment's `Assets` directory? How about to config.json or stdout.txt? You should also see [`InsetChart.json`](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-inset-chart.html) in the simulation's output folder - this is EMOD's default report that will give you an idea of what's going on in your simulation. We'll explore this more later in the Analysis section of Week 2.
 
 </p>
 </details>
@@ -441,7 +441,7 @@ This serialization exercise has three parts. In part 1 you will run and save a b
     - Add custom or new parameters that define the pickup simulation and burnin duration as well as ID of the burnin experiment. Add these at the top of your new script after your import statements:
         - `pickup_years` to define your `Simulation_Duration` (i.e. # of years run post-burnin). This will replace the duration that you had previously in the script so make sure you update the `Simulation_Duration` accordingly!
         - `serialize_years` to define the year of the burnin that serves as the start of the pickup and should be equal to the value of `serialize_years` in the burnin.
-        - `burnin_id = '<exp_id>'` with the experiment_id from the burnin experiment you want to pick up from
+        - `burnin_exp_id = '<exp_id>'` with the experiment_id from the burnin experiment you want to pick up from
         - `num_seeds` to define the number of stochastic runs executed under each parameter set
 
           ```py

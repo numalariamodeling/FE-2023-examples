@@ -28,7 +28,7 @@ from emodpy_malaria.reporters.builtin import *
 
 import manifest
 
-serialize_years=50
+serialize_years=10
 num_seeds=5
 
 def set_param_fn(config):
