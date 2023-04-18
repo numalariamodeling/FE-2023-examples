@@ -1362,11 +1362,9 @@ automatically add three events into the simulation: `Bednet_Discarded`, `Bednet_
 
 ## Add IRS
 
-![figure](/images/04_highlighted.png)
+IRS campaigns can be added using the `add_scheduled_irs_housing_modification` or `add_triggered_irs_housing_modification` function. These two functions work similarly, with the primary difference being how IRS implementaiton is timed: on a schedule or triggered by specific events.
 
-IRS campaigns can be added using the [add_IRS()](https://github.com/InstituteforDiseaseModeling/dtk-tools/blob/master/dtk/interventions/irs.py) function.
-Adding IRS works very similarly to the simple [add_ITN()](https://faculty-enrich-2022.netlify.app/modules/emod-how-to/emod-how-to/#add-itn) function.
-
+***edit for modified strucutre - not config/waning but indiv params***
 You can either use the default settings or specify the `killing_config` for the killing efficiency and waning properties
 of the insecticide. The function allows you to specify coverage according to age groups, here is an example:
 
@@ -1386,6 +1384,26 @@ add_IRS(cb,
             "Initial_Effect": 0.6
         }
 )
+
+add_scheduled_irs_housing_modification(campaign, start_day=3, 
+                                       demographic_coverage=0.34,
+                                       killing_initial_effect=0.9, 
+                                       killing_box_duration=30,
+                                       killing_decay_time_constant=60, 
+                                       repelling_initial_effect=0.2,
+                                       repelling_box_duration=60, 
+                                       repelling_decay_time_constant=0)
+add_triggered_irs_housing_modification(campaign=campaign, start_day=2, 
+                                       demographic_coverage=0.77,
+                                       trigger_condition_list=["HappyBirthday"],
+                                       listening_duration=15,
+                                       delay_period_constant=3, 
+                                       killing_initial_effect=0.8,
+                                       killing_box_duration=30, 
+                                       killing_decay_time_constant=60,
+                                       repelling_initial_effect=0.33, 
+                                       repelling_box_duration=60,
+                                       repelling_decay_time_constant=30)
 ```
 
 Note in this case, the effect of IRS follows [a boxed exponential decay](https://docs.idmod.org/projects/emod-generic/en/latest/parameter-campaign-waningeffects.html?highlight=waning#waningeffectboxexponential)
