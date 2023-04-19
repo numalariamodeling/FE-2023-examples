@@ -151,8 +151,9 @@ def build_demog():
 ```
 
 3. Modifying configs
-    - We also often want to modify some of the [config parameters](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-configuration.html) that control things like the within-host model, vectors, and simulation setup. In `example_run.py` we set the malaria team defaults using `config = conf.set_team_defaults(config, manifest)`, but we can also specify individual parameters like we did with the climate file names. Let's start with some simple things like adding setting the `Simulation_Duration` (how long the simulation should run in days) and the `Run_Number` (the random seed for the simulation) in `set_param_fn()`. Both of these can be done directly by referencing them as `config.parameters.<param_name>` and setting them equal to the desired value. The team typically uses a structure of `sim_years*365` with sim_years defined globally, at the top of the script beneath all imports, to set the duration.
-    - Set the duration to 1 year and the run number to any number of your choosing.
+    - We also often want to modify some of the [config parameters](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-configuration.html) that control things like the within-host model, vectors, and simulation setup. In `example_run.py` we set the malaria team defaults using `config = conf.set_team_defaults(config, manifest)`, but we can also specify individual parameters like we did with the climate file names. Let's start with some simple things like adding setting the `Simulation_Duration` (how long the simulation should run in days) and the `Run_Number` (the random seed for the simulation) in `set_param_fn()`. Both of these can be done directly by referencing them as `config.parameters.<param_name>` and setting them to the desired value. The team typically uses a structure of `sim_years*365` with sim_years defined globally, at the top of the script beneath all imports, to set the duration.
+    - Set the duration to 1 year and the run number to any number of your choosing
+        - *NOTE: this run number value is just the random seed value, NOT the number of stochastic realizations to run.*
     - Next, we'll add some mosquito species. There is a specific function for this, `add_species()` in emodpy_malaria malaria config. Try adding *A. gambiae*, *A. arabiensis*, and *A. funestus* to your config file:
     
 ```py    
@@ -164,7 +165,7 @@ def set_param_fn():
     conf.add_species(config, manifest, ["gambiae", "arabiensis", "funestus"])
 
     config.parameters.Simulation_Duration = sim_years*365
-    config.parameters.Run_Number = 5
+    config.parameters.Run_Number = 0
 ```
 
 4. Now that you've added these changes, try running your new script with `python3 example_run_inputs.py -l`. Once it has succeeded go check on what has run. Do you see the changes to your demographics.json and the climate folder in the experiment's `Assets` directory? How about to config.json or stdout.txt? You should also see [`InsetChart.json`](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-inset-chart.html) in the simulation's output folder - this is EMOD's default report that will give you an idea of what's going on in your simulation. We'll explore this more later in the Analysis section of Week 2.
@@ -235,7 +236,7 @@ Now that you've learned the basics of how to run EMOD and add inputs/outputs you
 - This week's analyzer script also includes a basic python plotter for the results from `InsetChartAnalyzer` that will help you visualize each of the `channels_inset_chart` throughout the simulation. Take a look through the code to see if you can tell what it is doing before running it.
 - Run the analyzer, you will not need the `-l` command as the platform is set to run only with `SLURM_LOCAL` right now
 - Wait for the analyzer to succeed. Once it is finished check out your new outputs (see if you can find the `wdir` mentioned above without help). You should see two csvs, one from each analyzer, as well as a InsetChart.png.
-- As an additional exercise, try to make a data visualization in R or python based off of the MonthlyPfPRAnalyzer output (PfPR_Clinical_Incidence_monthly.csv). You'll need to take a look through the output file and decide what kind of figure may be interesting and inform you about your simulation. *Note: there is no solution script for this, it is an exercise of creativity and data visualization skills where everyone may have unique ideas*
+- As an additional exercise, try to make a data visualization in R or python based off of the MonthlyPfPRAnalyzer output (PfPR_Clinical_Incidence_monthly.csv), based on the `MalariaSummaryReport`. You'll need to take a look through the output file and decide what kind of figure may be interesting and inform you about your simulation. *Note: there is no solution script for this, it is an exercise of creativity and data visualization skills where everyone may have unique ideas. Check out the plotting resources, then discuss with your colleagues or the instructional staff if you get stuck.*
 - Once you've completed your data visualization exercise, feel free to try changing some other [config parameters](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-configuration.html) in your example script. Run additional simulations with different durations, population sizes, agebins, etc. - whatever you think would be interesting! This is a great time to look through the EMOD documentation and explore parameters so you get to know the EMOD ecosystem better. *(Tip: change your experiment name to keep track of your simulations in both the metadata and analyzer outputs)*
     - You can also run these sims through the analyzer script by updating the experiment name and ID, as above. Do this and inspect the outputs as well as any changes compared to your first run. What do you see? 
         - How have the outcomes changed? 
@@ -395,7 +396,8 @@ This serialization exercise has three parts. In part 1 you will run and save a b
           if step == 'pickup':
               sweep_variables = ['Run_Number'] # for times when you add additional items to the pickup, you can add more sweep variables here
           ```
-        - To use the "step" system we will want to also modify our analyzers run statement. Assuming you included only the default report, `InsetChart`, in your burnin then you will want to run only that analyzer for the burnin step. For the pickup you will likely want to include a version of the summary report we've been using so we'll include that in the pickup step in the analyzer. Notice that these are largely the same as how we were calling them previously, with the addition of a `start_year` parameter. This functionality has been in the actual analyzer the whole time, but we hadn't referenced it; however, it becomes more important as we think about time in serialization. This allows us to essentially set the date for for the simulation outputs such that our burnin will end in 2023 (and such should start the number of `serialize_years` prior) and the pickup will start where the burnin leaves off in 2023. We then run the analyzer based on the step we set above. We can keep the basic plotter after this just to get an idea of what is going on in our simulations. 
+        - To use the "step" system we will want to also modify our analyzers run statement. Assuming you included only the default report, `InsetChart`, in your burnin then you will want to run only that analyzer for the burnin step. For the pickup you will likely also want to include a version of the summary report we've been using so we'll include that in the pickup step in the analyzer. Notice that these are largely the same as how we were calling them previously, with the addition of a `start_year` parameter. This functionality has been in the actual analyzer the whole time, but we hadn't referenced it; however, it becomes more important as we think about time in serialization. This allows us to essentially set the date for for the simulation outputs such that our burnin will end in 2023 (and such should start the number of `serialize_years` prior) and the pickup will start where the burnin leaves off in 2023. The simulations themselves have no linkage to real time; rather, they track simulation timesteps. Applying the the year in the analyzer in this way is simply meant to turn those simulation timesteps into a more understandable framework for our work. We then run the analyzer based on the step we set above. We can keep the basic plotter after this just to get an idea of what is going on in our simulations. 
+            - **Note: In certain cases, such as monitoring PfPR across all simulation time, you will also want to include a summary report (or another report) in the burnin. Be thoughtful about the questions you are trying to address and what reports you'll need at each step, there is no one right way!**
         
           ```py
           with Platform('SLURM_LOCAL',job_directory=jdir) as platform:
@@ -497,8 +499,8 @@ This serialization exercise has three parts. In part 1 you will run and save a b
     - Before running the experiment, update the `exp_name` (i.e. add 'burnin50'), to keep track of your simulation iterations. Do not change anything else in the pickup simulation, to allow for comparison across iterations picking up from different burnin durations.
     - Run the experiment, wait for it to finish, and checkout your outputs.
     - Using `serialization_analyzer.py`, run the `InsetChartAnalyzer` for both burnin and pickup. Make sure to modify your `serialization_years`. Feel free to change the `channels_inset_chart` to other ones depending on what differences you may be most interested in exploring.
-    - Try plotting your results to show both burnin and pickup on the same plot for your channels of interest over time. You may use R or python to do so - if you get stuck there is a sample python plotting script in `Solution_scripts/Week3` called `plot_example_serialization.py` but we recommend trying to make your own version of the plot first.
-        - *NOTE: these plots and analyzer scripts are just baselines for you to go off! You may want to make changes or include additional things as you develop your project, especially as you add complexity to the pickup.*
+    - Try plotting your results to show both burnin and pickup on the same plot for your channels of interest over time. You may use R or python to do so - if you get stuck there is a sample python plotting script in `Solution_scripts/Week3` called `plot_example_serialization.py` but we strongly recommend trying to make your own version of a plot first.
+        - *NOTE: these plots and analyzer scripts are just baselines for you to go off! You may want to make changes or include additional things, such as additional sweep variable, confidence intervals, or additional reports with new analyzers (and outputs), as you develop your project, especially as you add complexity to the pickup.*
     - Compare the plots between the experiments with 10 and 50 year burnins. Do you notice any differences?
     
 </p>
@@ -765,9 +767,9 @@ Now, referring to the scripts you wrote for previous examples, you should be abl
     - `np.logspace(0,1,10)` will use 10 evenly log-spaced values between 10^0 and 10^1  
 - No interventions  
 - 1 stochastic realization / random seed  
-    **Hint**: don't forget to point toward the correct demographics   
+    **Hint: don't forget to point toward the correct demographics**
         - Use `Demographics.from_csv(input_file=<path_to_file>, id_ref=<same id_ref used for climate files>, init_prev=0.01, include_biting_heterogeneity=True)`  
-    **Hint**: check `set_param_fn()` to make sure you added vectors, point to the corresponding climate files, and allow for serialization.  
+    **Hint: check `set_param_fn()` to make sure you added vectors, point to the corresponding climate files, and allow for serialization. ** 
 
 *Pickup*  
 - Duration: 10 years  

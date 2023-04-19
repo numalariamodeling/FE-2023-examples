@@ -62,7 +62,7 @@ class InsetChartAnalyzer(IAnalyzer):
 
 class MonthlyPfPRAnalyzer(IAnalyzer):
 
-    def __init__(self, expt_name, sweep_variables=None, working_dir='./', start_year=2020, end_year=2025,
+    def __init__(self, expt_name, sweep_variables=None, working_dir='./', start_year=0, end_year=2025,
                  burnin=None, filter_exists=False):
 
         super(WeeklyPfPRAnalyzer, self).__init__(working_dir=working_dir,
