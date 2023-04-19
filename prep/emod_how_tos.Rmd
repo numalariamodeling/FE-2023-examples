@@ -654,6 +654,7 @@ def build_demog():
 Most interventions can be targeted to individuals holding specific IP values, typically with the `ind_property_restrictions` function argument and setting the desired IndividualProperty restrictions. This example creates an SMC drug campaign that is limited to individuals in the 'Treatment' group as defined in the demographics file.
 
 ```{python,eval=F}
+import emod_api.campaign as campaign
 import emodpy_malaria.interventions.drug_campaign as drug_campaign
 
 drug_campaign.add_drug_campaign(campaign, 
@@ -1190,6 +1191,7 @@ This example infects 5% of the population every year for 5 years, beginning on d
 
 ```{python,eval=F}
 from emodpy_malaria.interventions.outbreak import add_outbreak_individual
+import emod_api.campaign as campaign
 
 def add_outbreak_individual(campaign,
                             start_day = 0,
@@ -1214,6 +1216,7 @@ For simulations without mosquitoes, a forced EIR can be used to impose infectiou
 
 ```{python,eval=F}
 from emodpy_malaria.interventions.inputeir import add_scheduled_input_eir
+import emod_api.campaign as campaign
 
 monthly_site_EIR_annualized = [15.99, 5.41, 2.23, 10.33, 7.44, 11.77, 79.40, 85.80, 118.59, 82.97, 46.62, 33.49]
 monthly_EIR = [x/12 for x in site_EIR_annualized]
@@ -1248,6 +1251,7 @@ def build_demog():
 Insecticide-treated bednets can be distributed with the `add_itn_scheduled()` function, which has many options to configure who is targeted for ITN distribution.
 
 ```{python,eval=F}
+import emod_api.campaign as campaign
 from emodpy_malaria.interventions.bednet import add_itn_scheduled
 add_itn_scheduled(campaign,
         start=365, # starts on first day of second year
@@ -1384,7 +1388,7 @@ add_IRS(cb,
             "Initial_Effect": 0.6
         }
 )
-
+import emod_api.campaign as campaign
 add_scheduled_irs_housing_modification(campaign, start_day=3, 
                                        demographic_coverage=0.34,
                                        killing_initial_effect=0.9, 
@@ -1412,10 +1416,7 @@ with efficacy of first 60 days held constant, before exponential decay kicks in.
 
 ## Add larvicides
 
-![figure](/images/04_highlighted.png)
-
-Functions for adding attractive targeted sugar baits, topical repellents, outdoor residual spray, eave tubes, and 
-larvicides are found [here](https://github.com/InstituteforDiseaseModeling/dtk-tools/blob/master/dtk/interventions/novel_vector_control.py).
+Functions for adding attractive targeted sugar baits, topical repellents, outdoor residual spray, eave tubes, and larvicides are found [here](https://github.com/InstituteforDiseaseModeling/dtk-tools/blob/master/dtk/interventions/novel_vector_control.py).
 
 To add larvicides: 
 
@@ -1428,6 +1429,19 @@ add_larvicides(cb, start_day=0,
                killing_initial=0.6,         # initial killing efficacy of the insecticide
                killing_decay=150            # decay time constant, in days, for exponential decay of larvicide efficacy
                )
+add_larvicide(
+        campaign,
+        start_day: int = 1,
+        num_repetitions: int = -1,
+        timesteps_between_reps: int = 365,
+        spray_coverage: float = 1.0,
+        killing_effect: float = 1,
+        habitat_target: str = "ALL_HABITATS",
+        insecticide: str = None,
+        box_duration: int = 100,
+        decay_time_constant: float = 0.0,
+        node_ids: list = None
+    )
 ```
 
 
@@ -1464,6 +1478,17 @@ set_species_param(cb, 'gambiae', 'Genes', [
         }
     }
 ])
+
+from emodpy_malaria import vector_config as vector_config
+config.parameters.Simulation_Type = "VECTOR_SIM"
+vector_config.set_team_defaults(config, manifest)  # team defaults
+vector_config.add_species(config, manifest, ["gambiae", "funestus"])
+
+vector_config.add_genes_and_alleles(config, manifest, "gambiae", [("a", 0.5), ("b", 0.5), ("c", 0)])
+vector_config.add_mutation(config, manifest, "gambiae", mutate_from="a", mutate_to="b", probability=0.05)
+vector_config.add_mutation(config, manifest, "gambiae", mutate_from="b", mutate_to="c", probability=0.1)
+vector_config.add_mutation(config, manifest, "gambiae", mutate_from="c", mutate_to="a", probability=0.1)
+vector_config.add_mutation(config, manifest, "gambiae", mutate_from="a", mutate_to="c", probability=0.03)
 ```
 
 Reporting on vector genetics (abundance of alleles and/or genotypes) is requested like so:
@@ -1475,6 +1500,9 @@ cb.add_reports(BaseVectorGeneticsReport(type='ReportVectorGenetics',
                                         gender='VECTOR_FEMALE',
                                         include_vector_state_columns=0,
                                         stratify_by='ALLELE_FREQ'))
+
+from emodpy_malaria.reporters.builtin import *
+add_report_vector_genetics(task, manifest, species="gambiae")
 ```
 
 ### Relate genotype to phenotype
@@ -1541,6 +1569,11 @@ cb.update_params({
         }
     ]
 })
+
+vector_config.add_insecticide_resistance(config, manifest, "pyrethroid", "gambiae", 
+                                          [["b", "b"]],
+                                          blocking=0.0, 
+                                          killing=0.0)
 ```
 
 ### Add vector control with specific insecticide
@@ -1559,24 +1592,13 @@ add_ITN(cb, start=200, coverage_by_ages=[{'min': 0, 'max': 100, 'coverage': 0.6}
 
 ## Add case management
 
-![figure](/images/04_highlighted.png)
+Case management is controlled in EMOD by an `add_treatment_seeking()` function within emodpy-malaria. This function is a node level intervention that allows you to target individuals on the node for malaria treatment through health seeking behavior. 
 
-Case management is controlled in EMOD by an 
-[add_health_seeking()](https://github.com/InstituteforDiseaseModeling/dtk-tools-malaria/blob/master/malaria/interventions/health_seeking.py) 
-function within dtk-tools-malaria. This function is a node level intervention that allows you to target individuals on 
-the node for malaria treatment through health seeking behavior. 
-
-In this example, treatment is triggered by a new clinical case and codes for differences in case management coverage 
-between individuals of age 0-5 yrs and 5-100yrs as set by the two trigger dictionaries' respective 'agemin' and 'agemax'. 
-'Seek' dictates the proportion of people who will seek care with a new clinical case - it is usually set to 1 such that 
-'coverage' is the true case management coverage level. 'Rate' represents how quickly the case will receive treatment. 
-It is used to create an exponential distribution of the delay period. We usually set `rate = 1/3.` for clinical cases and 
-`rate = 1/2.` for severe cases.
+In this example, treatment is triggered by a new clinical case and codes for differences in case management coverage between individuals of age 0-5 yrs and 5-100yrs as set by the two trigger dictionaries' respective `agemin` and `agemax`. `Seek` dictates the proportion of people who will seek care with a new clinical case - it is usually set to 1 such that `coverage` is the true case management coverage level. `Rate` represents how quickly the case will receive treatment. It is used to create an exponential distribution of the delay period. We usually set `rate = 1/3` for clinical cases and `rate = 1/2.` for severe cases.
 
 You can also specify which drugs are used for case management. The default is Artemether-Lumefantrine with age-based dosing. 
 
-Additional parameters can be added to restrict case management to certain nodes, node properties, or individual 
-properties. See [here](https://github.com/InstituteforDiseaseModeling/dtk-tools-malaria/blob/master/malaria/interventions/health_seeking.py) for more information.
+Additional parameters can be added to restrict case management to certain nodes, node properties, or individual properties. See [here](https://github.com/InstituteforDiseaseModeling/dtk-tools-malaria/blob/master/malaria/interventions/health_seeking.py) for more information.
 
 
 ```{python,eval=F}
@@ -1604,107 +1626,96 @@ add_health_seeking(cb, start_day=0,
                                'rate': 0.5}],
                    drug=['Artemether', 'Lumefantrine'])
     
+
+
+import emod_api.campaign as camp
+cm.add_treatment_seeking(camp, start_day=0, drug=['Artemether', 'Lumefantrine'],
+                         targets=[{'trigger': 'NewClinicalCase', 
+                                   'coverage': 0.7, 'agemin': 0, 'agemax': 5,
+                                   'seek': 1,'rate': 0.3},
+                                 {'trigger': 'NewClinicalCase', 
+                                  'coverage': 0.5, 'agemin': 5, 'agemax': 100,
+                                  'seek': 1,'rate': 0.3},
+                                 {'trigger': 'NewSevereCase', 
+                                  'coverage': 0.85, 'agemin': 0, 'agemax': 100,
+                                  'seek': 1,'rate': 0.5}],
+                         broadcast_event_name="Received_Treatment")
 ```
 
 ## Change drug adherence
 
-![figure](/images/04_highlighted.png)
+Adherence to drugs can be modified using `adherent_drug`. This allows you to detail doses (and drugs given), intervals between doses, actual adherence values, and more. More documentation on how to configure adherent drugs is [here](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-campaign-individual-adherentdrug.html).
 
-Adherence to drugs can be modified using [configure_adherent_drug()](https://github.com/InstituteforDiseaseModeling/dtk-tools-malaria/blob/master/malaria/interventions/adherent_drug.py). 
-This allows you to detail doses (and drugs given), 
-intervals between doses, actual adherence values, and more. More documentation on how to configure adherent drugs is 
-[here](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-campaign-individual-adherentdrug.html).
-
-Configuring adherence is not required. In the absence of specific configuration, adherence to the full treatment course 
-is assumed to be 100%.
+Configuring adherence is not required. In the absence of specific configuration, adherence to the full treatment course is assumed to be 100%.
 
 ```{python,eval=F}
-from dtk.utils.core.DTKConfigBuilder import DTKConfigBuilder
-from malaria.interventions.adherent_drug import configure_adherent_drug
-cb = DTKConfigBuilder.from_defaults('MALARIA_SIM')
-def smc_adherent_configuration(cb, adherence):
-    smc_adherent_config = configure_adherent_drug(cb,
-                                                  doses=[["SulfadoxinePyrimethamine",'Amodiaquine'],
-                                                         ['Amodiaquine'],
-                                                         ['Amodiaquine']],
-                                                  dose_interval=1,
-                                                  non_adherence_options=['Stop'],
-                                                  non_adherence_distribution=[1],
-                                                  adherence_config={
-                                                        "class": "WaningEffectMapCount",
-                                                        "Initial_Effect": 1,
-                                                        "Durability_Map": {
-                                                            "Times": [
-                                                                1.0,
-                                                                2.0,
-                                                                3.0
-                                                            ],
-                                                            "Values": [
-                                                                1,
-                                                                adherence,
-                                                                adherence
-                                                            ]
-                                                        }
-                                                    }
-    )
-    return smc_adherent_config
-    
-adherent_drug_configs = smc_adherent_configuration(cb, adherence=0.7)
+import emod_api.campaign as campaign
+import emodpy_malaria.interventions.drug_campaign as drug_campaign
+import emodpy_malaria.interventions.adherentdrug as ad
+
+adherent_drug = ad.adherent_drug(campaign=campaign,
+                                     doses=[["Sulfadoxine", "Pyrimethamine", 'Amodiaquine'],
+                                            ['Amodiaquine'],
+                                            ['Amodiaquine']],
+                                     dose_interval=1,
+                                     non_adherence_options=['Stop'],
+                                     non_adherence_distribution=[1],
+                                     adherence_values=[
+                                         1,    # for day 1
+                                         0.6,  # day 2
+                                         0.4   # day 3
+                                     ]
+                                     )
+
 ```
 
 ## Add drug campaigns
 
-![figure](/images/04_highlighted.png)
+Using `add_drug_campaign()` you can set different drug campaigns including MDA, MSAT, SMC, fMDA, MTAT, rfMSAT, and rfMDA. This function also includes the ability to set coverage levels, repetitions (such as SMC cycles) and the timesteps between them, diagnostics information for campaigns that include testing, target groups, and restrictions on who can receive drugs by node or individual properties. Node and individual properties are set in the demographics file and can be called upon here for things like low vs high access groups (see drug IP example **link**).
 
-Using add_drug_campaign() you can set different drug campaigns including MDA, MSAT, SMC, fMDA, MTAT, rfMSAT, and rfMDA. 
-This function also includes the ability to set coverage levels, repetitions (such as SMC cycles) and the timesteps 
-between them, diagnostics information for campaigns that include testing, target groups, and restrictions on who can 
-receive drugs by node or individual properties. For more details on all possible specifications see 
-[malaria_drug_campaigns.py](https://github.com/InstituteforDiseaseModeling/dtk-tools-malaria/blob/master/malaria/interventions/malaria_drug_campaigns.py) 
-in dtk-tools-malaria. Node and individual properties are set in the demographics file and can be called upon here for 
-things like low vs high access groups.
-
-This example details a simple SMC intervention. Its coverage level, number of cycles, and start day are specified in the model builder as they may change more regularly based on the purpose of different analyses. Timesteps between repetitions (if more than one cycle given) is set to 30 days as SMC is given on a monthly basis during peak season. The target group is also specified here to limit the age group to 0.25-5 year old children. This example uses adherent drug configurations as previously shown.
+This example details an SMC intervention. Timesteps between repetitions (if more than one cycle given) is set to 30 days as SMC is given on a monthly basis during peak season. The target group is also specified here to limit the age group to 0.25-5 year old children. This example uses adherent drug configurations as previously shown.
 
 ```{python,eval=F}
-from malaria.interventions.malaria_drug_campaigns import add_drug_campaign
-def smc_intervention(cb, day, cycles, coverage_level):
-    add_drug_campaign(cb, campaign_type='SMC',
-                          coverage=coverage_level, start_days=[(sim_years - 1) * 365 + day],
-                          repetitions=cycles, tsteps_btwn_repetitions=30,
-                          adherent_drug_configs=[adherent_drug_configs],
-                          target_group={'agemin': 0.25, 'agemax': 5},
-                          receiving_drugs_event_name='Received_SMC')
+import emod_api.campaign as campaign
+import emodpy_malaria.interventions.drug_campaign as drug_campaign
+
+drug_campaign.add_drug_campaign(campaign, 
+                                campaign_type="SMC", 
+                                start_days=[165], 
+                                #drug_code="SPA", #single code if not using adherent drug
+                                adherent_drug_configs=[adherent_drug_configs],
+                                repetitions=4, 
+                                tsteps_btwn_repetitions=30, 
+                                coverage=0.7,
+                                target_group={'agemin': 0.25, 'agemax': 5},
+                                receiving_drugs_event_name="Received_SMC")                       
 ```
 
 
 ## Add diagnostic surveys
 
-![figure](/images/04_highlighted.png)
+Diagnostic surveys are useful interventions for triggering events based on an individual's diagnosis. Testing can be performed at regular intervals (`tsteps_between_repetitions`) for a set number of `repetitions` based on `target` groups and `coverage`. Testing can also be triggered by other events, such as receiving a particular dose of PMC in this example.
 
-[Diagnostic surveys](https://github.com/InstituteforDiseaseModeling/dtk-tools-malaria/blob/master/malaria/interventions/malaria_diagnostic.py) are useful interventions for triggering events based on an individual's diagnosis. Testing can be performed at regular intervals (**tsteps_between_repetitions**) for a set number of **repetitions** based on **target** groups and **coverage**. Testing can also be triggered by other events, such as receiving a particular dose of IPTi in this example.
-
-Different methods of diagnostic testing may also be utilized, including *TRUE_PARASITE_DENSITY*, *BLOOD_SMEAR*, *PCR*, *PF_HRP2*, *TRUE_INFECTION_STATUS*, and *HAS_FEVER*. Diagnostic threshold, sensitivity, and specificity can all be parameterized. Once a positive or negative result is obtained in the simulation, the relative configs parameter dictates what will happen to that individual. In this example, either diagnosis broadcasts an event for that individual that they were positive or negative on the day that they received their first dose of IPTi.
+Different methods of diagnostic testing may also be utilized, including *TRUE_PARASITE_DENSITY*, *BLOOD_SMEAR*, *PCR*, *PF_HRP2*, *TRUE_INFECTION_STATUS*, and *HAS_FEVER*. Diagnostic threshold, sensitivity, and specificity can all be parameterized. Once a positive or negative result is obtained in the simulation, the relative configs parameter dictates what will happen to that individual. In this example, either diagnosis broadcasts an event for that individual that they were positive or negative on the day that they received their first dose of PMC.
 
 ```{python,eval=F}
-from malaria.interventions.malaria_drug_campaigns import add_drug_campaign, add_diagnostic_survey
-                              
-def diagnostic_survey(cb, sim_day, thresh=10, dose=1):
-    # day 0 positivity
-    add_diagnostic_survey(cb, start_day=sim_day,
-                          diagnostic_threshold=thresh,
-                          trigger_condition_list=[f'Received_IPTi_{dose}'],
-                          diagnostic_type='TRUE_PARASITE_DENSITY'
-                          positive_diagnosis_configs=[{'class': 'BroadcastEvent',
-                                                       'Broadcast_Event': 'Day_0_positive'}],
-                          negative_diagnosis_configs=[{'class': 'BroadcastEvent',
-                                                       'Broadcast_Event': 'Day_0_negative'}])
+import emod_api.campaign as campaign
+import emodpy_malaria.interventions.diag_survey as diagnostic_survey
+import emod_api.interventions.common
+
+parasites_detected = emod_api.interventions.common.BroadcastEvent(campaign, Event_Trigger="Day_0_positive")
+no_parasites_detected = emod_api.interventions.common.BroadcastEvent(campaign, Event_Trigger="Day_0_negative")
+
+diagnostic_survey.add_diagnostic_survey(campaign=campaign, start_day=0, 
+                                        diagnostic_type="TRUE_PARASITE_DENSITY",
+                                        diagnostic_threshold=20,
+                                        trigger_condition_list=['Received_PMC_1'],
+                                        positive_diagnosis_configs=[parasites_detected],
+                                        negative_diagnosis_configs=[no_parasites_detectedc])
 ```
 
 
 ## Add vaccine
-
-![figure](/images/04_highlighted.png)
 
 Malaria vaccines can be added using the [add_vaccine()](https://github.com/InstituteforDiseaseModeling/dtk-tools-malaria/blob/master/malaria/interventions/malaria_vaccine.py#L19) function.
 The function is generic: it can handle pre-erythrocytic vaccines, transmission-blocking vaccines, and RTS,S specifically.
@@ -1717,6 +1728,48 @@ add_vaccine(cb,
             vaccine_type='RTSS',
             start_days=[365],
             coverage=0.8)
+            
+import emod_api.campaign as campaign
+import emodpy_malaria.interventions.vaccine as vaccine            
+vaccine.add_scheduled_vaccine(campaign,
+                          start_day: int = 1,
+                          demographic_coverage: float = 1.0,
+                          target_num_individuals: int = None,
+                          node_ids: list = None,
+                          repetitions: int = 1,
+                          timesteps_between_repetitions: int = 365,
+                          ind_property_restrictions: list = None,
+                          target_age_min: int = 0,
+                          target_age_max: int = 125,
+                          target_gender: str = "All",
+                          broadcast_event: str = None,
+                          vaccine_type: str = "AcquisitionBlocking",
+                          vaccine_take: float = 1,
+                          vaccine_initial_effect: float = 1,
+                          vaccine_box_duration: int = 365,
+                          vaccine_decay_time_constant: float = 100,
+                          efficacy_is_multiplicative: bool = True)
+
+vaccine.add_triggered_vaccine(campaign,
+                          start_day: int = 1,
+                          trigger_condition_list: list = None,
+                          listening_duration: int = -1,
+                          delay_period_constant: float = 0,
+                          demographic_coverage: float = 1.0,
+                          node_ids: list = None,
+                          repetitions: int = 1,
+                          timesteps_between_repetitions: int = 365,
+                          ind_property_restrictions: list = None,
+                          target_age_min: int = 0,
+                          target_age_max: int = 125,
+                          target_gender: str = "All",
+                          broadcast_event: str = None,
+                          vaccine_type: str = "AcquisitionBlocking",
+                          vaccine_take: float = 1,
+                          vaccine_initial_effect: float = 1,
+                          vaccine_box_duration: int = 365,
+                          vaccine_decay_time_constant: float = 100,
+                          efficacy_is_multiplicative: bool = True)
 ```
 
 
@@ -1798,8 +1851,6 @@ add_ITN(cb,
 
 
 ## Using the model builder to set up multi-simulation experiments
-
-![figure](/images/05_highlighted.png)
 
 We often want to run a series of simulations where most parameters are held constant but one or more are varied. To set 
 this up in a `dtk-tools` script, we use a `builder` and the `ModBuilder` function with associated `ModFn`s.
