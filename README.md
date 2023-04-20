@@ -721,7 +721,7 @@ Most of the time, we consider our geographical units of interest (the 'nodes' - 
 
 We will cover advanced applications of spatial modeling in another exercise. This exercise will allow you to practice combining parts from previous examples to run a simple spatial simulation and produce spatial outputs. Afterward, you can add code to introduce migration between nodes, and see how that changes things, but we will not deal with this in any detail here.
 
-**Steps**
+**Part 1. Run Spatial Simulations**
 
 1. Create a spreadsheet **nodes.csv** with the columns *node_id*, *lat*, *lon*, and *pop*. EMODpy will be expecting these column names! <br>
         - This spreadsheet will be used to generate the climate and demographics files later
@@ -837,7 +837,7 @@ Now, referring to the scripts you wrote for previous examples, you should be abl
     - One node receives ITNs every 3 years only  
     - One node receives no interventions   
 - 10 stochastic realizations / random seeds each (sweep over `Run_Number`)  
-- add Spatial Reports/Outputs, inside `general_sim()`   
+- add Filtered Spatial Reports and Event Recorder to outputs, inside `general_sim()`   
     -  `add_spatial_report_malaria_filtered(...)`  
         - Filter to final year 3 years of the simulation  
         - For a daily report, use `reporting_interval = 1`  
@@ -845,9 +845,82 @@ Now, referring to the scripts you wrote for previous examples, you should be abl
         - include spatial_output_channels 'Population', 'PCR_Parasite_Prevalence', and 'New_Clinical_Cases' (though any InsetChart Channels will work)  
    - `add_event_recorder(...)`  
         - the `event_list` should include 'Received_Treatment' and 'Received_ITN'  
-            - These events need to be added to `config.parameters.Custom_Individual_Events=[...]` inside `set_param_fn()` as well.
+            - *Note:* These events need to be added to `config.parameters.Custom_Individual_Events=[...]` inside `set_param_fn()` as well.
             
- 
+**Part 2. Analyze Spatial Simulations** 
+
+To analyze the `SpatialReportMalariaFiltered_.bin` files generated for each channel and simulation, use the script `analyzer_spatial.py`
+
+Edit **only** the following lines at the bottom of the script before running:
+
+```py
+...
+...
+...
+
+if __name__ == "__main__":
+    ...
+    ...
+    ...
+    ## Experiments Dictionary ##
+    ############################
+    # {'experiment label' : 'exp_id'}
+    expts = {'FE_example' : '9729c597-1161-4631-a222-ac1be450887c'}
+   
+   ## Paths ##
+    ###########
+    # experiments folder
+    jdir =  '/projects/b1139/indie_emodpy/experiments'
+    # output folder
+    wdir=os.path.join('/projects/b1139/indie_emodpy/simulation_output', 'baseline')
+    if not os.path.exists(wdir):
+        os.mkdir(wdir) 
+    ## Analyzer Specifications ##
+    #############################
+    # Grouping variables (for each node & timestep)
+    sweep_variables = ['Run_Number', 'xTLH']   
+    # Outputs to analyze - must have been requested during simulation
+    spatial_channels = ['Population',           
+                        'PCR_Parasite_Prevalence',
+                        'New_Clinical_Cases']
+    ...
+    
+    ## Run Analyzer ##
+    ##################
+    with Platform('SLURM_LOCAL',job_directory=jdir) as platform:
+        for expname, exp_id in expts.items():
+            analyzer = [SpatialAnalyzer(dir_name=expname,
+                                        f_base = report_type,
+                                        f_suffix = report_suffix,
+                                        exp_id = exp_id,
+                                        spatial_channels=spatial_channels,
+                                        sweep_variables=sweep_variables,
+                                        working_dir=wdir)]      
+            # Create AnalyzerManager with required parameters
+            manager = AnalyzeManager(configuration={},ids=[(exp_id, ItemType.EXPERIMENT)],
+                                     analyzers=analyzer, partial_analyze_ok=True)
+            # Run analyze
+            manager.analyze()
+```
+
+This will produce a file inside `working_dir/simulation_output/experiment_name/SpatialReportMalariaFiltered.csv` with columns:  
+* Time
+* Node
+* Run_Number
+* xTLH
+* Population
+* PCR_Parasite_Prevalence
+* New_Clinical_Cases
+
+Part 3. Plot Spatial Results
+
+1. Open 'spatial_plotter.rmd'  
+2. Replace the `sr_path` in the first chunk with the path to the 'SpatialReportMalariaFiltered.csv' generated in step 2 above
+3. Replace the `plot_path` in the first chunk with the path to the desired folder for storing plots
+3. Run the .rmd file
+
+**Part 3. BONUS: Migration (optional)**
+
 OPTIONAL BONUS: Add migration to the pickup simulations and see if/how connecting the nodes affects the distinctions between them.
 - `import emod_api.migration.migration as migration`  
 - inside `set_param_fn()`:   
