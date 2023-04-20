@@ -1806,6 +1806,30 @@ change_individual_property(cb,
                            ind_property_restrictions=[{'VaccineStatus': 'None'}],
                            trigger_condition_list=['Received_Vaccine'],
                            blackout_flag=False)
+
+change_individual_property_triggered( camp,
+                                          triggers: list,
+                                          new_ip_key: str,
+                                          new_ip_value: str,
+                                          start_day: int=0, 
+                                          daily_prob: float=1,
+                                          max_duration: int=9.3228e+35,
+                                          revert_in_days:int=-1,
+
+                                          node_ids: list=None, # where
+
+                                          ip_restrictions:list=None,
+                                          coverage: float=1.0,
+                                          target_age_min: float=0,
+                                          target_age_max: float=_MAX_AGE,
+                                          target_sex: str="All",
+                                          target_residents_only: bool=False,
+
+                                          delay=None,
+                                          listening_duration: int=-1,
+                                          blackout: bool=True,
+                                          check_at_trigger: bool=False
+    )
 ```
 
 Those who have received their 3rd dose of vaccine are eligible for a booster at the age of 2 years (730 days) old. The
@@ -1832,7 +1856,7 @@ change_individual_property(cb,
 
 
 
-## Triggered interventions
+## Triggered interventions - likely remove because specific ones
 
 ![figure](/images/04_highlighted.png)
 
@@ -1860,59 +1884,54 @@ parameters. A few example uses are shown below.
 
 ### Set the number of stochastic realizations (replicates) to run
 
-The **Run_Number** config parameter sets the simulation's random seed. 
-To run multiple stochastic realizations of the same simulation, vary **Run_Number** in the builder.
-In this example, the builder creates 10 identical simulations except for the value of **Run_Number**, which ranges 
-from 0-9.
+The **Run_Number** config parameter sets the simulation's random seed. To run multiple stochastic realizations of the same simulation, vary **Run_Number** in the builder. In this example, the builder creates 10 identical simulations except for the value of **Run_Number**, which ranges from 0-9.
 
 ```{python, eval=F}
-from dtk.utils.core.DTKConfigBuilder import DTKConfigBuilder
-from simtools.ModBuilder import ModBuilder, ModFn
-expt_name = 'multi_seed_experiment'
-numseeds = 10 
-cb = DTKConfigBuilder.from_defaults('MALARIA_SIM')
-builder = ModBuilder.from_list([[ModFn(DTKConfigBuilder.set_param, 'Run_Number', x)
-                                 ]
-                                for x in range(numseeds)
-                                ])
-run_sim_args = {
-    'exp_name': expt_name,
-    'config_builder': cb,
-    'exp_builder' : builder
-}
+from emodpy.emod_task import EMODTask
+from idmtools.builders import SimulationBuilder
+from idmtools.entities.experiment import Experiment
+
+def set_param(simulation, param, value):
+    # sets a specific config parameter to the specified value, useful for sweeps
+    return simulation.task.set_parameter(param, value)
+
+num_seeds = 10
+builder = SimulationBuilder()
+    
+builder.add_sweep_definition(partial(set_param, param='Run_Number'), range(num_seeds))
+
+# create experiment from builder
+experiment = Experiment.from_builder(builder, task, name="multi_seed_experiment")
 ```
 
 ### Sweeping through multiple config parameters
 
-In this example, we sweep through 20 values of **x_Temporary_Larval_Habitat** and 10 **Run_Number**s for each habitat 
-value, creating 200 simulations.
+In this example, we sweep through 20 values of **x_Temporary_Larval_Habitat** and 10 **Run_Number** values/stochastic realizations for each habitat value, creating 200 total simulations.
 
 ```{python, eval=F}
+from emodpy.emod_task import EMODTask
+from idmtools.builders import SimulationBuilder
+from idmtools.entities.experiment import Experiment
+
 import numpy as np
-from dtk.utils.core.DTKConfigBuilder import DTKConfigBuilder
-from simtools.ModBuilder import ModBuilder, ModFn
-expt_name = 'multi_habitat_and_seed_experiment'
-numseeds = 10 
-cb = DTKConfigBuilder.from_defaults('MALARIA_SIM')
-builder = ModBuilder.from_list([[ModFn(DTKConfigBuilder.set_param, 'Run_Number', x),
-                                 ModFn(DTKConfigBuilder.set_param, 'x_Temporary_Larval_Habitat, hab)
-                                 ]
-                                for x in range(numseeds)
-                                for hab in np.logspace(-2, 2, 20)
-                                ])
-run_sim_args = {
-    'exp_name': expt_name,
-    'config_builder': cb,
-    'exp_builder' : builder
-}
+
+def set_param(simulation, param, value):
+    # sets a specific config parameter to the specified value, useful for sweeps
+    return simulation.task.set_parameter(param, value)
+
+num_seeds = 10
+builder = SimulationBuilder()
+    
+builder.add_sweep_definition(partial(set_param, param='Run_Number'), range(num_seeds))
+builder.add_sweep_definition(partial(set_param, param='x_Temporary_Larval_Habitat'), np.logspace(-2, 2, 20))
+
+# create experiment from builder
+experiment = Experiment.from_builder(builder, task, name="multi_habitat_and_seed_experiment")
 ```
 
 ### Setting up complex sweeps
 
-The following model builder implements specific functions from the NU team's SMC work. Two wrapper functions, 
-`smc_intervention` and `set_EIR`, have been defined since this user doesn't need to vary over every argument in 
-`add_drug_campaign` or `add_InputEIR`. Note that these wrapper functions *must* return a dictionary for the `ModBuilder` 
-to function correctly.
+The following model builder implements specific functions from the NU team's SMC work. Two wrapper functions, `smc_intervention` and `set_EIR`, have been defined since this user doesn't need to vary over every argument in `add_drug_campaign` or `add_InputEIR`. Note that these wrapper functions *must* return a dictionary for the `ModBuilder` to function correctly.
 
 ```{python,eval=F}
 import numpy as np
@@ -1952,7 +1971,7 @@ run_sim_args = {
 ```
 
 
-## Setting up the experiment manager
+## Setting up the experiment manager - maybe change to be earlier (we introduce with sweeping currently)
 
 ![figure](/images/06_highlighted.png)
 
@@ -1980,47 +1999,33 @@ if __name__ == "__main__":
 
 ![figure](/images/02_highlighted.png)
 
-Some simulations can take a long time to run and the part you are really interested in analyzing isn’t until closer to 
-the end. You’d like to save the state of the simulation just before the interesting stuff and then restart from that 
-spot. This would allow you to iterate more quickly on different intervention strategies or just trying to understand 
-what the simulation is doing better. EMOD supports this ability with a feature called “serialized populations.”
+Some simulations can take a long time to run and the part you are really interested in analyzing isn’t until closer to the end. You’d like to save the state of the simulation just before the interesting stuff and then restart from that spot. This would allow you to iterate more quickly on different intervention strategies or just trying to understand what the simulation is doing better. EMOD supports this ability with a feature called “serialized populations.”
 
-The serialized population feature in EMOD allows you to save the state of the people and restart from that saved state. 
-This state includes the person’s health, infections, any interventions that they have, and more. This is especially 
-useful when you need to create a population that has natural immunity to a pathogen (i.e. the pathogen is not novel and 
-the population is not naive.) 
+The serialized population feature in EMOD allows you to save the state of the people and restart from that saved state. This state includes the person’s health, infections, any interventions that they have, and more. This is especially useful when you need to create a population that has natural immunity to a pathogen (i.e. the pathogen is not novel and the population is not naive.) 
 
 ### Simple Burn-in
 
-To create a population with an endemic disease, we start with a naive population and run the simulation till 
-disease dynamics reach an equilibrium, usually around 50 years.
+To create a population with an endemic disease, we start with a naive population and run the simulation till disease dynamics reach an equilibrium, usually around 50 years.
 
-For the initial burn-in simulation, you need to tell EMOD that you would like it to save a serialized population and at 
-what timestep(s).
+For the initial burn-in simulation, you need to tell EMOD that you would like it to save a serialized population and at what timestep(s), in this case the last day of the simulation.
 
 ```{python,eval=F}
-serialize_year = 50    # Number of years to run burn-in
-cb.update_params({
-            'Serialization_Time_Steps': [365 * serialize_year],
-            'Serialization_Type': 'TIMESTEP',
-            'Serialized_Population_Writing_Type': 'TIMESTEP',
-            'Serialized_Population_Reading_Type': 'NONE',
-            'Serialization_Mask_Node_Write': 0,
-            'Serialization_Precision': 'REDUCED'
-        })
+serialize_years = 50 # Number of years to run burn-in
+
+#put the following in config builder
+    
+#Add serialization - add burnin "write" parameters to config.json
+config.parameters.Serialized_Population_Writing_Type = "TIMESTEP"
+config.parameters.Serialization_Time_Steps = [365 * serialize_years]
+config.parameters.Serialization_Mask_Node_Write = 0
+config.parameters.Serialization_Precision = "REDUCED"
 ```
 
-Then, run this simulation as you would any other. When the simulation has succeeded, the output/ directory should 
-contain a state-*.dtk file, where * is the 5-digit date of serialization. In this example, a state-18250.dtk file 
-would be created.
+Then, run this simulation as you would any other. When the simulation has succeeded, the output/ directory should contain a state-*.dtk file, where * is the 5-digit date of serialization. In this example, a state-18250.dtk file would be created.
 
 ### Picking up from Serialized Burn-in
 
-![figure](/images/02_highlighted.png)
-
-To pick up from the end of a saved burn-in simulation, and run for some additional time, you need the name of the state*.dtk 
-file from the burn-in and the path to the .dtk file. If you know the path to the .dtk file, you can specify it
-directly:
+To pick up from the end of a saved burn-in simulation, and run for some additional time, you need the name of the state*.dtk file from the burn-in and the path to the .dtk file. If you know the path to the .dtk file, you can specify it directly:
 
 ```{python,eval=F}
 burnin_id = <ExperimentID> # replace with burn-in ID
@@ -2034,6 +2039,13 @@ cb.update_params({
             'Serialization_Mask_Node_Read': 0,
             'Enable_Default_Reporting' : 0
         })
+serialize_years = 50 # Number of years to run burn-in
+
+#put the following in config builder
+#add serialization - add pickup "read" parameters to config.json
+config.parameters.Serialized_Population_Reading_Type = "READ"
+config.parameters.Serialization_Mask_Node_Read = 0
+config.parameters.Serialization_Time_Steps = [serialize_years*365]
 ```
 
 If you know the experiment ID of your burn-in simulation, you can use that instead through the `retrieve_experiment` 
@@ -2049,10 +2061,11 @@ cb.update_params({
             ...
             'Serialized_Population_Path': os.path.join(output_paths[0], 'output')     # takes the first simulation in the experiment
         })
+
+
 ```
 
-If you ran a burn-in experiment that varied key parameters that you would like to also reuse during pickup, you can 
-incorporate setting the `Serialized_Population_Path` in the builder:
+If you ran a burn-in experiment that varied key parameters that you would like to also reuse during pickup, you can incorporate setting the `Serialized_Population_Path` in the builder:
 
 ```{python, eval=F}
 from simtools.Utilities.Experiments import retrieve_experiment
@@ -2076,6 +2089,25 @@ builder = ModBuilder.from_list([[...,
               ...],
           for r,row in ser_df.iterrows()   # Run pick-up from each unique burn-in scenario
           ])
+
+
+from utils_slurm import build_burnin_df ##for slurm, needs adding to emodpy or moving from example
+
+def update_serialize_parameters(simulation, df, x: int):
+    path = df["serialized_file_path"][x]
+    seed = int(df["Run_Number"][x])
+    
+    simulation.task.set_parameter("Serialized_Population_Filenames", df["Serialized_Population_Filenames"][x])
+    simulation.task.set_parameter("Serialized_Population_Path", os.path.join(path, "output"))
+    simulation.task.set_parameter("Run_Number", seed) #match pickup simulation run number to burnin simulation
+
+    return {"Run_Number":seed}
+
+#in general simulation creation:
+#create burnin df, retrieved from burnin ID (defined above)
+burnin_df = build_burnin_df(burnin_exp_id, platform, serialize_years*365)
+
+builder.add_sweep_definition(partial(update_serialize_parameters, df=burnin_df), range(len(burnin_df.index)))
 ```
 
 
@@ -2083,10 +2115,7 @@ builder = ModBuilder.from_list([[...,
 
 ![figure](/images/07_highlighted.png)
 
-Most of [EMOD generated output files](https://docs.idmod.org/projects/emod-malaria/en/latest/software-outputs.html)
-are in json format, and the remainder are csv's. In `dtk-tools`, _Analyzer_ functions facilitate extracting information
-from EMOD's raw output files to produce results in csv's or as figures.
-
+Most of [EMOD generated output files](https://docs.idmod.org/projects/emod-malaria/en/latest/software-outputs.html)are in json format, and the remainder are csv's. In `emodpy`, _Analyzer_ functions facilitate extracting information from EMOD's raw output files to produce results in csv's or as figures.
 
 __Required modules__
 
@@ -2094,35 +2123,25 @@ __Required modules__
 import os
 import pandas as pd
 import numpy as np
-from simtools.Analysis.AnalyzeManager import AnalyzeManager
-from simtools.Analysis.BaseAnalyzers import BaseAnalyzer
-from simtools.SetupParser import SetupParser
+from idmtools.entities import IAnalyzer	
+from idmtools.entities.simulation import Simulation
+from idmtools.analysis.analyze_manager import AnalyzeManager
+from idmtools.core import ItemType
+from idmtools.core.platform_factory import Platform
 ```
 
 Other modules such as `datetime` may also be helpful, depending on the type of output and desired manipulations.
 
-
-
 __Basic structure of an Analyzer__
 
-The Analyzer Class should be defined using a meaningful name, i.e. `InsetChartAnalyzer` for an analyzer that processes   `InsetChart.json` outputs.
-A [class](https://docs.python.org/3/tutorial/classes.html) in Python allows constructing custom objects with associated attributes and functions.
+The Analyzer Class should be defined using a meaningful name, i.e. `InsetChartAnalyzer` for an analyzer that processes   `InsetChart.json` outputs. A [class](https://docs.python.org/3/tutorial/classes.html) in Python allows constructing custom objects with associated attributes and functions. Each class starts with a definition of custom parameters and objects attributes via  `__init__` and `self`. This requires a few edits across simulation experiments but tends to stay relatively unchanged within the same experiment setup.
 
-Each class starts with a definition of custom parameters and objects attributes via  `__init__` and `self`. This
-requires a few edits across simulation experiments but tends to stay relatively unchanged within the same experiment setup.
+The `filter` function is optional. It allows the analyzer to only analyze a subset of simulations in an experiment by filtering based on simulation tags. For example, the user can request the analyzer only analyze simulations where the tag `SMC_Coverage` has the value 1 (if this is a tag the user specified when building their experiment), or simulations that succeeded. This functionality can be useful when debugging large experiments. If the `filter` function is not specified, then all simulations are targeted for analysis.
 
-The `filter` function is optional. It allows the analyzer to only analyze a subset of simulations in an experiment by
-filtering based on simulation tags. For example, the user can request the analyzer only analyze simulations where the tag
-`SMC_Coverage` has the value 1 (if this is a tag the user specified when building their experiment), or simulations that succeeded. This functionality
- can be useful when debugging large experiments. If the `filter` function is not specified, then all simulations are
- targeted for analysis.
-
-The `select_simulation_data` is a custom function applied to extract data from the EMOD output file and needs to be
+The `map` is a custom function applied to extract data from the EMOD output file and needs to be
 modified the most across different EMOD output file types and according to the user's needs.
 
-Finally, the `finalize` checks the extracted data, aggregates data from multiple simulations in the same experiment, and
-then saves or plots the data. The checking of the simulation stays mostly the same across simulations while the part of
-processing the simulation data is highly variable across projects and depends on the desired results.
+Finally, the `reduce`` checks the extracted data, aggregates data from multiple simulations in the same experiment, and then saves or plots the data. The checking of the simulation stays mostly the same across simulations while the part of processing the simulation data is highly variable across projects and depends on the desired results.
 
 
 ```{python, eval=F}
@@ -2133,10 +2152,10 @@ class InsetChartAnalyzer(BaseAnalyzer): ...
     def filter(self, simulation):
         ...
     # 2 - Extract and select data from the json output files
-    def select_simulation_data(self, data, simulation):
+    def map(self, data, simulation):
         ...
     # 3 - Check the extracted data and then save or plot the data
-    def finalize(self, all_data):
+    def reduce(self, all_data):
         ...
 ```
 
@@ -2148,30 +2167,18 @@ The InsetChartAnalyzer is used to explain the Analyzer structure in detail.
 <p>
 
 You don't need to understand the python fundamentals in depth, just what each line does and what to modify.
-- The first two lines including the `__init__(self,..` and `super` is required in each analyzer class. Be sure to update
-the analyzer name in `super`.
-- The second line `filenames=["output/InsetChart.json"]` defines the EMOD output file to be analyzed. It is written in a
-list so that analyzers have the capability of combining data from multiple files. Generally we use 1 output file per analyzer.
-
-- The next lines that start with `self` attach each argument that the user has passed to the analyzer (`expt_name`, etc)
-to the analyzer class via `self`. This allows easy access to any of these values from any analyzer function via the
-`self` object.
-- This analyzer allows the user to specify the parameters `expt_name`, `sweep_variables` , `channels`, and `start_year`.
-Generally we use `expt_name` and `sweep_variables` across all analyzers we write, while the others are
- specific to this particular analyzer. All these requested parameters can be modified or extended with additional
- parameters if needed, according to the user's needs.
-  - These parameters allow the analyzer to take in experiment specific values, for instance simulation `start_year` is
-  used to convert timesteps into date-time values, as we generally run EMOD in simulation time instead of calendar time.
-  - The `expt_name` parameter lets the user specify the name of the experiment. We often use the experiment name in the
-  file names of outputs from the analyzer, for example aggregated csv's and figures.
-  - The `sweep_variables` parameter is a list of simulation tags from the experiment that the user would like attached
-  to each simulation. For example, `Run_Number` to track the random seed, or `SMC_Coverage` if the experiment sweeps over SMC coverage.
-  - The `channels` is an optional parameter as it takes default values if not specified. It is included in this analyzer
-  so the user has the flexibility to extract different channels from InsetChart.json if needed. If the same channels are
-  always used, one could instead hard code the desired channel names into `self.channels` and remove the optional argument.
+- The first two lines including the `__init__(self,..` and `super` is required in each analyzer class. Be sure to update the analyzer name in `super`.
+- The second line `filenames=["output/InsetChart.json"]` defines the EMOD output file to be analyzed. It is written in a list so that analyzers have the capability of combining data from multiple files. Generally we use 1 output file per analyzer.
+- The next lines that start with `self` attach each argument that the user has passed to the analyzer (`expt_name`, etc) to the analyzer class via `self`. This allows easy access to any of these values from any analyzer function via the `self` object.
+- This analyzer allows the user to specify the parameters `expt_name`, `sweep_variables` , `channels`, and `start_year`. Generally we use `expt_name` and `sweep_variables` across all analyzers we write, while the others are specific to this particular analyzer. All these requested parameters can be modified or extended with additional parameters if needed, according to the user's needs.
+  - These parameters allow the analyzer to take in experiment specific values, for instance simulation `start_year` is used to convert timesteps into date-time values, as we generally run EMOD in simulation time instead of calendar time.
+  - The `expt_name` parameter lets the user specify the name of the experiment. We often use the experiment name in the file names of outputs from the analyzer, for example aggregated csv's and figures.
+  - The `sweep_variables` parameter is a list of simulation tags from the experiment that the user would like attached to each simulation. For example, `Run_Number` to track the random seed, or `SMC_Coverage` if the experiment sweeps over SMC coverage.
+  - The `channels` is an optional parameter as it takes default values if not specified. It is included in this analyzer so the user has the flexibility to extract different channels from InsetChart.json if needed. If the same channels are always used, one could instead hard code the desired channel names into `self.channels` and remove the optional argument.
 
 
 ```{python, eval=F}
+class MonthlyInsetChartAnalyzer(IAnalyzer):
     def __init__(self, expt_name, sweep_variables=None, channels=None, working_dir=".", start_year=2022):
         super(MonthlyInsetChartAnalyzer, self).__init__(working_dir=working_dir, filenames=["output/InsetChart.json"])
         self.sweep_variables = sweep_variables or ["Run_Number"]
@@ -2183,32 +2190,21 @@ Generally we use `expt_name` and `sweep_variables` across all analyzers we write
 </p>
 </details>
 
-
-
-<details><summary><span style="color: blue";">2 Select simulation data</span></summary>
+<details><summary><span style="color: blue";">2. Map simulation data</span></summary>
 <p>
 
-The `select_simulation_data` is a custom function that will change the most when adapting an analyzer to different EMOD outputs.
-Do not change the function definition (the line beginning `def select_simulation_data(`).
+The `map` is a custom function that will change the most when adapting an analyzer to different EMOD outputs. Do not change the function definition (the line beginning `def map()`.
 
-EMOD output from the requested output file(s) is stored in `data`. The first activity of `select_simulation_data()` is
-therefore to extract the desired data out of `data`. `data` is a dictionary where the keys are the filenames stored in
-`self.filenames` and the values are the content of each file.
+EMOD output from the requested output file(s) is stored in `data`. The first activity of `map()` is therefore to extract the desired data out of `data`. `data` is a dictionary where the keys are the filenames stored in `self.filenames` and the values are the content of each file.
 
-In this example using `InsetChart.json`, we read in the data from the json file, keeping only channels that have been
-specified in `self.channels`, and convert into a pandas dataframe. The dataframe will have one column for each channel,
-and each row is the channel value for each timestep in the simulation.
+In this example using `InsetChart.json`, we read in the data from the json file, keeping only channels that have been specified in `self.channels`, and convert into a pandas dataframe. The dataframe will have one column for each channel, and each row is the channel value for each timestep in the simulation.
 
-Next, we want to convert the timesteps (row number) into calendar dates. Those are the next 5 lines. We copy `simdata.index`
-into `simdata['Time']` and create additional variables for Day, Month and Year that are easier to work with, as well as
-a `date` column that is a `datetime.date` object.
+Next, we want to convert the timesteps (row number) into calendar dates. Those are the next 5 lines. We copy `simdata.index` into `simdata['Time']` and create additional variables for Day, Month and Year that are easier to work with, as well as a `date` column that is a `datetime.date` object.
 
-Finally, the sweep variables corresponding to the simulation tags of the experiment are attached, the dataframe is returned,
-and the returned dataframe is automatically passed on to the next and final step of the analyzer. It is not required to
-return a dataframe but it is required to return something: the data of interest from the simulation.
+Finally, the sweep variables corresponding to the simulation tags of the experiment are attached, the dataframe is returned, and the returned dataframe is automatically passed on to the next and final step of the analyzer. It is not required to return a dataframe but it is required to return something: the data of interest from the simulation.
 
 ```{python, eval=F}
-    def select_simulation_data(self, data, simulation):
+    def map(self, data, simulation):
         simdata = pd.DataFrame({x: data[self.filenames[0]]['Channels'][x]['Data'] for x in self.inset_channels})
         simdata['Time'] = simdata.index
         simdata['Day'] = simdata['Time'] % 365
@@ -2221,25 +2217,19 @@ return a dataframe but it is required to return something: the data of interest 
         return simdata
 ```
 
-
 </p>
 </details>
 
-
-<details><summary><span style="color: blue";">3 Finalize </span></summary>
+<details><summary><span style="color: blue";">3. Reduce </span></summary>
 <p>
 
-This part checks the simulation data returned by `select_simulation_data` and aggregates data across all simulations in
- the experiment into the `adf` dataframe. In this example, the analyzer saves results into the specified working_dir/expt_name subfolder. Other
- analyzers may use the `finalize()` function to plot and save a figure.
+This part checks the simulation data returned by `map()` and aggregates data across all simulations in the experiment into the `adf` dataframe. In this example, the analyzer saves results into the specified working_dir/expt_name subfolder. Other analyzers may use the `reduce()` function to plot and save a figure.
 
-We typically do not modify the first 4 lines of `finalize()` (creation of `selected` and checking that it contains data).
-If `select_simulation_data` returns a dataframe, then the `adf = ...` line can stay the same as well. Everything after that
-should be customized to the user's needs.
+We typically do not modify the first 4 lines of `reduce()` (creation of `selected` and checking that it contains data). If `map()` returns a dataframe, then the `adf = ...` line can stay the same as well. Everything after that should be customized to the user's needs.
 
 
 ```{python, eval=F}
-    def finalize(self, all_data):
+    def map(self, all_data):
         selected = [data for sim, data in all_data.items()]
         if len(selected) == 0:
             print("No data have been returned... Exiting...")
@@ -2252,8 +2242,6 @@ should be customized to the user's needs.
 
 </p>
 </details>
-
-
 
 <details><summary><span style="color: blue";">Optional analyzer extensions and helper functions</span></summary>
 <p>
@@ -2284,35 +2272,27 @@ Helper function to convert months.
 
 ### Analyze MalariaSummaryReport
 
-The summary report aggregates the monitored simulation outputs into user-specified agebins, monitoring intervals,
-and/or parasitemia bins. Outputs such as prevalence by age, incidence by age, and parasite density by age can be
-obtained through the summary report. Multiple summary reports can be requested in the simulation run script, and analyzers
-can be built to handle working with multiple summary reports.
-
+The summary report aggregates the monitored simulation outputs into user-specified agebins, monitoring intervals, and/or parasitemia bins. Outputs such as prevalence by age, incidence by age, and parasite density by age can be obtained through the summary report. Multiple summary reports can be requested in the simulation run script, and analyzers can be built to handle working with multiple summary reports.
 
 ```{python, eval=F}
-class AnnualAgebinPfPRAnalyzer(BaseAnalyzer):
+class AnnualAgebinPfPRAnalyzer(IAnalyzer):
     def __init__(self, expt_name, sweep_variables=None, working_dir='./', start_year=2022,
                  end_year=2025, burnin=None):
         super(AnnualAgebinPfPRAnalyzer, self).__init__(working_dir=working_dir,
-                                                       filenames=["output/MalariaSummaryReport_Annual_Agebin.json"])
+                              filenames=["output/MalariaSummaryReport_Annual_Agebin.json"])
 ```
 
 
-Documentation on the summary report is [here](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-malaria-summary.html).
-If you are writing a new summary report analyzer, you will need to know which part of the summary report contains the data you need.
+Documentation on the summary report is [here](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-malaria-summary.html). If you are writing a new summary report analyzer, you will need to know which part of the summary report contains the data you need.
 
-Within each summary report the channel `DataByTimeAndAgeBins` reports monitored outputs per _time_ and _age_ it therefore
-needs to be indexed twice, one for selecting time range and one for selecting agebin. The outer list is time and the inner list is age.
+Within each summary report the channel `DataByTimeAndAgeBins` reports monitored outputs per _time_ and _age_ it therefore needs to be indexed twice, one for selecting time range and one for selecting agebin. The outer list is time and the inner list is age.
 
-In this example, the data of interest is in `DataByTimeAndAgeBins`: we extract, for each age group, annually-aggregated
-PfPR, clinical incidence, severe incidence, and population. All outcomes are combined into a dataframe for each age group, then
-the age-specific dataframes are concatenated into a single dataframe.
+In this example, the data of interest is in `DataByTimeAndAgeBins`: we extract, for each age group, annually-aggregated PfPR, clinical incidence, severe incidence, and population. All outcomes are combined into a dataframe for each age group, then the age-specific dataframes are concatenated into a single dataframe.
 
 Attaching the sweep variable for the respective simulation is done the same way across analyzers.
 
 ```{python, eval=F}
-    def select_simulation_data(self, data, simulation):
+    def map(self, data, simulation):
         adf = pd.DataFrame()
         nyears = (self.end_year - self.start_year)
         age_bins = data[self.filenames[0]]['Metadata']['Age Bins']
@@ -2338,24 +2318,22 @@ Attaching the sweep variable for the respective simulation is done the same way 
 
 ### Analyze ReportEventCounter
 
-The ReportEventCounter, InsetChart, and ReportMalariaFiltered json outputs all have very similar structure, so an analyzer
-written for one of these output types can usually be easily adapted for another.
+The `ReportEventCounter`, `InsetChart`, and `ReportMalariaFiltered` json outputs all have very similar structure, so an analyzer written for one of these output types can usually be easily adapted for another.
 
-In the example below, the `InsetChart.json` is read in addition to  `ReportEventCounter.json` to obtain not
-only number of individuals who received and intervention but also the total population per timestep in the simulation.
-Data from both output files are combined into the same dataframe.
+In the example below, the `InsetChart.json` is read in addition to  `ReportEventCounter.json` to obtain not only number of individuals who received and intervention but also the total population per timestep in the simulation. Data from both output files are combined into the same dataframe.
 
 ```{python, eval=F}
-class ReceivedCampaignAnalyzer(BaseAnalyzer):
+class ReceivedCampaignAnalyzer(IAnalyzer):
     def __init__(self, expt_name, channels=None, sweep_variables=None, working_dir='./', start_year=2022):
         super(ReceivedCampaignAnalyzer, self).__init__(working_dir=working_dir,
-                                                       filenames=["output/ReportEventCounter.json",
-                                                                  "output/InsetChart.json"])
+                              filenames=["output/ReportEventCounter.json",
+                                         "output/InsetChart.json"])
         self.sweep_variables = sweep_variables or ["Run_Number"]
         self.channels = channels or ['Received_Treatment']
         self.start_year = start_year
         self.expt_name = expt_name
-    def select_simulation_data(self, data, simulation):
+        
+    def map(self, data, simulation):
         simdata = pd.DataFrame({x: data[self.filenames[0]]['Channels'][x]['Data'] for x in self.channels})
         simdata['Population'] = data[self.filenames[1]]['Channels']['Statistical Population']['Data']
         simdata['Time'] = simdata.index
@@ -2372,18 +2350,16 @@ class ReceivedCampaignAnalyzer(BaseAnalyzer):
 
 ### Analyze ReportEventRecorder
 
-The ReportEventRecorder is in csv format instead of json and includes events for each single individual in the simulation per event that happened.
-Some individuals occur multiple times in the csv file while other might not appear even once, depending on the events specified (i.e. if `Births` are specified every new individual born in the simulation will appear once).
+The ReportEventRecorder is in csv format instead of json and includes events for each single individual in the simulation per event that happened. Some individuals occur multiple times in the csv file while other might not appear even once, depending on the events specified (i.e. if `Births` are specified every new individual born in the simulation will appear once).
 
-In this example, we look for the event `Received_Severe_Treatment` and count the number of events by age group. We also account
-for the case where none of these events occurred during the simulation.
+In this example, we look for the event `Received_Severe_Treatment` and count the number of events by age group. We also account for the case where none of these events occurred during the simulation.
 
 ```{python, eval=F}
-class IndividualEventsAnalyzer(BaseAnalyzer):
+class IndividualEventsAnalyzer(IAnalyzer):
     def __init__(self, expt_name, agebins=None,
                  sweep_variables=None, working_dir=".", start_year=2010, end_year=2020):
         super(IndividualEventsAnalyzer, self).__init__(working_dir=working_dir,
-                                                       filenames=["output/ReportEventRecorder.csv"]
+                              filenames=["output/ReportEventRecorder.csv"]
                                                        )
         self.sweep_variables = sweep_variables or ["Run_Number"]
         self.event_name = 'Received_Severe_Treatment'
@@ -2391,7 +2367,8 @@ class IndividualEventsAnalyzer(BaseAnalyzer):
         self.expt_name = expt_name
         self.start_year = start_year
         self.end_year = end_year
-    def select_simulation_data(self, data, simulation):
+        
+    def map(self, data, simulation):
         output_data = data[self.filenames[0]]
         output_data = output_data[output_data['Event_Name'] == self.event_name]
         simdata = pd.DataFrame()
