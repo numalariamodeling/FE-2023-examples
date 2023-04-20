@@ -737,19 +737,75 @@ We will cover advanced applications of spatial modeling in another exercise. Thi
         
         Note: *node_id* must be positive numbers, but do not have to be sequential.
         Note: lat/lon values should represent real places with climates suitable for malaria transmission (for step 3).
-3. Generate climate from **nodes.csv**  
-    - For simplicity: just use a single-year series from 2019
+        Note: the column name for population is expected to be "pop" by default
+3. Generate climate from **nodes.csv**  <br>
+   *For simplicity: just use a single-year series from 2019, using the function definition and call to `get_climate()` below* <br>
+        - Just update the tag and demo_fname arguments appropriately
+        
+```py   
+from emodpy_malaria.weather import *
+import os
+
+def get_climate(tag = "default", start_year="2015", start_day="001", end_year="2016", end_day="365", demo_fname="demographics.csv", fix_temp=None):
+    # Specifications #
+    ##################
+    # Date Range
+    start = "".join((start_year,start_day))  
+    end = "".join((end_year,end_day))     
+    
+    # Demographics
+    demo = "".join(("simulation_inputs/demographics/",demo_fname))
+    
+    # Output folder to store climate files
+    dir1 = "/".join(("simulation_inputs/climate",tag,"-".join((start,end))))
+    
+    if os.path.exists(dir1):
+        print("Path already exists. Please check for existing climate files.")
+        return
+    else:
+        print("Generating climate files from {} for day {} of {} to day {} of {}".format(demo,start_day,start_year,end_day,end_year))
+        os.makedirs(dir1)
+        csv_file=os.path.join(dir1,"weather.csv")
+        # Request weather files
+        wa = WeatherArgs(site_file= demo,
+                         start_date=int(start),
+                         end_date=int(end),
+                         node_column="node_id",
+                         id_reference=tag)
+        
+        wr: WeatherRequest = WeatherRequest(platform="Calculon")
+        wr.generate(weather_args=wa, request_name=tag)
+        wr.download(local_dir=dir1)
+        
+        print(f"Original files are downloaded in: {dir1}") 
+        
+        df, wa = weather_to_csv(weather_dir = dir1, csv_file=csv_file)
+        df.to_csv(csv_file)
+
+if __name__ == "__main__":
+    get_climate(tag="FE_example", start_year="2019", end_year="2019", demo_fname="FE_example_nodes.csv")
+```
 
 Now, referring to the scripts you wrote for previous examples, you should be able to start with a blank `run_spatial.py` and outline - or in some cases complete - the code sections needed to:  
 
 4. Import modules  
 5. **Set Configuration Parameters**  
     - You can keep the simulation duration short (1-2 years) while testing / debugging.  
-6. **Sweep configuration parameters***  
+    - Add vectors
+        -  `conf.add_species(config, manifest, ["gambiae", "arabiensis", "funestus"])`
+        
+6. **Sweep configuration parameters**  
 7. **Build campaign**  
 8. Sweep campaign parameters (optional for this exercise)  
 9. Serialize burnin & pickup  
-10. **Build demographics**    
+10. **Build demographics**   
+    a. inside `build_demog()` use  this code to generate demographics from your "nodes.csv" file (you may need to edit the path)
+    ```py
+    demog = Demographics.from_csv(input_file = os.path.join(manifest.input_dir,"demographics","nodes.csv"), 
+                                                            id_ref="indie_clusters", 
+                                                            init_prev = 0.01, 
+                                                            include_biting_heterogeneity = True)
+    ```
 11. **Run Experiment [`general_sim()`]**  
     a. Set platform  
     b. Create EMODTask  
@@ -764,18 +820,17 @@ Now, referring to the scripts you wrote for previous examples, you should be abl
 *Burnin*  
 - Duration: 30 years  
 - Vary `x_Temporary_Larval_Habitat`  
-    - `np.logspace(0,1,10)` will use 10 evenly log-spaced values between 10^0 and 10^1  
+    - `np.logspace(0,1,10)` will use 10 evenly log-spaced values between 10^0^ and 10^1^ (1-10x)
 - No interventions  
-- 1 stochastic realization / random seed  
-    **Hint: don't forget to point toward the correct demographics**
-        - Use `Demographics.from_csv(input_file=<path_to_file>, id_ref=<same id_ref used for climate files>, init_prev=0.01, include_biting_heterogeneity=True)`  
-    **Hint: check `set_param_fn()` to make sure you added vectors, point to the corresponding climate files, and allow for serialization. ** 
+- 1 stochastic realization / random seed <br>  
+    **Hint: check `set_param_fn()` to make sure you added vectors, point to the corresponding demographics/climate files, and allow for serialization.** 
 
 *Pickup*  
 - Duration: 10 years  
 - Carry `x_Temporary_Larval_Habitat` over from burnin  
-- Interventions deployed differently in each node:  
-    - For simplicity, you can choose fixed "optimal" coverages (~80%) for these interventions, instead of sweeping over these campaign parameters.  
+- Interventions deployed differently in each node by providing a list of nodes to the `node_ids` argument <br>
+(ex. `treatment_seeking(... node_ids=[1,2])`):  
+      *For simplicity, you can choose fixed "optimal" coverages (~80%) for these interventions, instead of sweeping over these campaign parameters.*    
     - One node receives case management, and ITNs every 3 years  
     - One node receives case management only  
     - One node receives ITNs every 3 years only  
@@ -789,7 +844,7 @@ Now, referring to the scripts you wrote for previous examples, you should be abl
         - include spatial_output_channels 'Population', 'PCR_Parasite_Prevalence', and 'New_Clinical_Cases' (though any InsetChart Channels will work)  
    - `add_event_recorder(...)`  
         - the `event_list` should include 'Received_Treatment' and 'Received_ITN'  
-            - These events need to be added to `config.parameters.Custom_Individual_Events` inside `set_param_fn()` as well.
+            - These events need to be added to `config.parameters.Custom_Individual_Events=[...]` inside `set_param_fn()` as well.
             
  
 OPTIONAL BONUS: Add migration to the pickup simulations and see if/how connecting the nodes affects the distinctions between them.
