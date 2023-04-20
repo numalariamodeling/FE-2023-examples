@@ -723,7 +723,8 @@ We will cover advanced applications of spatial modeling in another exercise. Thi
 
 **Steps**
 
-1. Create a spreadsheet **nodes.csv** with the columns *node_id*, *lat*, *lon*, and *pop*. EMODpy will be expecting these column names!  
+1. Create a spreadsheet **nodes.csv** with the columns *node_id*, *lat*, *lon*, and *pop*. EMODpy will be expecting these column names! <br>
+        - This spreadsheet will be used to generate the climate and demographics files later
 2. Fill in the spreadsheet with the information for 4 nodes
 
         Example:
@@ -740,7 +741,7 @@ We will cover advanced applications of spatial modeling in another exercise. Thi
         Note: the column name for population is expected to be "pop" by default
 3. Generate climate from **nodes.csv**  <br>
    *For simplicity: just use a single-year series from 2019, using the function definition and call to `get_climate()` below* <br>
-        - Just update the tag and demo_fname arguments appropriately
+        - Just update the `"tag"` and `"demo_fname"` arguments appropriately
         
 ```py   
 from emodpy_malaria.weather import *
@@ -820,7 +821,7 @@ Now, referring to the scripts you wrote for previous examples, you should be abl
 *Burnin*  
 - Duration: 30 years  
 - Vary `x_Temporary_Larval_Habitat`  
-    - `np.logspace(0,1,10)` will use 10 evenly log-spaced values between 10^0^ and 10^1^ (1-10x)
+    - `np.logspace(0,1,10)` will use 10 evenly log-spaced values between 10<sup>0</sup> and 10<sup>1</sup> (1-10x)
 - No interventions  
 - 1 stochastic realization / random seed <br>  
     **Hint: check `set_param_fn()` to make sure you added vectors, point to the corresponding demographics/climate files, and allow for serialization.** 
