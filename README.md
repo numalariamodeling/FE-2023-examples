@@ -724,23 +724,24 @@ We will cover advanced applications of spatial modeling in another exercise. Thi
 **Part 1. Run Spatial Simulations**
 
 1. Create a spreadsheet **nodes.csv** with the columns *node_id*, *lat*, *lon*, and *pop*. EMODpy will be expecting these column names! <br>
-        - This spreadsheet will be used to generate the climate and demographics files later
+        - This spreadsheet will be used to generate the climate and demographics files later  
+        - save the file inside your `project directory/simulation_inputs/`
 2. Fill in the spreadsheet with the information for 4 nodes
 
-        Example:
+    Example:
 
-        | node_id | lat    | lon   | pop  |
-        |:-------:|:------:|:-----:|:----:|
-        | 1       | 12.11 | -1.47 | 1000 |
-        | 2 | 12.0342 | -1.44 | 1000 | 
-        | 3 | 12.13 | -1.59 | 1000 | 
-        | 17 | 12.06 | -1.48 | 1000 |
+    | node_id | lat    | lon   | pop  |
+    |:-------:|:------:|:-----:|:----:|
+    | 1       | 12.11 | -1.47 | 1000 |
+    | 2 | 12.0342 | -1.44 | 1000 | 
+    | 3 | 12.13 | -1.59 | 1000 | 
+    | 17 | 12.06 | -1.48 | 1000 |
         
-        Note: *node_id* must be positive numbers, but do not have to be sequential.
-        Note: lat/lon values should represent real places with climates suitable for malaria transmission (for step 3).
-        Note: the column name for population is expected to be "pop" by default
-3. Generate climate from **nodes.csv**  <br>
-   *For simplicity: just use a single-year series from 2019, using the function definition and call to `get_climate()` below* <br>
+   - Note: *node_id* must be positive numbers, but do not have to be sequential.  
+   - Note: lat/lon values should represent real places with climates suitable for malaria transmission (for step 3).  
+   - Note: the column name for population is expected to be "pop" by default  
+3. Using a separate script, `get_climate.py`, request and save climate files based on **nodes.csv**  <br>
+   *For simplicity: use a single-year series from 2019, using the function definition and call to `get_climate()` below* <br>
         - Just update the `"tag"` and `"demo_fname"` arguments appropriately
         
 ```py   
@@ -784,7 +785,7 @@ def get_climate(tag = "default", start_year="2015", start_day="001", end_year="2
         df.to_csv(csv_file)
 
 if __name__ == "__main__":
-    get_climate(tag="FE_example", start_year="2019", end_year="2019", demo_fname="FE_example_nodes.csv")
+    get_climate(tag="EXAMPLE", start_year="2019", end_year="2019", demo_fname="nodes.csv")
 ```
 
 Now, referring to the scripts you wrote for previous examples, you should be able to start with a blank `run_spatial.py` and outline - or in some cases complete - the code sections needed to:  
@@ -802,10 +803,11 @@ Now, referring to the scripts you wrote for previous examples, you should be abl
 10. **Build demographics**   
     a. inside `build_demog()` use  this code to generate demographics from your "nodes.csv" file (you may need to edit the path)
     ```py
-    demog = Demographics.from_csv(input_file = os.path.join(manifest.input_dir,"demographics","nodes.csv"), 
-                                                            id_ref="indie_clusters", 
+    demog = Demographics.from_csv(input_file = os.path.join(manifest.input_dir,demographics,"nodes.csv"), 
+                                                            id_ref="EXAMPLE", 
                                                             init_prev = 0.01, 
                                                             include_biting_heterogeneity = True)
+    # NOTE: The id_ref used to generate climate and demographics must match!
     ```
 11. **Run Experiment [`general_sim()`]**  
     a. Set platform  
@@ -820,7 +822,7 @@ Now, referring to the scripts you wrote for previous examples, you should be abl
 
 *Burnin*  
 - Duration: 30 years  
-- Vary `x_Temporary_Larval_Habitat`  
+- Vary `x_Temporary_Larval_Habitat` using  `update_campaign_param()` 
     - `np.logspace(0,1,10)` will use 10 evenly log-spaced values between 10<sup>0</sup> and 10<sup>1</sup> (1-10x)
 - No interventions  
 - 1 stochastic realization / random seed <br>  
@@ -916,10 +918,10 @@ Part 3. Plot Spatial Results
 
 1. Open 'spatial_plotter.rmd'  
 2. Replace the `sr_path` in the first chunk with the path to the 'SpatialReportMalariaFiltered.csv' generated in step 2 above
-3. Replace the `plot_path` in the first chunk with the path to the desired folder for storing plots
-3. Run the .rmd file
+3. Replace the `plot_path` in the first chunk with the path to the desired folder for storing plots (ex. `project_dir/simulation_outputs/spatial_example/`
+3. Run the `spatial_plotter.rmd` file
 
-**Part 3. BONUS: Migration (optional)**
+**Part 4. BONUS: Migration (optional)**
 
 OPTIONAL BONUS: Add migration to the pickup simulations and see if/how connecting the nodes affects the distinctions between them.
 - `import emod_api.migration.migration as migration`  
