@@ -8,11 +8,10 @@ Example scripts for 2023 faculty enrichment program in applied malaria modeling 
 ### Technical track (EMOD)
 
 **Overview:**
-Exercises usually consist of a simulation and an analyzer of simulation outputs. 
-In some weeks, additional scripts exist to prepare simulation inputs or generate additional outputs and plots, or for model calibration as described in the instructions for the respective weeks.
+Exercises usually consist of a simulation and an analyzer of simulation outputs. In some weeks, additional scripts exist to prepare simulation inputs or generate additional outputs and plots, or for model calibration as described in the instructions for the respective weeks.
 
-**Checking results:**
-For each week suggested simulation scripts for comparison or help during the exercise are provided in the respective week's folder.
+**Supplied scripts & checking results:**
+A few primary scripts are provided at the main level of this repository including running examples and analyzers. Most of the work for this course will be done by you building your own scripts based on the instructions with the help of these scripts. For each week, suggested simulation scripts for comparison or help during the exercise are provided in the respective week's [solution scripts](https://github.com/numalariamodeling/FE-2023-examples/tree/main/solution_scripts) folder. There is also an analyzer collection file in the solutions scripts that includes many commonly used analyzers that you may want to explore in more depth for your project. **Note: if you use an analyzer from the collection, be sure to add the right reporters to create the necessary output files.**
 
 **Prerequisites:** 
 Before running the weekly example scripts, please ensure that the emodpy virtual environment has been successfully [installed](https://faculty-enrich-2022.netlify.app/modules/install-emod/) **UPDATE LINK**
