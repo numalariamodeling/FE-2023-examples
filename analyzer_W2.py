@@ -24,7 +24,7 @@ class InsetChartAnalyzer(IAnalyzer):
         else:
             return datetime.datetime.strptime(str(x), '%j').month
 
-    def __init__(self, expt_name, sweep_variables=None, channels=None, working_dir=".", start_year=2022):
+    def __init__(self, expt_name, sweep_variables=None, channels=None, working_dir=".", start_year=0):
         super(InsetChartAnalyzer, self).__init__(working_dir=working_dir, filenames=["output/InsetChart.json"])
         self.sweep_variables = sweep_variables or ["Run_Number"]
         self.inset_channels = channels or ['Statistical Population', 'New Clinical Cases', 'Blood Smear Parasite Prevalence',
@@ -62,10 +62,10 @@ class InsetChartAnalyzer(IAnalyzer):
 
 class MonthlyPfPRAnalyzer(IAnalyzer):
 
-    def __init__(self, expt_name, sweep_variables=None, working_dir='./', start_year=0, end_year=2025,
+    def __init__(self, expt_name, sweep_variables=None, working_dir='./', start_year=0, end_year=5,
                  burnin=None, filter_exists=False):
 
-        super(WeeklyPfPRAnalyzer, self).__init__(working_dir=working_dir,
+        super(MonthlyPfPRAnalyzer, self).__init__(working_dir=working_dir,
                                                    filenames=["output/MalariaSummaryReport_monthly.json"]
                                                    )
      
@@ -84,25 +84,26 @@ class MonthlyPfPRAnalyzer(IAnalyzer):
             return True
 
     def map(self, data, simulation: Simulation):
-    
+        nyears = (self.end_year - self.start_year)
         adf = pd.DataFrame()
         fname = self.filenames[0]
         age_bins = data[self.filenames[0]]['Metadata']['Age Bins']
       
         for age in range(len(age_bins)):
-            d = data[fname]['DataByTimeAndAgeBins']['PfPR by Age Bin'][:-1]
+            d = data[fname]['DataByTimeAndAgeBins']['PfPR by Age Bin'][:nyears]
             pfpr = [x[age] for x in d]
           
-            d = data[fname]['DataByTimeAndAgeBins']['Annual Clinical Incidence by Age Bin'][:-1]
+            d = data[fname]['DataByTimeAndAgeBins']['Annual Clinical Incidence by Age Bin'][:nyears]
             clinical_cases = [x[age] for x in d]
          
-            d = data[fname]['DataByTimeAndAgeBins']['Annual Severe Incidence by Age Bin'][:-1]
+            d = data[fname]['DataByTimeAndAgeBins']['Annual Severe Incidence by Age Bin'][:nyears]
             severe_cases = [x[age] for x in d]
           
-            d = data[fname]['DataByTimeAndAgeBins']['Average Population by Age Bin'][:-1]
+            d = data[fname]['DataByTimeAndAgeBins']['Average Population by Age Bin'][:nyears]
             pop = [x[age] for x in d]
 
-            simdata = pd.DataFrame({'month': range(1, len(pfpr)+1),
+            simdata = pd.DataFrame({'year': range(self.start_year, self.end_year),
+                                    'month': range(1, len(pfpr)+1),
                                     'PfPR': pfpr,
                                     'Cases': clinical_cases,
                                     'Severe cases': severe_cases,
@@ -170,13 +171,16 @@ if __name__ == "__main__":
             analyzer = [InsetChartAnalyzer(expt_name=expt_name,
                                       channels=channels_inset_chart,
                                       sweep_variables=sweep_variables,
+                                      start_year = 2023,
                                       working_dir=wdir),
                         MonthlyPfPRAnalyzer(expt_name=expt_name,
                                       sweep_variables=sweep_variables,
+                                      start_year = 2023,
+                                      end_year = 2024,
                                       working_dir=wdir)]
             
             # Create AnalyzerManager with required parameters
-            manager = AnalyzeManager(configuration={},ids=[(exp_id, ItemType.EXPERIMENT)],
+            manager = AnalyzeManager(configuration={}, ids=[(exp_id, ItemType.EXPERIMENT)],
                                      analyzers=analyzer, partial_analyze_ok=True)
             # Run analyze
             manager.analyze()

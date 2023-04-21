@@ -5,14 +5,14 @@ import numpy as np
 import sys
 import re
 import random
-from idmtools.entities import IAnalyzer	
+from idmtools.entities import IAnalyzer
 from idmtools.entities.simulation import Simulation
-import manifest
 
 ## For plotting
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import matplotlib.dates as mdates
+import manifest
 
 
 class InsetChartAnalyzer(IAnalyzer):
@@ -27,7 +27,8 @@ class InsetChartAnalyzer(IAnalyzer):
     def __init__(self, expt_name, sweep_variables=None, channels=None, working_dir=".", start_year=2022):
         super(InsetChartAnalyzer, self).__init__(working_dir=working_dir, filenames=["output/InsetChart.json"])
         self.sweep_variables = sweep_variables or ["Run_Number"]
-        self.inset_channels = channels or ['Statistical Population', 'New Clinical Cases', 'Blood Smear Parasite Prevalence',
+        self.inset_channels = channels or ['Statistical Population', 'New Clinical Cases',
+                                           'Blood Smear Parasite Prevalence',
                                            'Infectious Vectors']
         self.expt_name = expt_name
         self.start_year = start_year
@@ -43,7 +44,7 @@ class InsetChartAnalyzer(IAnalyzer):
         for sweep_var in self.sweep_variables:
             if sweep_var in simulation.tags.keys():
                 simdata[sweep_var] = simulation.tags[sweep_var]
-            elif sweep_var == 'Run_Number' :
+            elif sweep_var == 'Run_Number':
                 simdata[sweep_var] = 0
         return simdata
 
@@ -60,15 +61,16 @@ class InsetChartAnalyzer(IAnalyzer):
         adf = pd.concat(selected).reset_index(drop=True)
         adf.to_csv(os.path.join(self.working_dir, self.expt_name, 'All_Age_InsetChart.csv'), index=False)
 
+
 class MonthlyPfPRAnalyzer(IAnalyzer):
 
-    def __init__(self, expt_name, sweep_variables=None, working_dir='./', start_year=2020, end_year=2025,
+    def __init__(self, expt_name, sweep_variables=None, working_dir='./', start_year=0, end_year=5,
                  burnin=None, filter_exists=False):
 
-        super(WeeklyPfPRAnalyzer, self).__init__(working_dir=working_dir,
-                                                   filenames=["output/MalariaSummaryReport_monthly.json"]
-                                                   )
-     
+        super(MonthlyPfPRAnalyzer, self).__init__(working_dir=working_dir,
+                                                  filenames=["output/MalariaSummaryReport_monthly.json"]
+                                                  )
+
         self.sweep_variables = sweep_variables or ["Run_Number"]
         self.expt_name = expt_name
         self.start_year = start_year
@@ -84,30 +86,31 @@ class MonthlyPfPRAnalyzer(IAnalyzer):
             return True
 
     def map(self, data, simulation: Simulation):
-    
+        nyears = (self.end_year - self.start_year)
         adf = pd.DataFrame()
         fname = self.filenames[0]
         age_bins = data[self.filenames[0]]['Metadata']['Age Bins']
-      
+
         for age in range(len(age_bins)):
-            d = data[fname]['DataByTimeAndAgeBins']['PfPR by Age Bin'][:-1]
+            d = data[fname]['DataByTimeAndAgeBins']['PfPR by Age Bin'][:nyears]
             pfpr = [x[age] for x in d]
-          
-            d = data[fname]['DataByTimeAndAgeBins']['Annual Clinical Incidence by Age Bin'][:-1]
+
+            d = data[fname]['DataByTimeAndAgeBins']['Annual Clinical Incidence by Age Bin'][:nyears]
             clinical_cases = [x[age] for x in d]
-         
-            d = data[fname]['DataByTimeAndAgeBins']['Annual Severe Incidence by Age Bin'][:-1]
+
+            d = data[fname]['DataByTimeAndAgeBins']['Annual Severe Incidence by Age Bin'][:nyears]
             severe_cases = [x[age] for x in d]
-          
-            d = data[fname]['DataByTimeAndAgeBins']['Average Population by Age Bin'][:-1]
+
+            d = data[fname]['DataByTimeAndAgeBins']['Average Population by Age Bin'][:nyears]
             pop = [x[age] for x in d]
 
-            simdata = pd.DataFrame({'week': range(1, len(pfpr)+1),
+            simdata = pd.DataFrame({'year': range(self.start_year, self.end_year),
+                                    'month': range(1, len(pfpr) + 1),
                                     'PfPR': pfpr,
                                     'Cases': clinical_cases,
                                     'Severe cases': severe_cases,
                                     'Pop': pop})
-                       
+
             simdata['agebin'] = age_bins[age]
 
             adf = pd.concat([adf, simdata])
@@ -137,62 +140,64 @@ class MonthlyPfPRAnalyzer(IAnalyzer):
         adf = pd.concat(selected).reset_index(drop=True)
         adf.to_csv((os.path.join(self.working_dir, self.expt_name, 'PfPR_ClinicalIncidence_monthly.csv')),
                    index=False)
-        
+
+
 if __name__ == "__main__":
 
     from idmtools.analysis.analyze_manager import AnalyzeManager
     from idmtools.core import ItemType
     from idmtools.core.platform_factory import Platform
 
-    
-    expts = { #'expt_name':'exp_id'
+    expts = {  # 'expt_name':'exp_id'
     }
-    
+
     jdir = manifest.job_directory
-    wdir=os.path.join(jdir, 'simulation_outputs')
-    
+    wdir = os.path.join(jdir, 'simulation_outputs')
+
     serialize_years = 10  # Same as in example_run_burnin.py
     step = 'burnin'
-    
+
     ## Set sweep_variables and event_list as required depending on experiment
     channels_inset_chart = ['Statistical Population', 'New Clinical Cases', 'Adult Vectors', 'Infected']
     sweep_variables = ['Run_Number']
     if step == 'pickup':
-        sweep_variables = ['Run_Number'] # for times when you add additional items to the pickup, you can add more sweep variables here
-    
-    with Platform('SLURM_LOCAL',job_directory=jdir) as platform:
+        sweep_variables = [
+            'Run_Number']  # for times when you add additional items to the pickup, you can add more sweep variables here
+
+    with Platform('SLURM_LOCAL', job_directory=jdir) as platform:
 
         for expt_name, exp_id in expts.items():
             analyzers_burnin = [InsetChartAnalyzer(expt_name=expt_name,
-                                           channels=channels_inset_chart,
-                                           start_year=2023 - serialize_years,
-                                           sweep_variables=sweep_variables,
-                                           working_dir=wdir),
+                                                   channels=channels_inset_chart,
+                                                   start_year=2023 - serialize_years,
+                                                   sweep_variables=sweep_variables,
+                                                   working_dir=wdir),
                                 ]
 
             analyzers_pickup = [InsetChartAnalyzer(expt_name=expt_name,
-                                           channels=channels_inset_chart,
-                                           start_year=2023,
-                                           sweep_variables=sweep_variables,
-                                           working_dir=wdir),
+                                                   channels=channels_inset_chart,
+                                                   start_year=2023,
+                                                   sweep_variables=sweep_variables,
+                                                   working_dir=wdir),
                                 MonthlyPfPRAnalyzer(expt_name=expt_name,
-                                            start_year=2023,
-                                            sweep_variables=sweep_variables,
-                                            working_dir=wdir)
+                                                    start_year=2023,
+                                                    end_year=2024,
+                                                    sweep_variables=sweep_variables,
+                                                    working_dir=wdir)
                                 ]
 
             if step == 'burnin':
                 am = AnalyzeManager(expt_id, analyzers=analyzers_burnin)
                 am.analyze()
-                
+
             elif step == 'pickup':
                 am = AnalyzeManager(expt_id, analyzers=analyzers_pickup)
                 am.analyze()
-            
+
             else:
-                print('Please define step, options are burnin or pickup') 
-                
-    expt_name=list(expts.keys())[0]
+                print('Please define step, options are burnin or pickup')
+
+    expt_name = list(expts.keys())[0]
     df = pd.read_csv(os.path.join(wdir, expt_name, 'All_Age_InsetChart.csv'))
     df['date'] = pd.to_datetime(df['date'])
     df = df.groupby(['date'] + sweep_variables)[channels_inset_chart].agg(np.mean).reset_index()

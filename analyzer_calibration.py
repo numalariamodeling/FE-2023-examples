@@ -5,9 +5,10 @@ import numpy as np
 import sys
 import re
 import random
-from idmtools.entities import IAnalyzer	
+from idmtools.entities import IAnalyzer
 from idmtools.entities.simulation import Simulation
 import manifest
+
 
 class MonthlyPfPRAnalyzerU5(IAnalyzer):
 
@@ -16,7 +17,7 @@ class MonthlyPfPRAnalyzerU5(IAnalyzer):
 
         super(MonthlyPfPRAnalyzerU5, self).__init__(working_dir=working_dir,
                                                     filenames=[
-                                                        f"output/MalariaSummaryReport_Monthly_U5.json"
+                                                        f"output/MalariaSummaryReport_Monthly_U5_{x}.json"
                                                         for x in range(start_year, end_year)]
                                                     )
         self.sweep_variables = sweep_variables or ["Run_Number"]
@@ -65,7 +66,7 @@ class MonthlyPfPRAnalyzerU5(IAnalyzer):
                     adf[sweep_var] = simulation.tags[sweep_var]
                 except:
                     adf[sweep_var] = '-'.join([str(x) for x in simulation.tags[sweep_var]])
-            elif sweep_var == 'Run_Number' :
+            elif sweep_var == 'Run_Number':
                 adf[sweep_var] = 0
 
         return adf
@@ -86,44 +87,40 @@ class MonthlyPfPRAnalyzerU5(IAnalyzer):
         if self.burnin is not None:
             adf = adf[adf['year'] > self.start_year + self.burnin]
         adf.to_csv((os.path.join(self.working_dir, self.expt_name, 'U5_PfPR_ClinicalIncidence.csv')), index=False)
-        
-        
+
+
 if __name__ == "__main__":
 
     from idmtools.analysis.analyze_manager import AnalyzeManager
     from idmtools.core import ItemType
     from idmtools.core.platform_factory import Platform
 
-    
     expts = {
-        #'week2_weather' : '2c090358-cb7b-44e5-a2fd-842a6c23a5b7'
-        #'week2_outputs' : '26f947c3-0770-46df-bc6a-c1c77e36f686'
-        'week3_calib' : 'f27386a6-3958-46b3-8ec0-08df81c67ffc'
+        # 'week2_weather' : '2c090358-cb7b-44e5-a2fd-842a6c23a5b7'
+        # 'week2_outputs' : '26f947c3-0770-46df-bc6a-c1c77e36f686'
+        'week3_calib': 'f27386a6-3958-46b3-8ec0-08df81c67ffc'
     }
-    
 
     jdir = manifest.job_directory
-    wdir=os.path.join(jdir, 'simulation_outputs')
-    
+    wdir = os.path.join(jdir, 'simulation_outputs')
+
     if not os.path.exists(wdir):
         os.mkdir(wdir)
-    
-    sweep_variables = ['Run_Number','x_Temporary_Larval_Habitat'] 
-    
-    with Platform('SLURM_LOCAL',job_directory=jdir) as platform:
+
+    sweep_variables = ['Run_Number', 'x_Temporary_Larval_Habitat']
+
+    with Platform('SLURM_LOCAL', job_directory=jdir) as platform:
 
         for expt_name, exp_id in expts.items():
-          
             analyzer = [MonthlyPfPRAnalyzerU5(expt_name=expt_name,
-                                      start_year=2010,
-                                      end_year=2015,
-                                      sweep_variables=sweep_variables,
-                                      working_dir=wdir)]
-            
+                                              start_year=2010,
+                                              end_year=2015,
+                                              sweep_variables=sweep_variables,
+                                              working_dir=wdir)]
+
             # Create AnalyzerManager with required parameters
-            manager = AnalyzeManager(configuration={},ids=[(exp_id, ItemType.EXPERIMENT)],
+            manager = AnalyzeManager(configuration={}, ids=[(exp_id, ItemType.EXPERIMENT)],
                                      analyzers=analyzer, partial_analyze_ok=True)
             # Run analyze
             manager.analyze()
-            
-            
+

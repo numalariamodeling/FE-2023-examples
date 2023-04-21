@@ -76,7 +76,6 @@ Click the arrow to expand:
 <details><summary><span><em>Running a simple EMOD simulation</em></span></summary>
 <p>
 
-
 - Navigate to your local copy of this repository on QUEST: `cd ~/FE-2023-examples`  
 - Notice your job directory path in `manifest.py`: `/projects/b1139/FE-2023-examples/experiments/<username>`. This will help your track your simulations separately from other participants.  
 - Load your emodpy `SLURM_LOCAL` virtual environment (see prerequisites)  
@@ -219,13 +218,14 @@ This exercise demonstrates how to add some of the malaria built-in reporters to 
 Now that you've learned the basics of how to run EMOD and add inputs/outputs you can start actually analyzing some data! We use analyzer scripts to extract the data we want from our simulations' reports to understand what the simulation is doing, how it is changing, and answer research questions. This week's analyzer script, `analyzer_W2.py` contains two different analyzers:
 
 1. `InsetChartAnalyzer` that extracts data from `Inset_Chart.json`. Notice the `channels_inset_chart` in line 159 - this tells defines which data channels we are interested in looking at. Six different channels are included currently but these can always be modified depending on what you want to explore. 
-2. `MonthlyPfPRAnalyzer` that extracts data from the monthly summary report. If you look at the guts of the analyzer (lines 62 - 138), you'll see that this will particularly focus on extracting PfPR, Clinical Incidence (per person per year), Severe Incidence (per person per year), and Population, all by time (month) and age bins.
+2. `MonthlyPfPRAnalyzer` that extracts data from the monthly summary report. If you look at the guts of the analyzer (lines 62 - 138), you'll see that this will particularly focus on extracting PfPR, Clinical Incidence (per person per year), Severe Incidence (per person per year), and Population, all by time (month, year) and age bins.
 
+- There are start and/or end_years included in both analyzers to match simulation time to real time. You can provide any relevant values that will be helpful to your processing (such as 2000 - 2009 for a 10 year simulation).
 - You'll also notice `sweep_variables` being defined and going into both analyzers - we'll discuss this in more depth in Week 3, but for now you can think of this like a tag (or set of tags) for our simulation(s).
 
 - Before we can run the analyzer script, you need to make a few changes:
     1. Set your `jdir` (short for job directory) to where your experiments are saved (*/projects/b1139/FE-2023-examples/experiments/<username>*). Notice that this is used for the platform, and we also set `wdir` (working directory) for the analyzer where the analyzers will output any results you have requested
-    2. Define your experiment name and ID in the `expts` dictionary (line 147) - these should match the UID and name in the experiment level `metadata.json` for your experiment of interest:
+    2. Define your experiment name and ID in the `expts` dictionary (line 147) - these should match the UID and name in the experiment level `metadata.json` for your experiment of interest, in this case the `f'{user}_FE_example_outputs'` experiment you just ran:
 
     ```py
     expts = {
@@ -293,7 +293,7 @@ For now we'll start with a simple sweep over one config parameter, such as the r
 - As mentioned, we also need to adjust the way we create our experiments in `general_sim()`. Notice that we are currently use `Experiment.from_task()` which creates the experiment and simulations directly from the defined task. To sweep over variables we'll have to switch to using `Experiment.from_builder()` that works to setup each simulation directly rather than an entire experiment with the same parameters.
     - First, initialize the builder such that `builder = SimulationBuilder()`. This should go in `general_sim()` between adding assets and reports. 
     - Add the sweep to the builder using `add_sweep_definition()`. Here you'll create a partial of `set_param` (defined above), pass the config parameter that you'd like to set to this partial, and then provide the range of values to sweep over. In this example, tell the function to sweep over `Run_Number` over the range of the `num_seeds` defined above (will output values of 0 - `num_seeds`).
-    - Finally, you'll need to remove the `Experiment.from_task()` creation and replace with `Experiment.from_builder(builder, task, name=<expname>)`. This will create experiments based on the task but with the additional information contained in the builder, including the added sweep. Make sure you keep the modified experiment name!
+    - Finally, you'll need to remove the `Experiment.from_task()` creation and replace with `Experiment.from_builder(builder, task, name=<expt_name>)`. This will create experiments based on the task but with the additional information contained in the builder, including the added sweep. Make sure you keep the modified experiment name!
   
       ```py
       def general_sim()
@@ -332,9 +332,21 @@ Depending on our project and site there are a variety of different parameters yo
       ```py
       builder.add_sweep_definition(partial(set_param, param='x_Temporary_Larval_Habitat'), np.logspace(-0.5,1,10))
       ```
-    - Add `filename_suffix='Monthly_U5'` to the end of the summary reporter. This command adds a descriptor to the report output file - it is particularly useful when you want to output multiple different reports from the same type of reporter (such as a weekly, monthly, and annual report).
-    - Update the expname and run your simulations.
-    - Update the expname and exp_id in the `calibration_analyzer.py` then run the script - check out the differences between this and previous analyzers (and their outputs).
+    - In this example we'll use yearly summary reports rather than one large one through a for loop over the years. We'll also add `filename_suffix=f'Monthly_U5_{sim_year}'` to the end of the summary reporter. This command adds a descriptor to the report output file - it is particularly useful when you want to output multiple different reports from the same type of reporter (such as a weekly, monthly, and annual report).
+    
+      ```py
+        for year in range(sim_years):
+        start_day = 0 + 365 * year
+        sim_year = sim_start_year + year
+        add_malaria_summary_report(task, manifest, start_day=start_day, 
+                               end_day=365+sim_year*365, reporting_interval=30,
+                               age_bins=[0.25, 5, 115],
+                               max_number_reports=13,
+                               pretty_format=True, 
+                               filename_suffix=f'Monthly_U5_{sim_year}')
+      ```
+    - Update the `expt_name` and run your simulations.
+    - Update the `expt_name` and exp_id in the `calibration_analyzer.py` then run the script - check out the differences between this and previous analyzers (and their outputs).
     
 2. Parameter selection
     - The `example_calibration_selection.py` script is a simple example of how we may select the best match parameter value for calibration. It calculates the average log-likelihood of each `x_Temporary_Larval_Habitat` based on simulation outputs and produces some plots to visualize the parameter selection.
@@ -396,14 +408,14 @@ This serialization exercise has three parts. In part 1 you will run and save a b
           if step == 'pickup':
               sweep_variables = ['Run_Number'] # for times when you add additional items to the pickup, you can add more sweep variables here
           ```
-        - To use the "step" system we will want to also modify our analyzers run statement. Assuming you included only the default report, `InsetChart`, in your burnin then you will want to run only that analyzer for the burnin step. For the pickup you will likely also want to include a version of the summary report we've been using so we'll include that in the pickup step in the analyzer. Notice that these are largely the same as how we were calling them previously, with the addition of a `start_year` parameter. This functionality has been in the actual analyzer the whole time, but we hadn't referenced it; however, it becomes more important as we think about time in serialization. This allows us to essentially set the date for for the simulation outputs such that our burnin will end in 2023 (and such should start the number of `serialize_years` prior) and the pickup will start where the burnin leaves off in 2023. The simulations themselves have no linkage to real time; rather, they track simulation timesteps. Applying the the year in the analyzer in this way is simply meant to turn those simulation timesteps into a more understandable framework for our work. We then run the analyzer based on the step we set above. We can keep the basic plotter after this just to get an idea of what is going on in our simulations. 
+        - To use the "step" system we will want to also modify our analyzers run statement. Assuming you included only the default report, `InsetChart`, in your burnin then you will want to run only that analyzer for the burnin step. For the pickup you will likely also want to include a version of the summary report we've been using so we'll include that in the pickup step in the analyzer. Be sure to update the `start_year` for the analyzer such that our burnin will end in 2023 (and should start the number of `serialize_years` prior) and the pickup will start where the burnin leaves off in 2023. The simulations themselves have no linkage to real time; rather, they track simulation timesteps. Applying the the year in the analyzer in this way is simply meant to turn those simulation timesteps into a more understandable framework for our work. We then run the analyzer based on the step we set above. We can keep the basic plotter after this just to get an idea of what is going on in our simulations. 
             - **Note: In certain cases, such as monitoring PfPR across all simulation time, you will also want to include a summary report (or another report) in the burnin. Be thoughtful about the questions you are trying to address and what reports you'll need at each step, there is no one right way!**
         
           ```py
           with Platform('SLURM_LOCAL',job_directory=jdir) as platform:
 
-              for expname, exp_id in expts.items():
-                  analyzers_burnin = [InsetChartAnalyzer(expt_name=expname,
+              for expt_name, exp_id in expts.items():
+                  analyzers_burnin = [InsetChartAnalyzer(expt_name=expt_name,
                                            channels=channels_inset_chart,
                                            start_year=2023 - serialize_years,
                                            sweep_variables=sweep_variables,
@@ -417,6 +429,7 @@ This serialization exercise has three parts. In part 1 you will run and save a b
                                            working_dir=wdir),
                                       MonthlyPfPRAnalyzer(expt_name=expt_name,
                                             start_year=2023,
+                                            end_year=2023,
                                             sweep_variables=sweep_variables,
                                             working_dir=wdir)
                                       ]
@@ -491,7 +504,7 @@ This serialization exercise has three parts. In part 1 you will run and save a b
           builder.add_sweep_definition(partial(update_serialize_parameters, df=burnin_df), range(len(burnin_df.index)))
       ```
     - Run the experiment, wait for it to finish, and checkout your outputs.
-    - While waiting for it to finish, make any modifications to the analyzer that you need such as the `expname`, `exp_id`, and `step`. Once the experiment finishes you can run `serialization_analyzer.py` 
+    - While waiting for it to finish, make any modifications to the analyzer that you need such as the `expt_name`, `exp_id`, `step`, and pickup `end_year`. Once the experiment finishes you can run `serialization_analyzer.py` 
     
 3. Compare pickup simulations across varying burnin durations
     - Run a longer burnin of 50 years using `example_run_burnin.py`
@@ -624,30 +637,8 @@ In this example, we'll continue building off of the serialization structure, add
                                             
           return demog
       ```
-    - We can also add individual properties to our reporters. The methods for doing this between the event recorder and summary report are slightly different.
+    - We can also add individual properties to our reporters. The methods for doing this between the event recorder and summary report are slightly different. For the burnin, we'll only add the event recorder but will see the changes to summary report in the pickup.
         - In event recorder we can simply add `ips_to_record=['<property>']` which tells the report that we also want it to tell us what access level the individual experiencing the event belongs to. You are able to add multiple IPs to this list if needed.
-        - In the summary report, we ask it to include only individuals of a particular level through `must_have_ip_key_value='<property>:<value>'`. This means that the report requested below will only include individuals with high access to care. In these cases, it is also beneficial to add `filename_suffix` such as '_highacces' to tag the output for analysis. 
-      ```py
-      def general_sim()
-          ## existing contents
-          
-          # Add reports
-          add_event_recorder(task, event_list=["HappyBirthday", "Births"],
-                       start_day=1, end_day=serialize_years*365, 
-                       node_ids=[1], min_age_years=0,
-                       max_age_years=100,
-                       ips_to_record=['Access'])
-                       
-          # MalariaSummaryReport
-          add_malaria_summary_report(task, manifest, start_day=1,
-                               end_day=serialize_years*365, reporting_interval=30,
-                               age_bins=[0.25, 5, 115],
-                               max_number_reports=serialize_years,
-                               must_have_ip_key_value='Access:High',
-                               filename_suffix='_highaccess',
-                               pretty_format=True)
-
-        ```
     - Add these changes to your burnin, including another summary report for the low access group. If we were to plot these summary reports once the burnin is finished, how do you think the low and high access groups would compare?
         - *NOTE: in project work, you likely will not want to include monthly reporting in burnins as they can be quite space and time consuming, but they are helpful during the learning process.*
     - Update the experiment name and run your simulations
@@ -708,15 +699,29 @@ In this example, we'll continue building off of the serialization structure, add
           </details>
         - Duplicate the low access intervention and modify to apply case management to the high access group as well
     - Add the same IP details from the burnin to the pickup demographics
-    - Add the IP specifications for reports discussed in part 1
+    - Add the IP specifications for the event recorder reports discussed in part 1
+    - Next we'll modify the summary report and use the for loop system for years from the calibration exercise (to use a different analyzer). We ask it to include only individuals of a particular level through `must_have_ip_key_value='<property>:<value>'`. This means that the report requested below will only include individuals with high access to care. In these cases, it is also beneficial to add `filename_suffix` such as '_highaccess' to tag the output for analysis. Be sure to include a report for both access levels in your script, an example is included for "high access" below.
+    
+        ```py
+        for i in range(pickup_years):
+            add_malaria_summary_report(task, manifest, start_day=1,
+                               end_day=365+i*365, reporting_interval=30,
+                               age_bins=[0.25, 5, 115],
+                               max_number_reports=serialize_years,
+                               must_have_ip_key_value='Access:High',
+                               filename_suffix='_highaccess',
+                               pretty_format=True)
+        ```
     - Update the experiment name, run the script
-    - If you did not already, run the analyzer for the burnin (part 1) then update the experiment name and ID. Be sure to check if you need to update anything such as `sweep_variables` or analyzer years. Once the pickup finishes, run the analyzer again.
+    - Update the experiment name and ID in the analyzer. Be sure to check if you need to update anything such as `sweep_variables` or analyzer years. Once the pickup finishes, run the analyzer.
     - Try plotting your results. Feel free to start with old scripts and adapt them to try to understand differences between the IP levels.
+    
 </p>
 </details>
 
 <details><summary><span><em>Multi-node/Spatial Simulations</em></span></summary>
 <p>
+
 Most of the time, we consider our geographical units of interest (the 'nodes' - whether they represent districts, regions, countries, or abstract populations) to be independent from one another. Usually, it's better to simulate different locales separately, but you may want to run 'spatial' simulations involving multiple nodes and the connections between them (ex. migration). 
 
 We will cover advanced applications of spatial modeling in another exercise. This exercise will allow you to practice combining parts from previous examples to run a simple spatial simulation and produce spatial outputs. Afterward, you can add code to introduce migration between nodes, and see how that changes things, but we will not deal with this in any detail here.
@@ -888,8 +893,8 @@ if __name__ == "__main__":
     ## Run Analyzer ##
     ##################
     with Platform('SLURM_LOCAL',job_directory=jdir) as platform:
-        for expname, exp_id in expts.items():
-            analyzer = [SpatialAnalyzer(dir_name=expname,
+        for expt_name, exp_id in expts.items():
+            analyzer = [SpatialAnalyzer(dir_name=expt_name,
                                         f_base = report_type,
                                         f_suffix = report_suffix,
                                         exp_id = exp_id,

@@ -128,11 +128,15 @@ def general_sim(selected_platform):
     #Add reports
                        
     # MalariaSummaryReport
-    add_malaria_summary_report(task, manifest, start_day=1, end_day=serialize_years*365, reporting_interval=30,
+    for year in range(sim_years):
+        start_day = 0 + 365 * year
+        sim_year = sim_start_year + year
+        add_malaria_summary_report(task, manifest, start_day=start_day,
+                               end_day=365+sim_year*365, reporting_interval=30,
                                age_bins=[0.25, 5, 115],
-                               max_number_reports=52,
+                               max_number_reports=13,
                                pretty_format=True, 
-                               filename_suffix='Monthly_U5')
+                               filename_suffix=f'Monthly_U5_{sim_year}')
 
 
     # create experiment from builder

@@ -59,15 +59,16 @@ class InsetChartAnalyzer(IAnalyzer):
         adf = pd.concat(selected).reset_index(drop=True)
         adf.to_csv(os.path.join(self.working_dir, self.expt_name, 'All_Age_InsetChart.csv'), index=False)
 
+
 class MonthlyPfPRAnalyzer(IAnalyzer):
 
-    def __init__(self, expt_name, sweep_variables=None, working_dir='./', start_year=2020, end_year=2025,
+    def __init__(self, expt_name, sweep_variables=None, working_dir='./', start_year=0, end_year=5,
                  burnin=None, filter_exists=False):
 
-        super(WeeklyPfPRAnalyzer, self).__init__(working_dir=working_dir,
-                                                   filenames=["output/MalariaSummaryReport_monthly.json"]
-                                                   )
-     
+        super(MonthlyPfPRAnalyzer, self).__init__(working_dir=working_dir,
+                                                  filenames=["output/MalariaSummaryReport_monthly.json"]
+                                                  )
+
         self.sweep_variables = sweep_variables or ["Run_Number"]
         self.expt_name = expt_name
         self.start_year = start_year
@@ -83,30 +84,31 @@ class MonthlyPfPRAnalyzer(IAnalyzer):
             return True
 
     def map(self, data, simulation: Simulation):
-    
+        nyears = (self.end_year - self.start_year)
         adf = pd.DataFrame()
         fname = self.filenames[0]
         age_bins = data[self.filenames[0]]['Metadata']['Age Bins']
-      
+
         for age in range(len(age_bins)):
-            d = data[fname]['DataByTimeAndAgeBins']['PfPR by Age Bin'][:-1]
+            d = data[fname]['DataByTimeAndAgeBins']['PfPR by Age Bin'][:nyears]
             pfpr = [x[age] for x in d]
-          
-            d = data[fname]['DataByTimeAndAgeBins']['Annual Clinical Incidence by Age Bin'][:-1]
+
+            d = data[fname]['DataByTimeAndAgeBins']['Annual Clinical Incidence by Age Bin'][:nyears]
             clinical_cases = [x[age] for x in d]
-         
-            d = data[fname]['DataByTimeAndAgeBins']['Annual Severe Incidence by Age Bin'][:-1]
+
+            d = data[fname]['DataByTimeAndAgeBins']['Annual Severe Incidence by Age Bin'][:nyears]
             severe_cases = [x[age] for x in d]
-          
-            d = data[fname]['DataByTimeAndAgeBins']['Average Population by Age Bin'][:-1]
+
+            d = data[fname]['DataByTimeAndAgeBins']['Average Population by Age Bin'][:nyears]
             pop = [x[age] for x in d]
 
-            simdata = pd.DataFrame({'week': range(1, len(pfpr)+1),
+            simdata = pd.DataFrame({'year': range(self.start_year, self.end_year),
+                                    'month': range(1, len(pfpr) + 1),
                                     'PfPR': pfpr,
                                     'Cases': clinical_cases,
                                     'Severe cases': severe_cases,
                                     'Pop': pop})
-                       
+
             simdata['agebin'] = age_bins[age]
 
             adf = pd.concat([adf, simdata])
@@ -176,6 +178,7 @@ if __name__ == "__main__":
                                            working_dir=wdir),
                                 MonthlyPfPRAnalyzer(expt_name=expt_name,
                                             start_year=2023,
+                                            end_year=2024,
                                             sweep_variables=sweep_variables,
                                             working_dir=wdir)
                                 ]

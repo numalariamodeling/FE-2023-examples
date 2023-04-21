@@ -141,21 +141,6 @@ def general_sim(selected_platform):
                        start_day=1, end_day=serialize_years*365, node_ids=[1], min_age_years=0,
                        max_age_years=100,
                        ips_to_record=['Access'])
-                       
-    # MalariaSummaryReport
-    add_malaria_summary_report(task, manifest, start_day=1, end_day=serialize_years*365, reporting_interval=30,
-                               age_bins=[0.25, 5, 115],
-                               max_number_reports=serialize_years*13,
-                               must_have_ip_key_value='Access:High',
-                               filename_suffix='_highaccess',
-                               pretty_format=True)
-                               
-    add_malaria_summary_report(task, manifest, start_day=1, end_day=serialize_years*365, reporting_interval=30,
-                               age_bins=[0.25, 5, 115],
-                               max_number_reports=serialize_years*13,
-                               must_have_ip_key_value='Access:Low',
-                               filename_suffix='_lowaccess',
-                               pretty_format=True)
 
     # create experiment from builder
     experiment = Experiment.from_builder(builder, task, name="example_sim_burnin_IP")

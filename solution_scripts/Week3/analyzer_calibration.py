@@ -16,7 +16,7 @@ class MonthlyPfPRAnalyzerU5(IAnalyzer):
 
         super(MonthlyPfPRAnalyzerU5, self).__init__(working_dir=working_dir,
                                                     filenames=[
-                                                        f"output/MalariaSummaryReport_Monthly_U5.json"
+                                                        f"output/MalariaSummaryReport_Monthly_U5_{x}.json"
                                                         for x in range(start_year, end_year)]
                                                     )
         self.sweep_variables = sweep_variables or ["Run_Number"]
