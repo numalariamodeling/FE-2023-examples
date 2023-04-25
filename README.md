@@ -59,15 +59,12 @@ If you navigate to the job directory, the file structure should look similar to 
 </p>
 </details>
 
-## Week 2: Building Blocks
-This week's first exercise introduces the simplest version of running and analyzing a single simulation experiment in EMOD using the emodpy/idmtools infrastructure and python. Before running a simulation, one needs to check that all configurations and installations were successful and edit paths in the manifest file. The steps are generally to
+## Week 1: Getting Started
+
+This week's exercise introduces the simplest version of running and analyzing a single simulation experiment in EMOD using the emodpy/idmtools infrastructure and python. Before running a simulation, one needs to check that all configurations and installations were successful and edit paths in the manifest file. The steps are generally to
 
 1. run the simulation, and   
 2. analyze simulation outputs 
-
-This week's second exercise demonstrates how to create demographics and climate files and how to incorporate these into the simulation. The exercise further introduces how to modify config parameters (i.e. population size or simulation duration)
-
-This week's final exercise will focus on observing changes in simulation results based on the `InsetChart.json` and `MalariaSummaryReport.json` model outputs.
 
 **Instructions**
 
@@ -88,11 +85,19 @@ Click the arrow to expand:
 </p>
 </details>
 
+## Week 2: Building Blocks
+
+This week's first exercise demonstrates how to create input files, such as demographics and climate files, and how to incorporate these into the simulation. The exercise further introduces how to modify config parameters (i.e. population size or simulation duration)
+
+This week's second exercise focuses on adding reporters and observing changes in simulation results based on the `InsetChart.json` and `MalariaSummaryReport.json` model outputs.
+
+**Instructions**
+
+Click the arrow to expand:
 <details><summary><span><em>Adding Inputs</em></span></summary>
 <p>
 
 This exercise demonstrates how to create demographics and climate files and how to incorporate these into the simulation as well as introducing how to modify config parameters (e.g. run number or simulation duration). Complete all of the steps below before running this next example.
-
 
 
 1. Extracting climate data & adding to simulations

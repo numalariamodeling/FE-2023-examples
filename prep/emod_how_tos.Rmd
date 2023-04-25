@@ -82,7 +82,7 @@ are connected by human and/or vector migration.
 <p>
 
 *Single-node Sims*
-The [emod-api](https://docs.idmod.org/projects/emod-api/en/latest/emod_api.demographics.html) package contains most of the major functionality to create a demographics file. It is supported by `emodpy-malaria` to add parameters that are more specific to the malaria workflow, imported as `Demographics` in the code chunk below. For single node, non-spatial simulations the `from_template_node` command is most commonly used; however, you may also choose to read in pre-made json files for these types of simulations. We include this command in our demographics builder with it's basic parameters:
+The [emod-api](https://docs.idmod.org/projects/emod-api/en/latest/emod_api.demographics.html) package contains most of the major functionality to create a demographics file. It is supported by `emodpy-malaria` to add parameters that are more specific to the malaria workflow, imported as [`Demographics`](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/demographics/MalariaDemographics.py) in the code chunk below. For single node, non-spatial simulations the `from_template_node` command is most commonly used; however, you may also choose to read in pre-made json files for these types of simulations. We include this command in our demographics builder with it's basic parameters:
     - latitude
     - longitude
     - population size
@@ -90,7 +90,7 @@ The [emod-api](https://docs.idmod.org/projects/emod-api/en/latest/emod_api.demog
     - forced node ID (if desired)
     - initial prevalence value (if desired)
     
-With this saved as the `demog` item, we can add additional complexity as needed. This may include things like setting equilibrium vital dynamics so birth and mortality rates are equal, producing a relatively stable population size, or an age distribution for our population. In this example, we pull the age distribution of all of Sub-Saharan Africa from the `emod-api` and then apply it to our demographics item. You may also add complexity through individual properties and other specific parameters as desired.
+With this saved as the `demog` item, we can add additional complexity as needed. This may include things like setting equilibrium vital dynamics so birth and mortality rates are equal, producing a relatively stable population size, or an age distribution for our population. In this example, we pull the [age distribution](https://github.com/numalariamodeling/emod-api/blob/master/emod_api/demographics/PreDefinedDistributions.py) of all of Sub-Saharan Africa from the `emod-api` and then apply it to our demographics item. You may also add complexity through individual properties and other specific parameters as desired.
 
 ```{python, eval=F}
 import emodpy_malaria.demographics.MalariaDemographics as Demographics
@@ -572,7 +572,7 @@ Once we have generated a demographics file describing the nodes for a simulation
 | ------------- | ------- | ------- | --------- |
 |  example_site |   1.00  |   1.00  |     1     |
 
-This csv is passed as the `site_file` to `emodpy-malaria's` `generate_weather()` function along with the `node_column` that provides the name of our node ID column in the csv and `local_dir` which specifies that output directory. From there we can also specify:
+This csv is passed as the `site_file` to `emodpy-malaria's` [`generate_weather()`](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/weather/__init__.py) function along with the `node_column` that provides the name of our node ID column in the csv and `local_dir` which specifies that output directory. From there we can also specify:
     - `platform`: where the request work item will run (Calculon if associated with IDM)
     - `start_date` and `end_dates`: identify the period of time we are interested in requesting weather for
     - `id_reference`: specify the IDReference attribute for the weather metadata
@@ -600,8 +600,7 @@ print("\n".join(wr.files))
 
 ```
 
-After completing these steps, there should be climate files for air_temperature, rainfall, and relative_humidity in your 
-inputs folder. To reference these when running a simulation, update the configuration parameters to reflect the name and location of your climate files:
+After completing these steps, there should be climate files for air_temperature, rainfall, and relative_humidity in your inputs folder. To reference these when running a simulation, update the configuration parameters to reflect the name and location of your climate files:
 
 ```{python, eval=F}
 def set_param_fn(config):
@@ -651,7 +650,7 @@ def build_demog():
 <details><summary><span style="color: blue";">2. Using IPs in Interventions</span></summary>
 <p>
 
-Most interventions can be targeted to individuals holding specific IP values, typically with the `ind_property_restrictions` function argument and setting the desired IndividualProperty restrictions. This example creates an SMC drug campaign that is limited to individuals in the 'Treatment' group as defined in the demographics file.
+Most interventions can be targeted to individuals holding specific IP values, typically with the `ind_property_restrictions` function argument and setting the desired Individual Property restrictions. This example creates an SMC drug campaign that is limited to individuals in the 'Treatment' group as defined in the demographics file.
 
 ```{python,eval=F}
 import emod_api.campaign as campaign
@@ -746,7 +745,7 @@ EMOD configuration scripts contain five primary components:
               return camp
           ```
     4. Demographics
-        - Build a demographics file using `emod-api`. This is typically done through `from_template_node` for single node sims, but there are other methods available if needed (*see demographics how to*)
+        - Build a demographics file using `emod-api`. This is typically done through [`from_template_node`](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/demographics/MalariaDemographics.py) for single node sims, but there are other methods available if needed (*see demographics how to*)
           
           ```{python, eval=F}
           def build_demog():
@@ -797,7 +796,7 @@ EMOD allows us to specify the distribution of mosquito species in the simulation
 <details><summary><span style="color: blue";">Single Vector Species</span></summary>
 <p>
 
-The example below would populate the model with 100% gambiae mosquitoes and can be included in the config builder.
+The example below would populate the model with 100% gambiae mosquitoes and can be included in the config builder with a simple [`add_species()`](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/malaria_config.py).
 
 ```{python, eval=F}
 import emodpy_malaria.malaria_config as conf
