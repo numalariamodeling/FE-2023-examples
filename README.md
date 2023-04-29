@@ -923,7 +923,7 @@ This will produce a file inside `working_dir/simulation_output/experiment_name/S
 * PCR_Parasite_Prevalence
 * New_Clinical_Cases
 
-Part 3. Plot Spatial Results
+**Part 3. Plot Spatial Results**
 
 1. Open 'spatial_plotter.rmd'  
 2. Replace the `sr_path` in the first chunk with the path to the 'SpatialReportMalariaFiltered.csv' generated in step 2 above
