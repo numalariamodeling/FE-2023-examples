@@ -66,16 +66,16 @@ The first assignment asks you to demonstrate your ability to use the pre-requisi
 
 #### Part 1. Python - analyze example data
 
-1.  Create a new `my_script.py` file in the same `/project_dir` where you saved the `example_data` folder
+1.  Create a new `my_python_script.py` file in the same `/project_dir` where you saved the `example_data` folder
 
     Your directory structure should be:
 
     -   `project_dir/`  
         -   `example_data/`  
             -   ...  
-        -   `my_script.py`  
+        -   `my_python_script.py`  
 
-2.  Import the following modules: `pandas`, `numpy`
+2.  Import the following modules: `pandas`, `numpy`, `os`
 
 3.  Combine data from the `output.csv` file in each `example_data/simulation/` sub-folder into a single DataFrame, with the following modifications:  
 
@@ -99,12 +99,12 @@ Your directory structure should now be:
 -   `project_dir/`  
     -   `example_data/`  
         -   ...  
-    -   `my_script.py`  
+    -   `my_python_script.py`  
     -   `output_cleaned.csv`  
 
 
 1.  Open Rstudio: File \> New Project \> Existing Directory \> `project_dir`
-2.  Create a new `.Rmd` file or `.R` script inside `project_dir` to do the following:  
+2.  Create a new `my_R_script.Rmd` file or `my_R_script.R` script inside `project_dir` to do the following:  
     -   Read in output_cleaned.csv
 
     -   Aggregate the count, mean, and standard deviation of Var1 and Var3 (separately) on each day for a given Site
@@ -127,4 +127,5 @@ Your directory structure should now be:
 Post your plot(s) to the FE-2023 slack channel for feedback.
 
 -   How does it compare to others?  
--   If something looks off, what do you think is causing it?
+-   If something looks off, what do you think is causing it?  
+-   For more practice: Try creating the plots using different grouping variables (Ex. Trial_Number, or Arm) in addition to or instead of Site
