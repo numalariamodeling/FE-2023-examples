@@ -1,5 +1,5 @@
 ---
-title: "Interventions"
+title: "Interventions Guide"
 author: "Anne Stahlfeld & Tobias Holden"
 date: "`r Sys.Date()`"
 output: html_document
