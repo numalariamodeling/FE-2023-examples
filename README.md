@@ -734,7 +734,7 @@ We will cover advanced applications of spatial modeling in another exercise. Thi
 
 1. Create a spreadsheet **nodes.csv** with the columns *node_id*, *lat*, *lon*, and *pop*. EMODpy will be expecting these column names! <br>
         - This spreadsheet will be used to generate the climate and demographics files later  
-        - save the file inside your `project directory/simulation_inputs/`
+        - save the file inside your `project directory/simulation_inputs/demographics`
 2. Fill in the spreadsheet with the information for 4 nodes
 
     Example:
@@ -810,7 +810,7 @@ Now, referring to the scripts you wrote for previous examples, you should be abl
 8. Sweep campaign parameters (optional for this exercise)  
 9. Serialize burnin & pickup  
 10. **Build demographics**   
-    a. inside `build_demog()` use  this code to generate demographics from your "nodes.csv" file (you may need to edit the path)
+    a. inside `build_demog()` use  this code to generate demographics from your "nodes.csv" file (you may need to edit the path to input_file)
     ```py
     demog = Demographics.from_csv(input_file = os.path.join(manifest.input_dir,demographics,"nodes.csv"), 
                                                             id_ref="EXAMPLE", 
@@ -839,7 +839,7 @@ Now, referring to the scripts you wrote for previous examples, you should be abl
 
 *Pickup*  
 - Duration: 10 years  
-- Carry `x_Temporary_Larval_Habitat` over from burnin  
+- Carry `x_Temporary_Larval_Habitat` over from burnin using `update_serialization_parameters()`  
 - Interventions deployed differently in each node by providing a list of nodes to the `node_ids` argument <br>
 (ex. `treatment_seeking(... node_ids=[1,2])`):  
       *For simplicity, you can choose fixed "optimal" coverages (~80%) for these interventions, instead of sweeping over these campaign parameters.*    
@@ -857,7 +857,7 @@ Now, referring to the scripts you wrote for previous examples, you should be abl
    - `add_event_recorder(...)`  
         - the `event_list` should include 'Received_Treatment' and 'Received_ITN'  
             - *Note:* These events need to be added to `config.parameters.Custom_Individual_Events=[...]` inside `set_param_fn()` as well.
-            
+        **CHANGE THIS TO REPORT EVENT COUNTER**    
 **Part 2. Analyze Spatial Simulations** 
 
 To analyze the `SpatialReportMalariaFiltered_.bin` files generated for each channel and simulation, use the script `analyzer_spatial.py`
@@ -929,26 +929,6 @@ Part 3. Plot Spatial Results
 2. Replace the `sr_path` in the first chunk with the path to the 'SpatialReportMalariaFiltered.csv' generated in step 2 above
 3. Replace the `plot_path` in the first chunk with the path to the desired folder for storing plots (ex. `project_dir/simulation_outputs/spatial_example/`
 3. Run the `spatial_plotter.rmd` file
-
-**Part 4. BONUS: Migration (optional)**
-
-OPTIONAL BONUS: Add migration to the pickup simulations and see if/how connecting the nodes affects the distinctions between them.
-- `import emod_api.migration.migration as migration`  
-- inside `set_param_fn()`:   
-    - set `config.parameters.Enable_Migration_Heterogeneity = 0`  
-- Migration gets added inside `build_demog()`:  
-    - `migration_partial=partial(migration.from_demog_and_param_gravity, 
-                                 gravity_params=[7.50395776e-06,
-                                                 9.65648371e-01, 
-                                                 9.65648371e-01, 
-                                                 -1.10305489e+00].
-                                 id_ref=<same id_ref from demographics>,
-                                 migration_type=migration.Migration.Regional)`  
-   - and the function should now end with `return demog, migration_partial`
-    
-
-
-**IN PROGRESS**
 
 
 </p>
