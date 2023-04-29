@@ -1,1 +1,49 @@
+---
+title: "Interventions"
+author: "Anne Stahlfeld & Tobias Holden"
+date: "`r Sys.Date()`"
+output: html_document
+---
 
+## Drug-Based Interventions
+
+### Treatment-Seeking
+
+### Drug Campaigns
+
+### Change Drug Adherence
+
+Adherence to drugs can be modified using [`adherent_drug`](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/interventions/adherentdrug.py). This allows you to detail doses (and drugs given), intervals between doses, actual adherence values, and more. More documentation on how to configure adherent drugs is [here](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-campaign-individual-adherentdrug.html).
+
+Configuring adherence is not required. In the absence of specific configuration, adherence to the full treatment course is assumed to be 100%.
+
+```{python}
+#| output: asis
+import emod_api.campaign as campaign
+import emodpy_malaria.interventions.drug_campaign as drug_campaign
+import emodpy_malaria.interventions.adherentdrug as ad
+adherent_drug = ad.adherent_drug(campaign=campaign,
+                                     doses=[["Sulfadoxine", "Pyrimethamine", 'Amodiaquine'],
+                                            ['Amodiaquine'],
+                                            ['Amodiaquine']],
+                                     dose_interval=1,
+                                     non_adherence_options=['Stop'],
+                                     non_adherence_distribution=[1],
+                                     adherence_values=[
+                                         1,    # for day 1
+                                         0.6,  # day 2
+                                         0.4   # day 3
+                                     ]
+                                     )
+```
+## Vaccination
+
+### RTS,S
+
+## Vector Control
+
+### Bednets
+
+### Indoor Residual Spraying (IRS)
+
+### Larvicides
