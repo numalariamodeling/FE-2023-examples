@@ -1,0 +1,53 @@
+---
+title: "Coding Assignment Part 2"
+author: "Tobias Holden"
+date: '2023-04-29'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(data.table)
+```
+
+Read in cleaned data from Part 1
+
+```{r}
+
+```
+
+Aggregate the count, mean, and standard deviation of Var 1 and Var 3 on each Day for a given Site
+
+```{r}
+
+```
+
+Use mutate to add upper and lower 95% prediction intervals around the daily mean of Var1 and Var3 at each Site  (mean ± 1.96 * sd ÷ √n)
+
+```{r}
+
+```
+
+Use `ggplot2` to produce plots of the data:
+
+* Day on the x-axis, Var# on the y-axis  
+* Separate lines and colors for each dependent variable (Var 1 and Var 3)  
+* Separate facets for each Site  
+* An informative title, labels, legend, color palette etc.  
+  * You don't need to spend much time on plot appearance for this for this assignment, but it is an important part of communicating our findings  
+  
+```{r}
+
+```
+
+
+Save your plot(s) as `.png` file(s) in `project_dir/` with a descriptive file name (ex. "Variables1-2_by_Site.png")
+
+
+```{r}
+
+```
+
+
+

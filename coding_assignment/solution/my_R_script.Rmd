@@ -1,0 +1,78 @@
+---
+title: "Coding Assignment Part 2"
+author: "Tobias Holden"
+date: '2023-04-29'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(data.table)
+```
+
+Read in cleaned data from Part 1
+
+```{r}
+df <- fread('output_cleaned.csv')
+```
+
+Aggregate the count, mean, and standard deviation of Var 1 and Var 3 on each Day for a given Site
+
+```{r}
+df %>%
+  select(Day, Site, Var1, Var3) %>%
+  gather(key="variable", value="value", 3:4) %>%
+  group_by(Day,Site,variable) %>%
+  summarize(n=n(),
+            average=mean(value),
+            std_dev = sd(value)) -> df
+```
+
+Use mutate to add upper and lower 95% prediction intervals around the daily mean of Var1 and Var3 at each Site  (mean ± 1.96 * sd ÷ √n)
+
+```{r}
+df %>%  
+  rowwise() %>%
+  mutate(upperCI = average + 2.56*std_dev/n,
+         lowerCI = average - 2.56*std_dev/n) -> df
+```
+
+Use `ggplot2` to produce plots of the data:
+
+* Day on the x-axis, Var# on the y-axis  
+* Separate lines and colors for each dependent variable (Var 1 and Var 3)  
+* Separate facets for each Site  
+* An informative title, labels, legend, color palette etc.  
+  * You don't need to spend much time on plot appearance for this for this assignment, but it is an important part of communicating our findings  
+  
+```{r}
+df %>%
+  ggplot(aes(x=Day, color=variable, fill=variable)) + 
+    facet_wrap(~paste("Site",Site), scales="fixed") +
+    geom_path(aes(y=average,
+                  group=variable)) +
+    geom_ribbon(aes(ymin = lowerCI, 
+                    ymax=upperCI, 
+                    group=variable), 
+                alpha=0.5) + 
+  ylab("mean value (with 95% CI)") + 
+  labs(color=NULL, fill=NULL)+
+  theme_minimal() +
+  scale_fill_brewer(palette="Set2", direction = 1) +
+  scale_color_brewer(palette="Set2", direction = 1)-> my_plot
+
+my_plot
+```
+
+
+Save your plot(s) as `.png` file(s) in `project_dir/` with a descriptive file name (ex. "Variables1-2_by_Site.png")
+
+
+```{r}
+ggsave(filename='Variables1-2_by_Site.png', 
+       plot = my_plot)
+```
+
+
+
