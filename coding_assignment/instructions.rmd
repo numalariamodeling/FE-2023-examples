@@ -37,16 +37,16 @@ Despite having a variety of backgrounds, we aim for all participants to arrive f
 This assignment is designed to review core competencies of `R` and `python` coding that you will use throughout the program. It is *not a test* but rather the first component of the technical program, through which we develop these skills alongside more advanced modeling techniques.
 
 The first assignment asks you to demonstrate your ability to use the pre-requisite skills to:  
-1. Use `python` to "analyze" (process, clean, and merge) data from multiple files to produce a single output spreadsheet.\
+1. Use `python` to "analyze" (process, clean, and merge) data from multiple files to produce a single output spreadsheet.\  
 2. Use `R` to wrangle, summarize, and plot the cleaned output data from Part 1.
 
 [This assignment is due at the end of Week 0.]{style="color:red;font-weight:bold"}
 
 **Stuck?**
 
--   Review the tutorials in the table above
--   Post on the FE-2023 Slack Channel
--   We will hold (virtual) Office Hours in Week 0 to answer questions and help out!
+-   Review the tutorials in the table above  
+-   Post on the FE-2023 Slack Channel  
+-   We will hold (virtual) Office Hours in Week 0 to answer questions and help out!  
 
 ### Instructions
 
@@ -61,8 +61,8 @@ The first assignment asks you to demonstrate your ability to use the pre-requisi
 3.  Examine a sample `output.csv` file from the example data.\
     You will have to click through `experiment > simulation_## > outputs` to see one. This is a standard directory structure for outputs from the model, EMOD, which you will soon become very familiar with!
 
-    -   In reality, the output files in EMOD can be .json dictionaries or .bin binary files in addition to .csv spreadsheets. However, to make the assignment simpler, we've created some "fake" output files in a form that is easier to work with.
-    -   Each output.csv file contains daily timeseries of 3 dependent variables [Var1, Var2, and Var3] for a specific combination of the grouping variables [Site_Number and Trial_Number]
+    -   In reality, the output files in EMOD can be .json dictionaries or .bin binary files in addition to .csv spreadsheets. However, to make the assignment simpler, we've created some "fake" output files in a form that is easier to work with.  
+    -   Each output.csv file contains daily timeseries of 3 dependent variables [Var1, Var2, and Var3] for a specific combination of the grouping variables [Site, Trial_Number, and Arm]
 
 #### Part 1. Python - analyze example data
 
@@ -70,20 +70,20 @@ The first assignment asks you to demonstrate your ability to use the pre-requisi
 
     Your directory structure should be:
 
-    -   `project_dir/`
-        -   `example_data/`
-            -   ...
-        -   `my_script.py`
+    -   `project_dir/`  
+        -   `example_data/`  
+            -   ...  
+        -   `my_script.py`  
 
 2.  Import the following modules: `pandas`, `numpy`
 
-3.  Combine data from the `output.csv` file in each `example_data/simulation/` sub-folder into a single DataFrame, with the following modifications:
+3.  Combine data from the `output.csv` file in each `example_data/simulation/` sub-folder into a single DataFrame, with the following modifications:  
 
-    -   Group by Day, Village_Number, and Trial_Number
-    -   Restrict to include only values in the last 365 Days
-    -   Save the values for "Var1", "Var2" and "Var3" in each group
-        -   Do not save the values for any other variables that may have been in `output.csv` !
-    -   Append results from all simulations together.
+    -   Group by Day, Site, and Trial_Number  
+    -   Restrict to include only values in the last 365 Days  
+    -   Save the values for "Var1", "Var2" and "Var3" in each group  
+        -   Do not save the values for any other variables that may have been in `output.csv` !  
+    -   Append results from all simulations together.  
 
 4.  Save the resulting DataFrame as `output_cleaned.csv`
 
@@ -104,7 +104,7 @@ Your directory structure should now be:
 
 
 1.  Open Rstudio: File \> New Project \> Existing Directory \> `project_dir`
-2.  Create a new `.Rmd` file or `.R` script inside `project_dir` to do the following:
+2.  Create a new `.Rmd` file or `.R` script inside `project_dir` to do the following:  
     -   Read in output_cleaned.csv
 
     -   Aggregate the mean of Var1, Var2, and Var3 (separately) on each day for a given Site_Number
@@ -123,19 +123,5 @@ Your directory structure should now be:
 
 Post your plot(s) to the FE-2023 slack channel for feedback.
 
--   How does it compare to others?
+-   How does it compare to others?  
 -   If something looks off, what do you think is causing it?
-Footer
-© 2023 GitHub, Inc.
-Footer navigation
-Terms
-Privacy
-Security
-Status
-Docs
-Contact GitHub
-Pricing
-API
-Training
-Blog
-About
