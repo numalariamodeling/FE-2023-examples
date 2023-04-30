@@ -1,1 +1,229 @@
+---
+title: "Vector Guide"
+author: "Anne Stahlfeld"
+date: "`r Sys.Date()`"
+output: html_document
+---
 
+### Set up mosquito species
+
+EMOD allows us to specify the distribution of mosquito species in the simulation, and to specify life cycle, larval habitat, and transmission parameters for each species. 
+
+#### Single Vector Species
+
+The example below would populate the model with 100% gambiae mosquitoes and can be included in the config builder with a simple [`add_species()`](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/malaria_config.py).
+
+```{python, eval=F}
+import emodpy_malaria.malaria_config as conf
+conf.add_species(config, manifest, ["gambiae"])
+```
+
+The following default parameters appear in the config file for *A. gambiae*. Some of the default parameters vary between different vector species:
+
+```{python, eval=F}
+"Vector_Species_Params": [{
+    "Acquire_Modifier": 0.8, 
+    "Adult_Life_Expectancy": 20, 
+    "Anthropophily": 0.65, # species- and site-specific feeding parameters
+    "Aquatic_Arrhenius_1": 84200000000.0, 
+    "Aquatic_Arrhenius_2": 8328, 
+    "Aquatic_Mortality_Rate": 0.1, 
+    "Days_Between_Feeds": 3, 
+    "Drivers": [], 
+    "Egg_Batch_Size": 100, 
+    "Gene_To_Trait_Modifiers": [], 
+    "Genes": [], 
+    "Habitats": [{"Habitat_Type": "WATER_VEGETATION", "Max_Larval_Capacity": 20000000}], 
+    "Immature_Duration": 2, 
+    "Indoor_Feeding_Fraction": 0.95, 
+    # VECTOR_SIM uses a factor here for human-to-mosquito infectiousness, while 
+    # MALARIA_SIM explicitly models gametocytes
+    "Infected_Arrhenius_1": 117000000000.0, 
+    "Infected_Arrhenius_2": 8336, 
+    "Infected_Egg_Batch_Factor": 0.8, 
+    "Infectious_Human_Feed_Mortality_Factor": 1.5, 
+    "Male_Life_Expectancy": 10, 
+    "Microsporidia_Duration_To_Disease_Acquisition_Modification": {"Times": [], "Values": []}, 
+    "Microsporidia_Duration_To_Disease_Transmission_Modification": {"Times": [], "Values": []}, 
+    "Microsporidia_Female_Mortality_Modifier": 1, 
+    "Microsporidia_Female_To_Egg_Transmission_Probability": 0, 
+    "Microsporidia_Female_To_Male_Transmission_Probability": 0, 
+    "Microsporidia_Larval_Growth_Modifier": 1, 
+    "Microsporidia_Male_Mortality_Modifier": 1, 
+    "Microsporidia_Male_To_Female_Transmission_Probability": 0, 
+    "Name": "gambiae", 
+    "Temperature_Dependent_Feeding_Cycle": "NO_TEMPERATURE_DEPENDENCE",
+    "Transmission_Rate": 0.9,  # Based on late-2013 calibration of PfPR vs EIR favoring 1.0 to 0.5
+    "Vector_Sugar_Feeding_Frequency": "VECTOR_SUGAR_FEEDING_NONE"
+    }
+]
+```
+
+#### Multiple Vector Species
+
+We can also include a mix of vector species, adding multiple vector populations with species-specific parameters.
+
+```{python, eval=F}
+import emodpy_malaria.malaria_config as conf
+conf.add_species(config, manifest, ["gambiae", "arabiensis"])
+```
+
+For each species listed in Vector_Species_Params, a “VectorPopulation” object will be added to the simulation at each node. Each species will be defined by parameters in the simulation configuration file for the vector ecology and behavior of the species. This allows for a mechanistic description of vector abundances and behavior through the effects of climate and weather on different preferred larval habitats.
+
+```{python,eval=F}
+"Vector_Species_Params": [{
+    "Acquire_Modifier": 0.8, 
+    "Adult_Life_Expectancy": 20, 
+    "Anthropophily": 0.65, 
+    "Aquatic_Arrhenius_1": 84200000000.0, 
+    "Aquatic_Arrhenius_2": 8328, 
+    "Aquatic_Mortality_Rate": 0.1, 
+    "Days_Between_Feeds": 3, 
+    "Drivers": [], 
+    "Egg_Batch_Size": 100, 
+    "Gene_To_Trait_Modifiers": [], 
+    "Genes": [], 
+    "Habitats": [{"Habitat_Type": "WATER_VEGETATION", "Max_Larval_Capacity": 20000000}], 
+    "Immature_Duration": 2, 
+    "Indoor_Feeding_Fraction": 0.95, 
+    "Infected_Arrhenius_1": 117000000000.0, 
+    "Infected_Arrhenius_2": 8336, 
+    "Infected_Egg_Batch_Factor": 0.8, 
+    "Infectious_Human_Feed_Mortality_Factor": 1.5, 
+    "Male_Life_Expectancy": 10, 
+    "Microsporidia_Duration_To_Disease_Acquisition_Modification": {"Times": [], "Values": []}, 
+    "Microsporidia_Duration_To_Disease_Transmission_Modification": {"Times": [], "Values": []}, 
+    "Microsporidia_Female_Mortality_Modifier": 1, 
+    "Microsporidia_Female_To_Egg_Transmission_Probability": 0, 
+    "Microsporidia_Female_To_Male_Transmission_Probability": 0, 
+    "Microsporidia_Larval_Growth_Modifier": 1, 
+    "Microsporidia_Male_Mortality_Modifier": 1, 
+    "Microsporidia_Male_To_Female_Transmission_Probability": 0, 
+    "Name": "gambiae", 
+    "Temperature_Dependent_Feeding_Cycle": "NO_TEMPERATURE_DEPENDENCE", 
+    "Transmission_Rate": 0.9, 
+    "Vector_Sugar_Feeding_Frequency": "VECTOR_SUGAR_FEEDING_NONE"
+    },
+    #second species starts here
+    {
+    "Acquire_Modifier": 0.8,
+    "Adult_Life_Expectancy": 20, 
+    "Anthropophily": 0.65, 
+    "Aquatic_Arrhenius_1": 84200000000.0, 
+    "Aquatic_Arrhenius_2": 8328, 
+    "Aquatic_Mortality_Rate": 0.1, 
+    "Days_Between_Feeds": 3, 
+    "Drivers": [], 
+    "Egg_Batch_Size": 100, 
+    "Gene_To_Trait_Modifiers": [], 
+    "Genes": [], 
+    "Habitats": [  #different habitats from gambiae
+        {"Habitat_Type": "TEMPORARY_RAINFALL", "Max_Larval_Capacity": 800000000}, 
+        {"Habitat_Type": "CONSTANT", "Max_Larval_Capacity": 80000000}
+        ], 
+    "Immature_Duration": 2, 
+    "Indoor_Feeding_Fraction": 0.5, #different indoor feeding fraction
+    "Infected_Arrhenius_1": 117000000000.0, 
+    "Infected_Arrhenius_2": 8336, 
+    "Infected_Egg_Batch_Factor": 0.8, 
+    "Infectious_Human_Feed_Mortality_Factor": 1.5, 
+    "Male_Life_Expectancy": 10, 
+    "Microsporidia_Duration_To_Disease_Acquisition_Modification": {"Times": [], "Values": []},
+    "Microsporidia_Duration_To_Disease_Transmission_Modification": {"Times": [], "Values": []},
+    "Microsporidia_Female_Mortality_Modifier": 1, 
+    "Microsporidia_Female_To_Egg_Transmission_Probability": 0, 
+    "Microsporidia_Female_To_Male_Transmission_Probability": 0, 
+    "Microsporidia_Larval_Growth_Modifier": 1, 
+    "Microsporidia_Male_Mortality_Modifier": 1, 
+    "Microsporidia_Male_To_Female_Transmission_Probability": 0, 
+    "Name": "arabiensis", 
+    "Temperature_Dependent_Feeding_Cycle": "NO_TEMPERATURE_DEPENDENCE", 
+    "Transmission_Rate": 0.9, 
+    "Vector_Sugar_Feeding_Frequency": "VECTOR_SUGAR_FEEDING_NONE"},
+```
+
+#### Modify vector species parameters
+
+To change vector species parameters from defaults, use the set_species_param() function.
+
+```{python, eval=F}
+import emodpy_malaria.malaria_config as conf
+# Example: Decrease the 'Transmission_Rate' of A. arabiensis from 0.9 (default) to 0.75.
+conf.set_species_param(config, 
+                     species="arabiensis", 
+                     parameter="Transmission_Rate", 
+                     value=0.75, 
+                     overwrite=False # If True, replaces any previous stored values
+                     )
+```
+
+#### Modify species habitat parameters
+
+The larval habitat parameters for each vector species can also be modified.
+
+```{python, eval=F}
+import emodpy_malaria.malaria_config as conf
+# Example: Add brackish swamp habitat availability for A. arabiensis only. 
+new_habitats = {"arabiensis": {"BRACKISH_SWAMP": 1.7e9, "Max_Larval_Capacity": 30000000.0}}
+for species, habitat in new_habitats.items():
+    conf.set_species_param(config, species,
+                         parameter="Larval_Habitat_Types", 
+                         value= habitat, 
+                         overwrite=False # Does not delete previous habitat types
+                         )
+```
+
+### Change mosquito abundance
+
+After adding vectors to your model, you may want to alter their abundance in order to reach a desired entomological innoculation rate (EIR), malaria prevalence, or malaria incidence. In EMOD this is often done by re-scaling the amount of habitat available for larval development: Available habitat is directly related to mosquito abundance, and mosquito abundance in turn is directly related to biting rate. 
+
+There are several options for configuring habitat. You can first set habitat parameters and modify them directly as detailed in the section [Set up mosquito species](https://faculty-enrich-2022.netlify.app/modules/emod-how-to/emod-how-to/#set-up-mosquito-species).
+
+After those initial parameters are set, habitat can be modified with scaling parameters.
+
+#### Universal Habitat Scaling
+
+To apply a constant scale factor to all habitats equally for all species, use the **x_Temporary_Larval_Habitat** configuration parameter.
+
+This parameter will scale all habitat parameters for the entire simulation duration without changing the temporal dynamics, so that a new transmission is achieved with the same ratios among the species and same time profile. For example, setting `x_Temporary_Larval_Habitat` to 0.1 would reduce habitat by 90%. 
+
+```{python, eval=F}
+# Ex: Reduce habitat (and thus, adult vectors and biting rate) by 90%.
+config.parameters.x_Temporary_Larval_Habitat = 0.1  
+```
+
+#### Node-Specific Habitat Scaling in Demographics
+
+Node- and species-specific habitat scaling can be set in the demographics file through the NodeAttributes parameter `LarvalHabitatMultiplier`. Multipliers can be set by species as in the example below, or `'ALL_SPECIES'` to target the specified habitat for all species.
+
+**needs demog setting instructions**
+
+```{python, eval=F}
+"NodeAttributes": {
+    ...
+    "LarvalHabitatMultiplier": [
+        {
+            "Habitat": "TEMPORARY_RAINFALL",
+            "Species": "gambiae",
+            "Factor": 0.1
+        },
+        {
+            "Habitat": "BRACKISH_SWAMP",
+            "Species": "arabiensis",
+            "Factor": 0.5
+        }
+    ]
+}
+```
+
+
+#### Dynamic Habitat Scaling during Simulation
+
+The [`ScaleLarvalHabitat`](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-campaign-node-scalelarvalhabitat.html) intervention allows the user to scale habitats by type and species at a specified time during the simulation. The `emodpy-malaria` function `add_scale_larval_habitats()` takes a dataframe argument to construct the campaign events for habitat scaling:
+
+```{python, eval=F}
+from emodpy_malaria.interventions.scale_larval_habitat import add_scale_larval_habitats
+add_scale_larval_habitats(campaign, df=habitat_df, start_day=0)
+```
+
+The `habitat_df` argument requires column name(s) for each habitat type being scaled, with column values being the scale factor(s). Many configuration options are available, including by species, by node, and by date.
