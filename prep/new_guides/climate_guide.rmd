@@ -1,1 +1,54 @@
+---
+title: "Climate Guide"
+author: "Anne Stahlfeld"
+date: "`r Sys.Date()`"
+output: html_document
+---
 
+## Create climate files
+
+Once we have generated a demographics file describing the nodes for a simulation, we can request and download weather files using the idmtools API for COMPS SSMT. The simplest way to do this is to provide your script with a csv containing the basics of the site request, including site name, latitude, longitude, and node ID, such as in the "example_site.csv" here:
+
+|      name     |   lat   |   lon   |   nodes   |
+| ------------- | ------- | ------- | --------- |
+|  example_site |   1.00  |   1.00  |     1     |
+
+This csv is passed as the `site_file` to `emodpy-malaria's` [`generate_weather()`](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/weather/__init__.py) function along with the `node_column` that provides the name of our node ID column in the csv and `local_dir` which specifies that output directory. From there we can also specify:
+    - `platform`: where the request work item will run (Calculon if associated with IDM)
+    - `start_date` and `end_dates`: identify the period of time we are interested in requesting weather for
+    - `id_reference`: specify the IDReference attribute for the weather metadata
+    - `force`: flag ensuring that a new request is submitted even if the files exist in the `local_dir`
+
+```{python, eval=F}
+import tempfile
+from pathlib import Path
+from emodpy_malaria.weather import generate_weather
+# ---| Request weather files |---
+# Request weather time series, for nodes listed in a .csv file ('example_site.csv' here)
+wr = generate_weather(platform="Calculon",
+                      site_file="./inputs/example_site.csv",
+                      start_date=2019001, #YYYYddd
+                      end_date=2019365, #YYYYddd
+                      node_column="nodes",
+                      local_dir="./inputs/example_weather/",
+                      id_reference="Gridded world grump2.5arcmin",
+                      force=True)
+print("\n".join(wr.files))
+```
+
+After completing these steps, there should be climate files for air_temperature, rainfall, and relative_humidity in your inputs folder. To reference these when running a simulation, update the configuration parameters to reflect the name and location of your climate files:
+
+```{python, eval=F}
+def set_param_fn(config):
+    import emodpy_malaria.malaria_config as conf
+    config = conf.set_team_defaults(config, manifest)
+    
+    #Add climate files
+    config.parameters.Air_Temperature_Filename = os.path.join('climate','example_air_temperature_daily.bin')
+    config.parameters.Land_Temperature_Filename = os.path.join('climate','example_air_temperature_daily.bin')
+    config.parameters.Rainfall_Filename = os.path.join('climate','example_rainfall_daily.bin')
+    config.parameters.Relative_Humidity_Filename = os.path.join('climate', 'example_relative_humidity_daily.bin')
+    return config
+```
+
+## Edit Weather Files
