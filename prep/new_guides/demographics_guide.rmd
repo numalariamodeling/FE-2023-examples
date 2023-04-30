@@ -5,6 +5,23 @@ date: "`r Sys.Date()`"
 output: html_document
 ---
 
+# Create a Demographics Files 
+
+The demographics file is a required input file for EMOD that specifies characteristics of the population in a 
+simulation. This includes aspects like the population size, birth rates, non-malaria mortality rates, age structure, 
+initial prevalence, and more. Full documentation on the demographics file can be found [here](https://docs.idmod.org/projects/emod-malaria/en/latest/software-demographics.html).
+
+At least one demographics file is required for every simulation unless you set the parameter 
+**Enable_Demographics_Builtin** to 1 (one) in the configuration file. This setting does not represent a real 
+location and is generally only used for testing and validating code.
+
+For many applications, users often will reuse a standard demographics file and make modifications by hand or by 
+script. In more complex simulations, creating a demographics file from scratch may be needed.
+
+## Parts of a demographics file
+
+## Single-node simulations
+
 ## Generate demographics for multiple nodes
 
 To run simultaneous simulations in multiple nodes, create an input file "my_nodes.csv" with one row for each node.
