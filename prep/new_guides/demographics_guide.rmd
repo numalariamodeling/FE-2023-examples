@@ -1,1 +1,89 @@
+---
+title: "EMOD How To's"
+author: "Anne Stahlfeld & Tobias Holden"
+date: "`r Sys.Date()`"
+output: html_document
+---
 
+## Generate demographics for multiple nodes
+
+To run simultaneous simulations in multiple nodes, create an input file "my_nodes.csv" with one row for each node.
+
+Ex. "my_nodes.csv"
+
+| nodeid | lat   | lon   | population |
+|--------|-------|-------|------------|
+| 1      | 12.11 | -1.47 | 1000       |
+| 2      | 12.03 | -1.44 | 1000       |
+| 3      | 12.13 | -1.59 | 1000       |
+| 17     | 12.06 | -1.48 | 1000       |
+
+**Note**:  
+-   Node IDs must be positive whole numbers, but do not have to be sequential  
+-   lat/lon values should represent real places with climates suitable for malaria transmission (if weather files are generated from demographics)
+
+Then, you can generate demographics for each node in every simulation, by adding this code to `build_demog()`
+
+``` python
+def build_demog():
+    """
+    This function builds a demographics input file for the DTK using emod_api.
+    """
+    
+    # From template node #
+    ######################
+    # This snippet allows you to manually specify the node details instead of using a .csv
+#    demog = Demographics.from_template_node(lat=1, lon=2, pop=1000, name="Example_Site")
+    # From input file csv #
+    #######################
+    demog = Demographics.from_csv(input_file = os.path.join(<path_to_file>,"my_nodes.csv"),
+                                  id_ref='spatial_example', 
+                                  init_prev = 0.01, 
+                                  include_biting_heterogeneity = True)
+    
+    demog.SetEquilibriumVitalDynamics()
+    age_distribution = Distributions.AgeDistribution_SSAfrica
+    demog.SetAgeDistribution(age_distribution)
+    return demog
+```
+
+## Set Node-Specific Parameters
+
+Sometimes we want to vary properties between nodes based on prior knowledge. For any `NodeAttribute` parameters, these can be created simply by specifying them in the `my_nodes.csv` as columns and setting `load_other_columns_as_attributes=True` in the call to `DemographicsGenerator()`.
+
+To set `IndividualAttributes` or `IndividualProperties`, see the following example. Imagine we know the proportion of "high-risk" individuals in each node and want to use this designation to target them for an intervention.
+
+First, we would add a column to our input file representing the high-risk proportion in each node.
+
+Ex. "my_nodes.csv"
+
+| nodeid | lat   | lon   | population | high_risk |
+|--------|-------|-------|------------|-----------|
+| 1      | 12.11 | -1.47 | 1000       | 0.05      |
+| 2      | 12.03 | -1.44 | 1000       | 0.10      |
+| 3      | 12.13 | -1.59 | 1000       | 0.15      |
+| 17     | 12.06 | -1.48 | 1000       | 0.50      |
+
+Then, when we can assign the "high_risk" property to individuals in each node with the probability listed in the table, by adding the following code to the end of the generate_demographics() function definition, before writing the .json file.
+
+**Coming Soon**
+
+## Add migration between nodes
+
+Multi-node simulations allow for the possibility that humans or vectors will move between nodes. EMOD allows 6 migration types for humans (Local, Regional, Sea, Air, Family, and campaign) and two for vectors (Local and Regional). Other than the campaign type, all other migration types are set via input files and scaling factors in config.json, and these migration rates will remain the same throughout the simulation: we will call these "ongoing migration" to distinguish from the "forced migration" that is set via campaigns.
+
+Multiple migration modes can be used for each agent type (human or vector) simultaneously. For example, we can set up a simulation using Local, Sea, and campaign migration for humans and Local and Regional migration for vectors.
+
+### Ongoing Migration
+
+#### Human Migration Example
+
+#### Vector Migration Example
+
+### Forced Migration
+
+#### A Single Migration Event
+
+#### Periodic Migration
+
+#### Permanent Moves
