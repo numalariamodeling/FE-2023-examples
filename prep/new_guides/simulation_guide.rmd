@@ -1,1 +1,74 @@
+---
+title: "EMOD How To's"
+author: "Anne Stahlfeld & Tobias Holden"
+date: "`r Sys.Date()`"
+output: html_document
+---
 
+## Create a model
+
+EMOD configuration scripts contain five primary components:
+    1. Import modules
+        - Import all necessary modules and functions to run subsequent script
+    2. Config setup & simulation duration
+        - Set `config.json` parameters to team defaults and update additional parameters as needed using a callback to the `emod-api` config. For example, one can specify different simulation types such as **MALARIA_SIM** or **VECTOR_SIM** to simulate just the vector model without the malaria within-host model, or other simulation types listed [here](https://docs.idmod.org/projects/emod-malaria/en/latest/glossary.html?highlight=Sim_Type#term-simulation-type).
+        
+          ```{python, eval=F}
+          def set_param_fn(config):
+              import emodpy_malaria.malaria_config as conf
+              config = conf.set_team_defaults(config, manifest)
+              
+              #if desired, set simulation type, default MALARIA_SIM below
+              config.parameters.Simulation_Type = "MALARIA_SIM"
+              return config
+          ```
+    3. Campaign setup
+        - Build a campaign file using the `emod-api` schema. This is where desired interventions should be added.
+        
+          ```{python, eval=F}
+          def build_camp():
+              camp.schema_path = manifest.schema_file
+              return camp
+          ```
+    4. Demographics
+        - Build a demographics file using `emod-api`. This is typically done through [`from_template_node`](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/demographics/MalariaDemographics.py) for single node sims, but there are other methods available if needed (*see demographics how to*)
+          
+          ```{python, eval=F}
+          def build_demog():
+              demog = Demographics.from_template_node(lat=1, lon=2, pop=10, name="Example_Site")
+              return demog
+          ```
+    5. EMODTask & experiment builder
+        - Set the platform with details for where we will run the simulations and create the `EMODTask` that that references the above builders, schema, and model executable
+        - Reporters can be added after the task to monitor simulation outputs (*see reporters section below*)
+        - The experiment can be built using `from_task` or `from_builder` depending on simulation complexity. When changes, such as with sweeps, are made outside of the initial campaign builder then `from_builder` is need (*see model builder section below*)
+        
+          ```{python, eval=F}
+          def general_sim(selected_platform):
+              # Set platform and associated values, such as the maximum number of jobs to run at one time and other platform specifics
+              platform = Platform(<platform>, job_directory=manifest.job_directory,
+                                  partition=<SLURM partition>, time=<'HH:MM:SS'>,
+                                  account=<SLURM account>, modules=['singularity'],
+                                  max_running_jobs=10)
+              # create EMODTask using previously defined builders
+              print("Creating EMODTask (from files)...")
+              task = EMODTask.from_default2(
+                        config_path="config.json",
+                        eradication_path=manifest.eradication_path,
+                        campaign_builder=build_camp,
+                        schema_path=manifest.schema_file,
+                        param_custom_cb=set_param_fn,
+                        ep4_custom_cb=None,
+                        demog_builder=build_demog,
+                        plugin_report=None
+                        )
+    
+              # set the singularity image to be used when running this experiment
+              task.set_sif(manifest.SIF_PATH, platform)
+    
+              # create experiment from builder
+              user = os.getlogin()
+              experiment = Experiment.from_task(task, name= 'experiment_name')
+              # The last step is to call run() on the ExperimentManager to run the simulations.
+              experiment.run(wait_until_done=True, platform=platform)
+          ```
