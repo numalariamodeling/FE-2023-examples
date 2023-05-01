@@ -939,7 +939,7 @@ This will produce a file inside `working_dir/simulation_output/experiment_name/S
 * PCR_Parasite_Prevalence
 * New_Clinical_Cases
 
-To analyze the event counts from each `ReportEventCounter_node_#.json`, run the script `EventAnalyzer.py`
+To analyze the event counts from each `ReportEventCounter_node_#.json`, run the script `analyzer_events.py`
 
 Edit **only** the following lines at the bottom of the script before running:
 
