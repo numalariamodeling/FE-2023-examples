@@ -867,7 +867,7 @@ Now, referring to the scripts you wrote for previous examples, you should be abl
                                    node_ids = [node],
                                    min_age_years = 0,
                                    max_age_years = 100,
-                                   event_trigger_list = ["Received_ITN", "Received_Treatment", "Received_SMC"],
+                                   event_trigger_list = ["Received_ITN", "Received_Treatment"],
                                    filename_suffix = "_".join(("node",str(node))))
         
         ```
