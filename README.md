@@ -971,7 +971,7 @@ if __name__ == "__main__":
             analyzer = [EventCounterAnalyzer(exp_name = expname, 
                                              exp_id = exp_id, 
                                              sweep_variables = sweep_variables, 
-                                             nodes = ["1","2","3","4"], 
+                                             nodes = ["1","2","3","17"], 
                                              events = events,
                                              working_dir = wdir)]
             
@@ -995,12 +995,12 @@ This will produce a file inside `working_dir/simulation_output/experiment_name/C
 
 **Part 3. Plot Spatial Results**
 
-1. Open 'spatial_plotter.rmd'  
-2. Replace the `sr_path` in the first chunk with the path to the 'SpatialReportMalariaFiltered.csv' generated in step 2 above
-3. Replace the `plot_path` in the first chunk with the path to the desired folder for storing plots (ex. `project_dir/simulation_outputs/spatial_example/`
-3. Run the `spatial_plotter.rmd` file
+1. Open 'plot_spatial_example.rmd'  
+2. Update the `root` in the first chunk with the path to folder containing the `SpatialReportMalariaFiltered.csv` and `CountedEvents.csv` generated above.  
+3. Update the `out_path` in the first chunk with the path to the desired folder for storing plots (ex. `project_dir/simulation_outputs/spatial_example/`
+4. Run the `spatial_plotter.rmd` file
 
-**ADD EVENT COUNTS TO PLOT**
+View the SpatialSummary.png that was created.
 
 </p>
 </details>
