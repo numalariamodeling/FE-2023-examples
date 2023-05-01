@@ -848,7 +848,7 @@ Now, referring to the scripts you wrote for previous examples, you should be abl
     - One node receives ITNs every 3 years only  
     - One node receives no interventions   
 - 10 stochastic realizations / random seeds each (sweep over `Run_Number`)  
-- add Filtered Spatial Reports and Event Recorder to outputs, inside `general_sim()`   
+- add Filtered Spatial Reports and Event Counters to outputs, inside `general_sim()`   
     -  `add_spatial_report_malaria_filtered(...)`  
         - Filter to final year 3 years of the simulation  
         - For a daily report, use `reporting_interval = 1`  
@@ -939,7 +939,7 @@ This will produce a file inside `working_dir/simulation_output/experiment_name/S
 * PCR_Parasite_Prevalence
 * New_Clinical_Cases
 
-To analyze the event counts from each `ReportEventCounter_node_#.json`, run the script EventAnalyzer.py
+To analyze the event counts from each `ReportEventCounter_node_#.json`, run the script `EventAnalyzer.py`
 
 Edit **only** the following lines at the bottom of the script before running:
 
