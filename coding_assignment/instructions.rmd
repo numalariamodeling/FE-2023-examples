@@ -1,0 +1,131 @@
+---
+title: "Pre-Program Coding Assignment"
+author: "Tobias Holden"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+Complete the pre-program Coding Assignment to (re)familiarize yourself with some basics in `R` and `python`
+
+### Pre-Requisites
+
+Despite having a variety of backgrounds, we aim for all participants to arrive familiar with certain programming skills, most of which are needed to complete the pre-program Coding Assignment.
+
+[If you are unfamiliar with any of the skills in the table below, please review the self-led tutorials at the links provided to learn.]{style="color:black;font-weight:bold"}
+
++--------------------------------------------------------------------------------+--------------------------------------------------------------------------+
+| Python                                                                         | R                                                                        |
++================================================================================+==========================================================================+
+| -   Variables and Types                                                        | -   Basic Syntax                                                         |
+| -   Lists                                                                      |                                                                          |
+| -   Basic Operators                                                            | -   Data Frames                                                          |
+| -   Strings - slicing, splitting, case                                         |                                                                          |
+| -   Conditions - `and`, `or`, `in`, `is`, `not`                                | -   Data Cleaning - `tidyr`                                              |
+| -   Loops - `for` and `while`                                                  |                                                                          |
+| -   Functions                                                                  | -   Data Visualization - `ggplot2`                                       |
+| -   Classes and Objects                                                        |                                                                          |
+| -   Dictionaries                                                               | -   Aggregate Functions                                                  |
+| -   Modules and Packages                                                       |                                                                          |
+| -   Numpy Arrays                                                               | -   Joining Tables - `dplyr`                                             |
+| -   Pandas Basics                                                              |                                                                          |
++--------------------------------------------------------------------------------+--------------------------------------------------------------------------+
+| [Self-led "Intro to Python" Tutorials](https://www.learnpython.org/en/Welcome) | [Self-led "Learn R" Tutorials](https://www.codecademy.com/learn/learn-r) |
++--------------------------------------------------------------------------------+--------------------------------------------------------------------------+
+
+### Assignment Overview
+
+This assignment is designed to review core competencies of `R` and `python` coding that you will use throughout the program. It is *not a test* but rather the first component of the technical program, through which we develop these skills alongside more advanced modeling techniques.
+
+The first assignment asks you to demonstrate your ability to use the pre-requisite skills to:  
+1. Use `python` to "analyze" (process, clean, and merge) data from multiple files to produce a single output spreadsheet.\  
+2. Use `R` to wrangle, summarize, and plot the cleaned output data from Part 1.
+
+[This assignment is due at the end of Week 0.]{style="color:red;font-weight:bold"}
+
+**Stuck?**
+
+-   Review the tutorials in the table above  
+-   Post on the FE-2023 Slack Channel  
+-   We will hold (virtual) Office Hours in Week 0 to answer questions and help out!  
+
+### Instructions
+
+#### Part 0. Get a copy of the example data
+
+1.  Go to the [coding assignment repository](https://github.com/numalariamodeling/FE-2023-examples/tree/main/coding_assignment/example_data)
+
+2.  Obtain a local copy of the `example_data/` folder
+
+    -   Download and unzip the folder to a new folder on your computer, ...`/project_dir`
+
+3.  Examine a sample `output.csv` file from the example data.\
+    You will have to click through `experiment > simulation_## > outputs` to see one. This is a standard directory structure for outputs from the model, EMOD, which you will soon become very familiar with!
+
+    -   In reality, the output files in EMOD can be .json dictionaries or .bin binary files in addition to .csv spreadsheets. However, to make the assignment simpler, we've created some "fake" output files in a form that is easier to work with.  
+    -   Each output.csv file contains daily timeseries of 3 dependent variables [Var1, Var2, and Var3] for a specific combination of the grouping variables [Site, Trial_Number, and Arm]
+
+#### Part 1. Python - analyze example data
+
+1.  Create a new `my_python_script.py` file in the same `/project_dir` where you saved the `example_data` folder
+
+    Your directory structure should be:
+
+    -   `project_dir/`  
+        -   `example_data/`  
+            -   ...  
+        -   `my_python_script.py`  
+
+2.  Import the following modules: `pandas`, `numpy`, `os`
+
+3.  Combine data from the `output.csv` file in each `example_data/simulation/` sub-folder into a single DataFrame, with the following modifications:  
+
+    -   Keep all grouping variables ("Day", "Site", "Trial_Number", and "Arm")  
+    -   Restrict to include only values in the last 365 Days  
+    -   Save the values for "Var1" and "Var3" in each group  
+        -   Do not save the values for any other variables that may have been in `output.csv` !  
+    -   Append results from all simulations together.  
+
+4.  Save the resulting DataFrame as `output_cleaned.csv`
+
+#### Part 2. R - transform and visualize output
+
+
+**Did you generate the output from Part 1?**
+
+*This must be done before starting Part 2.*
+
+Your directory structure should now be:
+
+-   `project_dir/`  
+    -   `example_data/`  
+        -   ...  
+    -   `my_python_script.py`  
+    -   `output_cleaned.csv`  
+
+
+1.  Open Rstudio: File \> New Project \> Existing Directory \> `project_dir`
+2.  Create a new `my_R_script.Rmd` file or `my_R_script.R` script inside `project_dir` to do the following:  
+    -   Read in output_cleaned.csv
+
+    -   Aggregate the count, mean, and standard deviation of Var1 and Var3 (separately) on each day for a given Site
+        - This will collapse all Trial_Numbers and Arms together
+    -   Use mutate to add upper and lower 95% prediction intervals around the daily mean of Var1 and Var3 at each Site  
+        - mean ± 1.96 * sd ÷ √n         
+
+    -   Use `ggplot2` to produce plots of the data:
+
+        -   Day on the x-axis, Var# on the y-axis
+        -   Separate lines and colors for each dependent variable (Var 1 and Var 3)
+        -   Separate facets for each Site
+        -   An informative title, labels, legend, color palette etc.
+            -   You don't need to spend much time on plot appearance for this for this assignment, but it is an important part of communicating our findings
+
+    -   Save your plot(s) as `.png` file(s) in `project_dir/` with a descriptive file name (ex. "Variables1-2_by_Site.png")
+
+#### Part 3. Submit to Slack
+
+Post your plot(s) to the FE-2023 slack channel for feedback.
+
+-   How does it compare to others?  
+-   If something looks off, what do you think is causing it?  
+-   For more practice: Try creating the plots using different grouping variables (Ex. Trial_Number, or Arm) in addition to or instead of Site

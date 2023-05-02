@@ -15,7 +15,8 @@ class MonthlyPfPRAnalyzerU5IP(IAnalyzer):
 
         super(MonthlyPfPRAnalyzerU5IP, self).__init__(working_dir=working_dir,
                                                     filenames=[
-                                                        f"output/MalariaSummaryReport_{ipfilter}.json"]
+                                                        f"output/MalariaSummaryReport_Monthly_U5{ipfilter}_{x}.json"
+                                                        for x in range(start_year, end_year)]
                                                     )
         self.sweep_variables = sweep_variables or ["Run_Number"]
         self.expt_name = expt_name
@@ -94,9 +95,6 @@ if __name__ == "__main__":
 
     
     expts = {
-        #'week2_weather' : '2c090358-cb7b-44e5-a2fd-842a6c23a5b7'
-        #'week2_outputs' : '26f947c3-0770-46df-bc6a-c1c77e36f686'
-        #'week3_calib' : 'f27386a6-3958-46b3-8ec0-08df81c67ffc'
         'week4_IP_CM' : '47ca8005-ab6f-4397-939b-2ffeacb2bab6'
     }
     
@@ -107,19 +105,19 @@ if __name__ == "__main__":
     if not os.path.exists(wdir):
         os.mkdir(wdir)
     
-    sweep_variables = ['Run_Number','x_Temporary_Larval_Habitat'] 
+    sweep_variables = ['Run_Number', 'x_Temporary_Larval_Habitat']
     
-    with Platform('SLURM_LOCAL',job_directory=jdir) as platform:
+    with Platform('SLURM_LOCAL', job_directory=jdir) as platform:
 
-        for expname, exp_id in expts.items():
+        for expt_name, exp_id in expts.items():
           
-            analyzer = [MonthlyPfPRAnalyzerU5IP(expt_name=expname,
+            analyzer = [MonthlyPfPRAnalyzerU5IP(expt_name=expt_name,
                                       start_year=2010,
                                       end_year=2015,
                                       sweep_variables=sweep_variables,
                                       working_dir=wdir,
                                       ipfilter='_highaccess'),
-                        MonthlyPfPRAnalyzerU5IP(expt_name=expname,
+                        MonthlyPfPRAnalyzerU5IP(expt_name=expt_name,
                                       start_year=2010,
                                       end_year=2015,
                                       sweep_variables=sweep_variables,
@@ -127,7 +125,7 @@ if __name__ == "__main__":
                                       ipfilter='_lowaccess')]
             
             # Create AnalyzerManager with required parameters
-            manager = AnalyzeManager(configuration={},ids=[(exp_id, ItemType.EXPERIMENT)],
+            manager = AnalyzeManager(configuration={}, ids=[(exp_id, ItemType.EXPERIMENT)],
                                      analyzers=analyzer, partial_analyze_ok=True)
             # Run analyze
             manager.analyze()

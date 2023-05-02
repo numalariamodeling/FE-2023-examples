@@ -5,8 +5,9 @@ import numpy as np
 import sys
 import re
 import random
-from idmtools.entities import IAnalyzer	
+from idmtools.entities import IAnalyzer
 from idmtools.entities.simulation import Simulation
+
 
 class MonthlyPfPRAnalyzerU5IP(IAnalyzer):
 
@@ -14,9 +15,10 @@ class MonthlyPfPRAnalyzerU5IP(IAnalyzer):
                  burnin=None, filter_exists=False, ipfilter=''):
 
         super(MonthlyPfPRAnalyzerU5IP, self).__init__(working_dir=working_dir,
-                                                    filenames=[
-                                                        f"output/MalariaSummaryReport_{ipfilter}.json"]
-                                                    )
+                                                      filenames=[
+                                                          f"output/MalariaSummaryReport_Monthly_U5{ipfilter}_{x}.json"
+                                                          for x in range(start_year, end_year)]
+                                                      )
         self.sweep_variables = sweep_variables or ["Run_Number"]
         self.expt_name = expt_name
         self.start_year = start_year
@@ -84,51 +86,46 @@ class MonthlyPfPRAnalyzerU5IP(IAnalyzer):
         adf = pd.concat(selected).reset_index(drop=True)
         if self.burnin is not None:
             adf = adf[adf['year'] > self.start_year + self.burnin]
-        adf.to_csv((os.path.join(self.working_dir, self.expt_name, f'U5{self.ipfilter}_PfPR_ClinicalIncidence.csv')), index=False)
-        
+        adf.to_csv((os.path.join(self.working_dir, self.expt_name, f'U5{self.ipfilter}_PfPR_ClinicalIncidence.csv')),
+                   index=False)
+
+
 if __name__ == "__main__":
 
     from idmtools.analysis.analyze_manager import AnalyzeManager
     from idmtools.core import ItemType
     from idmtools.core.platform_factory import Platform
 
-    
     expts = {
-        #'week2_weather' : '2c090358-cb7b-44e5-a2fd-842a6c23a5b7'
-        #'week2_outputs' : '26f947c3-0770-46df-bc6a-c1c77e36f686'
-        #'week3_calib' : 'f27386a6-3958-46b3-8ec0-08df81c67ffc'
-        'week4_IP_CM' : '47ca8005-ab6f-4397-939b-2ffeacb2bab6'
+        'week4_IP_CM': '47ca8005-ab6f-4397-939b-2ffeacb2bab6'
     }
-    
 
     jdir = manifest.job_directory
-    wdir=os.path.join(jdir, 'simulation_outputs')
-    
+    wdir = os.path.join(jdir, 'simulation_outputs')
+
     if not os.path.exists(wdir):
         os.mkdir(wdir)
-    
-    sweep_variables = ['Run_Number','x_Temporary_Larval_Habitat'] 
-    
-    with Platform('SLURM_LOCAL',job_directory=jdir) as platform:
 
-        for expname, exp_id in expts.items():
-          
-            analyzer = [MonthlyPfPRAnalyzerU5IP(expt_name=expname,
-                                      start_year=2010,
-                                      end_year=2015,
-                                      sweep_variables=sweep_variables,
-                                      working_dir=wdir,
-                                      ipfilter='_highaccess'),
-                        MonthlyPfPRAnalyzerU5IP(expt_name=expname,
-                                      start_year=2010,
-                                      end_year=2015,
-                                      sweep_variables=sweep_variables,
-                                      working_dir=wdir,
-                                      ipfilter='_lowaccess')]
-            
+    sweep_variables = ['Run_Number', 'x_Temporary_Larval_Habitat']
+
+    with Platform('SLURM_LOCAL', job_directory=jdir) as platform:
+
+        for expt_name, exp_id in expts.items():
+            analyzer = [MonthlyPfPRAnalyzerU5IP(expt_name=expt_name,
+                                                start_year=2010,
+                                                end_year=2015,
+                                                sweep_variables=sweep_variables,
+                                                working_dir=wdir,
+                                                ipfilter='_highaccess'),
+                        MonthlyPfPRAnalyzerU5IP(expt_name=expt_name,
+                                                start_year=2010,
+                                                end_year=2015,
+                                                sweep_variables=sweep_variables,
+                                                working_dir=wdir,
+                                                ipfilter='_lowaccess')]
+
             # Create AnalyzerManager with required parameters
-            manager = AnalyzeManager(configuration={},ids=[(exp_id, ItemType.EXPERIMENT)],
+            manager = AnalyzeManager(configuration={}, ids=[(exp_id, ItemType.EXPERIMENT)],
                                      analyzers=analyzer, partial_analyze_ok=True)
             # Run analyze
             manager.analyze()
-            

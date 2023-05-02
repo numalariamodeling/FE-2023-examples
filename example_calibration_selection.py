@@ -7,11 +7,12 @@ mpl.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
 from idmtools_calibra.utilities.ll_calculators import beta_binomial
+import manifest
 
 user = os.getlogin()  # user initials
 expt_name = 'week3_calib'
 
-jdir =  '/projects/b1139/FE-2023-examples/experiments'
+jdir = manifest.job_directory
 output_dir=os.path.join(jdir, 'simulation_outputs')
 
 input_dir = os.path.join('~','FE-2023-examples/inputs')

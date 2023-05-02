@@ -5,40 +5,72 @@ Example scripts for 2023 faculty enrichment program in applied malaria modeling 
 [![fr](https://img.shields.io/badge/lang-fr-red.svg)](https://github.com/numalariamodeling/FE-2023-examples/blob/main/README.fr.md)
 
 
-## Technical track (EMOD)
+### Technical track (EMOD)
 
 **Overview:**
-Exercises usually consist of a simulation and an analyzer of simulation outputs. 
-In some weeks, additional scripts exist to prepare simulation inputs or generate additional outputs and plots, or for model calibration as described in the instructions for the respective weeks.
+Exercises usually consist of a simulation and an analyzer of simulation outputs. In some weeks, additional scripts exist to prepare simulation inputs or generate additional outputs and plots, or for model calibration as described in the instructions for the respective weeks.
 
-**Checking results:**
-For each week suggested simulation scripts for comparison or help during the exercise are provided in the respective week's folder.
+**Supplied scripts & checking results:**
+A few primary scripts are provided at the main level of this repository including running examples and analyzers. Most of the work for this course will be done by you building your own scripts based on the instructions with the help of these scripts. For each week, suggested simulation scripts for comparison or help during the exercise are provided in the respective week's [solution scripts](https://github.com/numalariamodeling/FE-2023-examples/tree/main/solution_scripts) folder. There is also an analyzer collection file in the solutions scripts that includes many commonly used analyzers that you may want to explore in more depth for your project. **Note: if you use an analyzer from the collection, be sure to add the right reporters to create the necessary output files.**
 
-**Prerequisites**: 
-Before running the weekly example scripts, please ensure that emodpy has been successfully [installed](https://faculty-enrich-2022.netlify.app/modules/install-emod/)
-and that the [repository has been cloned](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository)
-to your home directory on QUEST, ideally as _/home/<.username>/FE-2023-examples_.
-Running your scripts will require that the emodpy virtual environment is loaded and assumes files are run from a working directory set to where the script is located. On QUEST there is an existing venv that can be loaded using `source activate /projects/b1139/environments/emodpy_alt` - this environment uses the idmtools platform `SLURM_LOCAL`. Otherwise, you may follow these directions to install your own environment. **TOADD** Before you start on an exercise, make sure that you have pulled or fetched the latest changes from the repository (see git-guides [git-pull](https://github.com/git-guides/git-pull)).
+**Prerequisites:** 
+Before running the weekly example scripts, please ensure that the emodpy virtual environment has been successfully [installed](https://faculty-enrich-2022.netlify.app/modules/install-emod/) **UPDATE LINK**
+and that this [repository has been cloned](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) to your home directory on QUEST, ideally as _/home/<.username>/FE-2023-examples_. Running your scripts will require that the emodpy virtual environment is loaded and assumes files are run from a working directory set to where the script is located. On QUEST there is an existing venv that can be loaded using `source activate /projects/b1139/environments/emodpy_alt` - this environment uses the idmtools platform `SLURM_LOCAL`. Before you start on an exercise, make sure that you have pulled or fetched the latest changes from the repository (see git-guides [git-pull](https://github.com/git-guides/git-pull)).
 
-### Week 1: Overview of EMOD
-This week we will be discussing EMOD's general structure and content as well as making sure you are ready to run the model on our linux-based HPC, QUEST. You will set up your own virtual environmet to run EMOD via emodpy and idmtools and clone this github repository to your home directory on QUEST. We will not be running any example scripts, but please familiarize yourself with the repo, website, and EMOD documentation.
+## Week 1: Overview of EMOD
+This week we will be discussing EMOD's general structure and content as well as making sure you are ready to run the model on our linux-based HPC, QUEST. You will set up your own virtual environment to run EMOD via emodpy and idmtools and clone this github repository to your home directory on QUEST. We will not be running any example scripts, but please familiarize yourself with the repo, website, and EMOD documentation.
 
-### Week 2: Building Blocks
-This week's first exercise introduces the simplest version of running and analyzing a single simulation experiment in EMOD using the emodpy/idmtools infrastructure and python. Before running a simulation, one needs to check that all configurations and installations were successful and edit paths in the manifest file. The steps are generally to
+**What to Expect**
 
-1. run simulation, and   
-2. analyze simulation outputs. 
+Click the arrow to expand:
+<details><summary><span><em>Running EMOD from the terminal</em></span></summary>
+<p>
 
-This week's second exercise demonstrates how to create demographics and climate files and how to incorporate these into the simulation. The exercise further introduces how to modify config parameters (i.e. population size or simulation duration)
+When you run an EMOD simulation script on QUEST, it will generate a set of initial messages. You will see a warning about no "idmtools.ini" - this is perfectly normal as we do not typically need the ini file to run with emodpy. Following this warning, you will see a segment that tells you some basic details about the idmtools platform you are using to run the script as well as the job directory, where all your simulation outputs will be stored.
 
-This week's final exercise will focus on observing changes in simulation results based on the `InsetChart.json` and `MalariaSummaryReport.json` model outputs.
+![](static/example_run.png)
+
+After a short waiting period, you will also see additional lines providing information on the commissioning of your simulation(s). You can expect to see a line saying that the EMODTask is being created, a few warnings and notices about file creation, then the bars showing progress on asset discovery and simulation commissioning. Once fully commissioned, you will also see the QUEST job ID, job directory, suite ID, and experiment ID. A line in the [example_run.py](https://github.com/numalariamodeling/FE-2023-examples/blob/main/example_run.py) tells the terminal to wait until all of the simulations are finished running, so there is an additional progress bar and assertion that the experiment succeeded, or failed, (once complete) that may not be present in all runs if this line is excluded. Notice that we have commissioned and successfully run 1 simulation here (see 1/1 at end of progress bars).
+
+![](static/example_commission.png)
+
+</p>
+</details>
+
+<details><summary><span><em>File Structure</em></span></summary>
+<p>
+
+If you navigate to the job directory, the file structure should look similar to that below. It can be summarized as:
+
+- Job Directory
+    - Suite ID
+        - Experiment ID
+            - Experiment Assets (e.g. demographics, EMOD executable, climate files, etc)
+            - Simulation ID(s)
+                - Output folder (e.g. reporters specified in run script)
+                - General simulation outputs (e.g. campaign and config files, status/error tracking, simulation metadata)
+            - General experiment outputs (e.g. status/error tracking, experiment metadata)
+        - Suite metadata file
+            
+*NOTE: All of the ID folders are the 16-digit alphanumeric strings generated by idmtools, there is currently no way to modify them to use more human readable names*
+
+![](static/example_file_structure.png)
+
+</p>
+</details>
+
+## Week 1: Getting Started
+
+This week's exercise introduces the simplest version of running and analyzing a single simulation experiment in EMOD using the emodpy/idmtools infrastructure and python. Before running a simulation, one needs to check that all configurations and installations were successful and edit paths in the manifest file. The steps are generally to
+
+1. run the simulation, and   
+2. analyze simulation outputs 
 
 **Instructions**
 
 Click the arrow to expand:
 <details><summary><span><em>Running a simple EMOD simulation</em></span></summary>
 <p>
-
 
 - Navigate to your local copy of this repository on QUEST: `cd ~/FE-2023-examples`  
 - Notice your job directory path in `manifest.py`: `/projects/b1139/FE-2023-examples/experiments/<username>`. This will help your track your simulations separately from other participants.  
@@ -48,16 +80,24 @@ Click the arrow to expand:
 - Wait for simulation to finish (~2 minutes)  
 - Go to the job directory (see `experiments/<your username>` above) folder to find the generated experiment - it will be under a set of 16-digit alphanumeric strings. The structure of these strings is `Suite > Experiment > Simulations`. Due to current handling systems with SLURM you will not be able to see the experiment name given within the `example_run.py` script; however, this can be found in the experiment and simulation-level metadata.json files. You may also choose to sort your files based on time such that most recent experiments will appear first. 
 - Take a look through what was generated even in this simple run and get familiar with the file structure.  
-    - *NOTE: be sure to go all the way into the folder structure to see your simulations & their outputs*
+    - *NOTE: be sure to go all the way into the folder structure to see your simulations & their outputs. For more information on what to expect, see [Week 1](https://github.com/numalariamodeling/FE-2023-examples#week-1-overview-of-emod)*
 
 </p>
 </details>
 
+## Week 2: Building Blocks
+
+This week's first exercise demonstrates how to create input files, such as demographics and climate files, and how to incorporate these into the simulation. The exercise further introduces how to modify config parameters (i.e. population size or simulation duration)
+
+This week's second exercise focuses on adding reporters and observing changes in simulation results based on the `InsetChart.json` and `MalariaSummaryReport.json` model outputs.
+
+**Instructions**
+
+Click the arrow to expand:
 <details><summary><span><em>Adding Inputs</em></span></summary>
 <p>
 
 This exercise demonstrates how to create demographics and climate files and how to incorporate these into the simulation as well as introducing how to modify config parameters (e.g. run number or simulation duration). Complete all of the steps below before running this next example.
-
 
 
 1. Extracting climate data & adding to simulations
@@ -114,8 +154,9 @@ def build_demog():
 ```
 
 3. Modifying configs
-    - We also often want to modify some of the [config parameters](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-configuration.html) that control things like the within-host model, vectors, and simulation setup. In `example_run.py` we set the malaria team defaults using `config = conf.set_team_defaults(config, manifest)`, but we can also specify individual parameters like we did with the climate file names. Let's start with some simple things like adding setting the `Simulation_Duration` (how long the simulation should run in days) and the `Run_Number` (the random seed for the simulation) in `set_param_fn()`. Both of these can be done directly by referencing them as `config.parameters.<param_name>` and setting them equal to the desired value. The team typically uses a structure of `sim_years*365` with sim_years defined globally, at the top of the script beneath all imports, to set the duration.
-    - Set the duration to 1 year and the run number to any number of your choosing.
+    - We also often want to modify some of the [config parameters](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-configuration.html) that control things like the within-host model, vectors, and simulation setup. In `example_run.py` we set the malaria team defaults using `config = conf.set_team_defaults(config, manifest)`, but we can also specify individual parameters like we did with the climate file names. Let's start with some simple things like adding setting the `Simulation_Duration` (how long the simulation should run in days) and the `Run_Number` (the random seed for the simulation) in `set_param_fn()`. Both of these can be done directly by referencing them as `config.parameters.<param_name>` and setting them to the desired value. The team typically uses a structure of `sim_years*365` with sim_years defined globally, at the top of the script beneath all imports, to set the duration.
+    - Set the duration to 1 year and the run number to any number of your choosing
+        - *NOTE: this run number value is just the random seed value, NOT the number of stochastic realizations to run.*
     - Next, we'll add some mosquito species. There is a specific function for this, `add_species()` in emodpy_malaria malaria config. Try adding *A. gambiae*, *A. arabiensis*, and *A. funestus* to your config file:
     
 ```py    
@@ -127,10 +168,10 @@ def set_param_fn():
     conf.add_species(config, manifest, ["gambiae", "arabiensis", "funestus"])
 
     config.parameters.Simulation_Duration = sim_years*365
-    config.parameters.Run_Number = 5
+    config.parameters.Run_Number = 0
 ```
 
-4. Now that you've added these changes, try running your new script with `python3 example_run_input.py -l`. Once it has succeeded go check on what has run. Do you see the changes to your demographics.json and the climate folder in the experiment's `Assets` directory? How about to config.json or stdout.txt? You should also see [`InsetChart.json`](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-inset-chart.html) in the simulation's output folder - this is EMOD's default report that will give you an idea of what's going on in your simulation. We'll explore this more later in the Analysis section of Week 2.
+4. Now that you've added these changes, try running your new script with `python3 example_run_inputs.py -l`. Once it has succeeded go check on what has run. Do you see the changes to your demographics.json and the climate folder in the experiment's `Assets` directory? How about to config.json or stdout.txt? You should also see [`InsetChart.json`](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-inset-chart.html) in the simulation's output folder - this is EMOD's default report that will give you an idea of what's going on in your simulation. We'll explore this more later in the Analysis section of Week 2.
 
 </p>
 </details>
@@ -181,13 +222,14 @@ This exercise demonstrates how to add some of the malaria built-in reporters to 
 Now that you've learned the basics of how to run EMOD and add inputs/outputs you can start actually analyzing some data! We use analyzer scripts to extract the data we want from our simulations' reports to understand what the simulation is doing, how it is changing, and answer research questions. This week's analyzer script, `analyzer_W2.py` contains two different analyzers:
 
 1. `InsetChartAnalyzer` that extracts data from `Inset_Chart.json`. Notice the `channels_inset_chart` in line 159 - this tells defines which data channels we are interested in looking at. Six different channels are included currently but these can always be modified depending on what you want to explore. 
-2. `MonthlyPfPRAnalyzer` that extracts data from the monthly summary report. If you look at the guts of the analyzer (lines 62 - 138), you'll see that this will particularly focus on extracting PfPR, Clinical Incidence (per person per year), Severe Incidence (per person per year), and Population, all by time (month) and age bins.
+2. `MonthlyPfPRAnalyzer` that extracts data from the monthly summary report. If you look at the guts of the analyzer (lines 62 - 138), you'll see that this will particularly focus on extracting PfPR, Clinical Incidence (per person per year), Severe Incidence (per person per year), and Population, all by time (month, year) and age bins.
 
+- There are start and/or end_years included in both analyzers to match simulation time to real time. You can provide any relevant values that will be helpful to your processing (such as 2000 - 2009 for a 10 year simulation).
 - You'll also notice `sweep_variables` being defined and going into both analyzers - we'll discuss this in more depth in Week 3, but for now you can think of this like a tag (or set of tags) for our simulation(s).
 
 - Before we can run the analyzer script, you need to make a few changes:
     1. Set your `jdir` (short for job directory) to where your experiments are saved (*/projects/b1139/FE-2023-examples/experiments/<username>*). Notice that this is used for the platform, and we also set `wdir` (working directory) for the analyzer where the analyzers will output any results you have requested
-    2. Define your experiment name and ID in the `expts` dictionary (line 147) - these should match the UID and name in the experiment level `metadata.json` for your experiment of interest:
+    2. Define your experiment name and ID in the `expts` dictionary (line 147) - these should match the UID and name in the experiment level `metadata.json` for your experiment of interest, in this case the `f'{user}_FE_example_outputs'` experiment you just ran:
 
     ```py
     expts = {
@@ -198,7 +240,7 @@ Now that you've learned the basics of how to run EMOD and add inputs/outputs you
 - This week's analyzer script also includes a basic python plotter for the results from `InsetChartAnalyzer` that will help you visualize each of the `channels_inset_chart` throughout the simulation. Take a look through the code to see if you can tell what it is doing before running it.
 - Run the analyzer, you will not need the `-l` command as the platform is set to run only with `SLURM_LOCAL` right now
 - Wait for the analyzer to succeed. Once it is finished check out your new outputs (see if you can find the `wdir` mentioned above without help). You should see two csvs, one from each analyzer, as well as a InsetChart.png.
-- As an additional exercise, try to make a data visualization in R or python based off of the MonthlyPfPRAnalyzer output (PfPR_Clinical_Incidence_monthly.csv). You'll need to take a look through the output file and decide what kind of figure may be interesting and inform you about your simulation. *Note: there is no solution script for this, it is an exercise of creativity and data visualization skills where everyone may have unique ideas*
+- As an additional exercise, try to make a data visualization in R or python based off of the MonthlyPfPRAnalyzer output (PfPR_Clinical_Incidence_monthly.csv), based on the `MalariaSummaryReport`. You'll need to take a look through the output file and decide what kind of figure may be interesting and inform you about your simulation. *Note: there is no solution script for this, it is an exercise of creativity and data visualization skills where everyone may have unique ideas. Check out the plotting resources, then discuss with your colleagues or the instructional staff if you get stuck.*
 - Once you've completed your data visualization exercise, feel free to try changing some other [config parameters](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-configuration.html) in your example script. Run additional simulations with different durations, population sizes, agebins, etc. - whatever you think would be interesting! This is a great time to look through the EMOD documentation and explore parameters so you get to know the EMOD ecosystem better. *(Tip: change your experiment name to keep track of your simulations in both the metadata and analyzer outputs)*
     - You can also run these sims through the analyzer script by updating the experiment name and ID, as above. Do this and inspect the outputs as well as any changes compared to your first run. What do you see? 
         - How have the outcomes changed? 
@@ -209,7 +251,7 @@ Now that you've learned the basics of how to run EMOD and add inputs/outputs you
 </p>
 </details>
 
-### Week 3: Experiment Setups & Fine-Tuning
+## Week 3: Experiment Setups & Fine-Tuning
 This week's exercises will focus on how to design and setup more detailed experiments. We will cover sweeping over config parameters, calibration, and serialization. 
 
 This week's first exercise introduces the concept of "sweeping" over ranges of values for different parameters.  There are a variety of reasons we may want to test out a range of parameter values, some examples include:
@@ -255,7 +297,7 @@ For now we'll start with a simple sweep over one config parameter, such as the r
 - As mentioned, we also need to adjust the way we create our experiments in `general_sim()`. Notice that we are currently use `Experiment.from_task()` which creates the experiment and simulations directly from the defined task. To sweep over variables we'll have to switch to using `Experiment.from_builder()` that works to setup each simulation directly rather than an entire experiment with the same parameters.
     - First, initialize the builder such that `builder = SimulationBuilder()`. This should go in `general_sim()` between adding assets and reports. 
     - Add the sweep to the builder using `add_sweep_definition()`. Here you'll create a partial of `set_param` (defined above), pass the config parameter that you'd like to set to this partial, and then provide the range of values to sweep over. In this example, tell the function to sweep over `Run_Number` over the range of the `num_seeds` defined above (will output values of 0 - `num_seeds`).
-    - Finally, you'll need to remove the `Experiment.from_task()` creation and replace with `Experiment.from_builder(builder, task, name=<expname>)`. This will create experiments based on the task but with the additional information contained in the builder, including the added sweep. Make sure you keep the modified experiment name!
+    - Finally, you'll need to remove the `Experiment.from_task()` creation and replace with `Experiment.from_builder(builder, task, name=<expt_name>)`. This will create experiments based on the task but with the additional information contained in the builder, including the added sweep. Make sure you keep the modified experiment name!
   
       ```py
       def general_sim()
@@ -294,9 +336,21 @@ Depending on our project and site there are a variety of different parameters yo
       ```py
       builder.add_sweep_definition(partial(set_param, param='x_Temporary_Larval_Habitat'), np.logspace(-0.5,1,10))
       ```
-    - Add `filename_suffix='Monthly_U5'` to the end of the summary reporter. This command adds a descriptor to the report output file - it is particularly useful when you want to output multiple different reports from the same type of reporter (such as a weekly, monthly, and annual report).
-    - Update the expname and run your simulations.
-    - Update the expname and exp_id in the `calibration_analyzer.py` then run the script - check out the differences between this and previous analyzers (and their outputs).
+    - In this example we'll use yearly summary reports rather than one large one through a for loop over the years. We'll also add `filename_suffix=f'Monthly_U5_{sim_year}'` to the end of the summary reporter. This command adds a descriptor to the report output file - it is particularly useful when you want to output multiple different reports from the same type of reporter (such as a weekly, monthly, and annual report).
+    
+      ```py
+        for year in range(sim_years):
+        start_day = 0 + 365 * year
+        sim_year = sim_start_year + year
+        add_malaria_summary_report(task, manifest, start_day=start_day, 
+                               end_day=365+sim_year*365, reporting_interval=30,
+                               age_bins=[0.25, 5, 115],
+                               max_number_reports=13,
+                               pretty_format=True, 
+                               filename_suffix=f'Monthly_U5_{sim_year}')
+      ```
+    - Update the `expt_name` and run your simulations.
+    - Update the `expt_name` and exp_id in the `calibration_analyzer.py` then run the script - check out the differences between this and previous analyzers (and their outputs).
     
 2. Parameter selection
     - The `example_calibration_selection.py` script is a simple example of how we may select the best match parameter value for calibration. It calculates the average log-likelihood of each `x_Temporary_Larval_Habitat` based on simulation outputs and produces some plots to visualize the parameter selection.
@@ -358,13 +412,14 @@ This serialization exercise has three parts. In part 1 you will run and save a b
           if step == 'pickup':
               sweep_variables = ['Run_Number'] # for times when you add additional items to the pickup, you can add more sweep variables here
           ```
-        - To use the "step" system we will want to also modify our analyzers run statement. Assuming you included only the default report, `InsetChart`, in your burnin then you will want to run only that analyzer for the burnin step. For the pickup you will likely want to include a version of the summary report we've been using so we'll include that in the pickup step in the analyzer. Notice that these are largely the same as how we were calling them previously, with the addition of a `start_year` parameter. This functionality has been in the actual analyzer the whole time, but we hadn't referenced it; however, it becomes more important as we think about time in serialization. This allows us to essentially set the date for for the simulation outputs such that our burnin will end in 2023 (and such should start the number of `serialize_years` prior) and the pickup will start where the burnin leaves off in 2023. We then run the analyzer based on the step we set above. We can keep the basic plotter after this just to get an idea of what is going on in our simulations. 
+        - To use the "step" system we will want to also modify our analyzers run statement. Assuming you included only the default report, `InsetChart`, in your burnin then you will want to run only that analyzer for the burnin step. For the pickup you will likely also want to include a version of the summary report we've been using so we'll include that in the pickup step in the analyzer. Be sure to update the `start_year` for the analyzer such that our burnin will end in 2023 (and should start the number of `serialize_years` prior) and the pickup will start where the burnin leaves off in 2023. The simulations themselves have no linkage to real time; rather, they track simulation timesteps. Applying the the year in the analyzer in this way is simply meant to turn those simulation timesteps into a more understandable framework for our work. We then run the analyzer based on the step we set above. We can keep the basic plotter after this just to get an idea of what is going on in our simulations. 
+            - **Note: In certain cases, such as monitoring PfPR across all simulation time, you will also want to include a summary report (or another report) in the burnin. Be thoughtful about the questions you are trying to address and what reports you'll need at each step, there is no one right way!**
         
           ```py
           with Platform('SLURM_LOCAL',job_directory=jdir) as platform:
 
-              for expname, exp_id in expts.items():
-                  analyzers_burnin = [InsetChartAnalyzer(expt_name=expname,
+              for expt_name, exp_id in expts.items():
+                  analyzers_burnin = [InsetChartAnalyzer(expt_name=expt_name,
                                            channels=channels_inset_chart,
                                            start_year=2023 - serialize_years,
                                            sweep_variables=sweep_variables,
@@ -378,6 +433,7 @@ This serialization exercise has three parts. In part 1 you will run and save a b
                                            working_dir=wdir),
                                       MonthlyPfPRAnalyzer(expt_name=expt_name,
                                             start_year=2023,
+                                            end_year=2023,
                                             sweep_variables=sweep_variables,
                                             working_dir=wdir)
                                       ]
@@ -404,7 +460,7 @@ This serialization exercise has three parts. In part 1 you will run and save a b
     - Add custom or new parameters that define the pickup simulation and burnin duration as well as ID of the burnin experiment. Add these at the top of your new script after your import statements:
         - `pickup_years` to define your `Simulation_Duration` (i.e. # of years run post-burnin). This will replace the duration that you had previously in the script so make sure you update the `Simulation_Duration` accordingly!
         - `serialize_years` to define the year of the burnin that serves as the start of the pickup and should be equal to the value of `serialize_years` in the burnin.
-        - `burnin_id = '<exp_id>'` with the experiment_id from the burnin experiment you want to pick up from
+        - `burnin_exp_id = '<exp_id>'` with the experiment_id from the burnin experiment you want to pick up from
         - `num_seeds` to define the number of stochastic runs executed under each parameter set
 
           ```py
@@ -452,7 +508,7 @@ This serialization exercise has three parts. In part 1 you will run and save a b
           builder.add_sweep_definition(partial(update_serialize_parameters, df=burnin_df), range(len(burnin_df.index)))
       ```
     - Run the experiment, wait for it to finish, and checkout your outputs.
-    - While waiting for it to finish, make any modifications to the analyzer that you need such as the `expname`, `exp_id`, and `step`. Once the experiment finishes you can run `serialization_analyzer.py` 
+    - While waiting for it to finish, make any modifications to the analyzer that you need such as the `expt_name`, `exp_id`, `step`, and pickup `end_year`. Once the experiment finishes you can run `serialization_analyzer.py` 
     
 3. Compare pickup simulations across varying burnin durations
     - Run a longer burnin of 50 years using `example_run_burnin.py`
@@ -460,14 +516,14 @@ This serialization exercise has three parts. In part 1 you will run and save a b
     - Before running the experiment, update the `exp_name` (i.e. add 'burnin50'), to keep track of your simulation iterations. Do not change anything else in the pickup simulation, to allow for comparison across iterations picking up from different burnin durations.
     - Run the experiment, wait for it to finish, and checkout your outputs.
     - Using `serialization_analyzer.py`, run the `InsetChartAnalyzer` for both burnin and pickup. Make sure to modify your `serialization_years`. Feel free to change the `channels_inset_chart` to other ones depending on what differences you may be most interested in exploring.
-    - Try plotting your results to show both burnin and pickup on the same plot for your channels of interest over time. You may use R or python to do so - if you get stuck there is a sample python plotting script in `Solution_scripts/Week3` called `plot_example_serialization.py` but we recommend trying to make your own version of the plot first.
-        - *NOTE: these plots and analyzer scripts are just baselines for you to go off! You may want to make changes or include additional things as you develop your project, especially as you add complexity to the pickup.*
+    - Try plotting your results to show both burnin and pickup on the same plot for your channels of interest over time. You may use R or python to do so - if you get stuck there is a sample python plotting script in `Solution_scripts/Week3` called `plot_example_serialization.py` but we strongly recommend trying to make your own version of a plot first.
+        - *NOTE: these plots and analyzer scripts are just baselines for you to go off! You may want to make changes or include additional things, such as additional sweep variable, confidence intervals, or additional reports with new analyzers (and outputs), as you develop your project, especially as you add complexity to the pickup.*
     - Compare the plots between the experiments with 10 and 50 year burnins. Do you notice any differences?
     
 </p>
 </details>
 
-### Week 4: Addressing Research Questions
+## Week 4: Addressing Research Questions
 
 This week will focus adding complexity to our simulations to better address our research questions through interventions, individual properties, and multi-node/spatial simulations. Each of these tools brings something beneficial to the table for many of the questions that you may be interested in answering using EMOD. There are many pre-defined interventions that can be added in EMOD -  we'll specifically focus on adding case management in these example exercises. Detailed descriptions of how-to add other interventions such as drug campaigns (SMC, PMC, MSAT, etc) and ITNs can be found in the [EMOD How-Tos](https://faculty-enrich-2022.netlify.app/modules/emod-how-to/emod-how-to/). 
 Individual properties present a way that we can categorize and add heterogeneity to our population, such as through intervention access, study enrollment, and drug response groups. We can target specific interventions and reports to individuals who meet the criteria of these 'tags', making these particularly useful to controlling aspects of the simulations that need not reach the entire population. Additionally, individual properties are fully customizable, so you can adapt them to fit the needs of your project. 
@@ -585,30 +641,8 @@ In this example, we'll continue building off of the serialization structure, add
                                             
           return demog
       ```
-    - We can also add individual properties to our reporters. The methods for doing this between the event recorder and summary report are slightly different.
+    - We can also add individual properties to our reporters. The methods for doing this between the event recorder and summary report are slightly different. For the burnin, we'll only add the event recorder but will see the changes to summary report in the pickup.
         - In event recorder we can simply add `ips_to_record=['<property>']` which tells the report that we also want it to tell us what access level the individual experiencing the event belongs to. You are able to add multiple IPs to this list if needed.
-        - In the summary report, we ask it to include only individuals of a particular level through `must_have_ip_key_value='<property>:<value>'`. This means that the report requested below will only include individuals with high access to care. In these cases, it is also beneficial to add `filename_suffix` such as '_highacces' to tag the output for analysis. 
-      ```py
-      def general_sim()
-          ## existing contents
-          
-          # Add reports
-          add_event_recorder(task, event_list=["HappyBirthday", "Births"],
-                       start_day=1, end_day=serialize_years*365, 
-                       node_ids=[1], min_age_years=0,
-                       max_age_years=100,
-                       ips_to_record=['Access'])
-                       
-          # MalariaSummaryReport
-          add_malaria_summary_report(task, manifest, start_day=1,
-                               end_day=serialize_years*365, reporting_interval=30,
-                               age_bins=[0.25, 5, 115],
-                               max_number_reports=serialize_years,
-                               must_have_ip_key_value='Access:High',
-                               filename_suffix='_highaccess',
-                               pretty_format=True)
-
-        ```
     - Add these changes to your burnin, including another summary report for the low access group. If we were to plot these summary reports once the burnin is finished, how do you think the low and high access groups would compare?
         - *NOTE: in project work, you likely will not want to include monthly reporting in burnins as they can be quite space and time consuming, but they are helpful during the learning process.*
     - Update the experiment name and run your simulations
@@ -669,48 +703,121 @@ In this example, we'll continue building off of the serialization structure, add
           </details>
         - Duplicate the low access intervention and modify to apply case management to the high access group as well
     - Add the same IP details from the burnin to the pickup demographics
-    - Add the IP specifications for reports discussed in part 1
+    - Add the IP specifications for the event recorder reports discussed in part 1
+    - Next we'll modify the summary report and use the for loop system for years from the calibration exercise (to use a different analyzer). We ask it to include only individuals of a particular level through `must_have_ip_key_value='<property>:<value>'`. This means that the report requested below will only include individuals with high access to care. In these cases, it is also beneficial to add `filename_suffix` such as '_highaccess' to tag the output for analysis. Be sure to include a report for both access levels in your script, an example is included for "high access" below.
+    
+        ```py
+        for i in range(pickup_years):
+            add_malaria_summary_report(task, manifest, start_day=1,
+                               end_day=365+i*365, reporting_interval=30,
+                               age_bins=[0.25, 5, 115],
+                               max_number_reports=serialize_years,
+                               must_have_ip_key_value='Access:High',
+                               filename_suffix='_highaccess',
+                               pretty_format=True)
+        ```
     - Update the experiment name, run the script
-    - If you did not already, run the analyzer for the burnin (part 1) then update the experiment name and ID. Be sure to check if you need to update anything such as `sweep_variables` or analyzer years. Once the pickup finishes, run the analyzer again.
+    - Update the experiment name and ID in the analyzer. Be sure to check if you need to update anything such as `sweep_variables` or analyzer years. Once the pickup finishes, run the analyzer.
     - Try plotting your results. Feel free to start with old scripts and adapt them to try to understand differences between the IP levels.
+    
 </p>
 </details>
 
 <details><summary><span><em>Multi-node/Spatial Simulations</em></span></summary>
 <p>
+
 Most of the time, we consider our geographical units of interest (the 'nodes' - whether they represent districts, regions, countries, or abstract populations) to be independent from one another. Usually, it's better to simulate different locales separately, but you may want to run 'spatial' simulations involving multiple nodes and the connections between them (ex. migration). 
 
 We will cover advanced applications of spatial modeling in another exercise. This exercise will allow you to practice combining parts from previous examples to run a simple spatial simulation and produce spatial outputs. Afterward, you can add code to introduce migration between nodes, and see how that changes things, but we will not deal with this in any detail here.
 
-**Steps**
+**Part 1. Run Spatial Simulations**
 
-1. Create a spreadsheet **nodes.csv** with the columns *node_id*, *lat*, *lon*, and *pop*. EMODpy will be expecting these column names!  
+1. Create a spreadsheet **nodes.csv** with the columns *node_id*, *lat*, *lon*, and *pop*. EMODpy will be expecting these column names! <br>
+        - This spreadsheet will be used to generate the climate and demographics files later  
+        - save the file inside your `project directory/simulation_inputs/demographics`
 2. Fill in the spreadsheet with the information for 4 nodes
 
-        Example:
+    Example:
 
-        | node_id | lat    | lon   | pop  |
-        |:-------:|:------:|:-----:|:----:|
-        | 1       | 12.11 | -1.47 | 1000 |
-        | 2 | 12.0342 | -1.44 | 1000 | 
-        | 3 | 12.13 | -1.59 | 1000 | 
-        | 17 | 12.06 | -1.48 | 1000 |
+    | node_id | lat    | lon   | pop  |
+    |:-------:|:------:|:-----:|:----:|
+    | 1       | 12.11 | -1.47 | 1000 |
+    | 2 | 12.0342 | -1.44 | 1000 | 
+    | 3 | 12.13 | -1.59 | 1000 | 
+    | 17 | 12.06 | -1.48 | 1000 |
         
-        Note: *node_id* must be positive numbers, but do not have to be sequential.
-        Note: lat/lon values should represent real places with climates suitable for malaria transmission (for step 3).
-3. Generate climate from **nodes.csv**  
-    - For simplicity: just use a single-year series from 2019
+   - Note: *node_id* must be positive numbers, but do not have to be sequential.  
+   - Note: lat/lon values should represent real places with climates suitable for malaria transmission (for step 3).  
+   - Note: the column name for population is expected to be "pop" by default  
+3. Using a separate script, `get_climate.py`, request and save climate files based on **nodes.csv**  <br>
+   *For simplicity: use a single-year series from 2019, using the function definition and call to `get_climate()` below* <br>
+        - Just update the `"tag"` and `"demo_fname"` arguments appropriately
+        
+```py   
+from emodpy_malaria.weather import *
+import os
+
+def get_climate(tag = "default", start_year="2015", start_day="001", end_year="2016", end_day="365", demo_fname="demographics.csv", fix_temp=None):
+    # Specifications #
+    ##################
+    # Date Range
+    start = "".join((start_year,start_day))  
+    end = "".join((end_year,end_day))     
+    
+    # Demographics
+    demo = "".join(("simulation_inputs/demographics/",demo_fname))
+    
+    # Output folder to store climate files
+    dir1 = "/".join(("simulation_inputs/climate",tag,"-".join((start,end))))
+    
+    if os.path.exists(dir1):
+        print("Path already exists. Please check for existing climate files.")
+        return
+    else:
+        print("Generating climate files from {} for day {} of {} to day {} of {}".format(demo,start_day,start_year,end_day,end_year))
+        os.makedirs(dir1)
+        csv_file=os.path.join(dir1,"weather.csv")
+        # Request weather files
+        wa = WeatherArgs(site_file= demo,
+                         start_date=int(start),
+                         end_date=int(end),
+                         node_column="node_id",
+                         id_reference=tag)
+        
+        wr: WeatherRequest = WeatherRequest(platform="Calculon")
+        wr.generate(weather_args=wa, request_name=tag)
+        wr.download(local_dir=dir1)
+        
+        print(f"Original files are downloaded in: {dir1}") 
+        
+        df, wa = weather_to_csv(weather_dir = dir1, csv_file=csv_file)
+        df.to_csv(csv_file)
+
+if __name__ == "__main__":
+    get_climate(tag="EXAMPLE", start_year="2019", end_year="2019", demo_fname="nodes.csv")
+```
 
 Now, referring to the scripts you wrote for previous examples, you should be able to start with a blank `run_spatial.py` and outline - or in some cases complete - the code sections needed to:  
 
 4. Import modules  
 5. **Set Configuration Parameters**  
     - You can keep the simulation duration short (1-2 years) while testing / debugging.  
-6. **Sweep configuration parameters***  
+    - Add vectors
+        -  `conf.add_species(config, manifest, ["gambiae", "arabiensis", "funestus"])`
+        
+6. **Sweep configuration parameters**  
 7. **Build campaign**  
 8. Sweep campaign parameters (optional for this exercise)  
 9. Serialize burnin & pickup  
-10. **Build demographics**    
+10. **Build demographics**   
+    a. inside `build_demog()` use  this code to generate demographics from your "nodes.csv" file (you may need to edit the path to input_file)
+    ```py
+    demog = Demographics.from_csv(input_file = os.path.join(manifest.input_dir,demographics,"nodes.csv"), 
+                                                            id_ref="EXAMPLE", 
+                                                            init_prev = 0.01, 
+                                                            include_biting_heterogeneity = True)
+    # NOTE: The id_ref used to generate climate and demographics must match!
+    ```
 11. **Run Experiment [`general_sim()`]**  
     a. Set platform  
     b. Create EMODTask  
@@ -724,25 +831,24 @@ Now, referring to the scripts you wrote for previous examples, you should be abl
 
 *Burnin*  
 - Duration: 30 years  
-- Vary `x_Temporary_Larval_Habitat`  
-    - `np.logspace(0,1,10)` will use 10 evenly log-spaced values between 10^0 and 10^1  
+- Vary `x_Temporary_Larval_Habitat` using  `update_campaign_param()` 
+    - `np.logspace(0,1,10)` will use 10 evenly log-spaced values between 10<sup>0</sup> and 10<sup>1</sup> (1-10x)
 - No interventions  
-- 1 stochastic realization / random seed  
-    **Hint**: don't forget to point toward the correct demographics   
-        - Use `Demographics.from_csv(input_file=<path_to_file>, id_ref=<same id_ref used for climate files>, init_prev=0.01, include_biting_heterogeneity=True)`  
-    **Hint**: check `set_param_fn()` to make sure you added vectors, point to the corresponding climate files, and allow for serialization.  
+- 1 stochastic realization / random seed <br>  
+    **Hint: check `set_param_fn()` to make sure you added vectors, point to the corresponding demographics/climate files, and allow for serialization.** 
 
 *Pickup*  
 - Duration: 10 years  
-- Carry `x_Temporary_Larval_Habitat` over from burnin  
-- Interventions deployed differently in each node:  
-    - For simplicity, you can choose fixed "optimal" coverages (~80%) for these interventions, instead of sweeping over these campaign parameters.  
+- Carry `x_Temporary_Larval_Habitat` over from burnin using `update_serialization_parameters()`  
+- Interventions deployed differently in each node by providing a list of nodes to the `node_ids` argument <br>
+(ex. `treatment_seeking(... node_ids=[1,2])`):  
+      *For simplicity, you can choose fixed "optimal" coverages (~80%) for these interventions, instead of sweeping over these campaign parameters.*    
     - One node receives case management, and ITNs every 3 years  
     - One node receives case management only  
     - One node receives ITNs every 3 years only  
     - One node receives no interventions   
 - 10 stochastic realizations / random seeds each (sweep over `Run_Number`)  
-- add Spatial Reports/Outputs, inside `general_sim()`   
+- add Filtered Spatial Reports and Event Recorder to outputs, inside `general_sim()`   
     -  `add_spatial_report_malaria_filtered(...)`  
         - Filter to final year 3 years of the simulation  
         - For a daily report, use `reporting_interval = 1`  
@@ -750,26 +856,79 @@ Now, referring to the scripts you wrote for previous examples, you should be abl
         - include spatial_output_channels 'Population', 'PCR_Parasite_Prevalence', and 'New_Clinical_Cases' (though any InsetChart Channels will work)  
    - `add_event_recorder(...)`  
         - the `event_list` should include 'Received_Treatment' and 'Received_ITN'  
-            - These events need to be added to `config.parameters.Custom_Individual_Events` inside `set_param_fn()` as well.
-            
- 
-OPTIONAL BONUS: Add migration to the pickup simulations and see if/how connecting the nodes affects the distinctions between them.
-- `import emod_api.migration.migration as migration`  
-- inside `set_param_fn()`:   
-    - set `config.parameters.Enable_Migration_Heterogeneity = 0`  
-- Migration gets added inside `build_demog()`:  
-    - `migration_partial=partial(migration.from_demog_and_param_gravity, 
-                                 gravity_params=[7.50395776e-06,
-                                                 9.65648371e-01, 
-                                                 9.65648371e-01, 
-                                                 -1.10305489e+00].
-                                 id_ref=<same id_ref from demographics>,
-                                 migration_type=migration.Migration.Regional)`  
-   - and the function should now end with `return demog, migration_partial`
+            - *Note:* These events need to be added to `config.parameters.Custom_Individual_Events=[...]` inside `set_param_fn()` as well.
+        **CHANGE THIS TO REPORT EVENT COUNTER**    
+**Part 2. Analyze Spatial Simulations** 
+
+To analyze the `SpatialReportMalariaFiltered_.bin` files generated for each channel and simulation, use the script `analyzer_spatial.py`
+
+Edit **only** the following lines at the bottom of the script before running:
+
+```py
+...
+...
+...
+
+if __name__ == "__main__":
+    ...
+    ...
+    ...
+    ## Experiments Dictionary ##
+    ############################
+    # {'experiment label' : 'exp_id'}
+    expts = {'FE_example' : '9729c597-1161-4631-a222-ac1be450887c'}
+   
+   ## Paths ##
+    ###########
+    # experiments folder
+    jdir =  '/projects/b1139/indie_emodpy/experiments'
+    # output folder
+    wdir=os.path.join('/projects/b1139/indie_emodpy/simulation_output', 'baseline')
+    if not os.path.exists(wdir):
+        os.mkdir(wdir) 
+    ## Analyzer Specifications ##
+    #############################
+    # Grouping variables (for each node & timestep)
+    sweep_variables = ['Run_Number', 'xTLH']   
+    # Outputs to analyze - must have been requested during simulation
+    spatial_channels = ['Population',           
+                        'PCR_Parasite_Prevalence',
+                        'New_Clinical_Cases']
+    ...
     
+    ## Run Analyzer ##
+    ##################
+    with Platform('SLURM_LOCAL',job_directory=jdir) as platform:
+        for expt_name, exp_id in expts.items():
+            analyzer = [SpatialAnalyzer(dir_name=expt_name,
+                                        f_base = report_type,
+                                        f_suffix = report_suffix,
+                                        exp_id = exp_id,
+                                        spatial_channels=spatial_channels,
+                                        sweep_variables=sweep_variables,
+                                        working_dir=wdir)]      
+            # Create AnalyzerManager with required parameters
+            manager = AnalyzeManager(configuration={},ids=[(exp_id, ItemType.EXPERIMENT)],
+                                     analyzers=analyzer, partial_analyze_ok=True)
+            # Run analyze
+            manager.analyze()
+```
 
+This will produce a file inside `working_dir/simulation_output/experiment_name/SpatialReportMalariaFiltered.csv` with columns:  
+* Time
+* Node
+* Run_Number
+* xTLH
+* Population
+* PCR_Parasite_Prevalence
+* New_Clinical_Cases
 
-**IN PROGRESS**
+**Part 3. Plot Spatial Results**
+
+1. Open 'spatial_plotter.rmd'  
+2. Replace the `sr_path` in the first chunk with the path to the 'SpatialReportMalariaFiltered.csv' generated in step 2 above
+3. Replace the `plot_path` in the first chunk with the path to the desired folder for storing plots (ex. `project_dir/simulation_outputs/spatial_example/`
+3. Run the `spatial_plotter.rmd` file
 
 
 </p>

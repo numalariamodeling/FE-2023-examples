@@ -82,14 +82,15 @@ are connected by human and/or vector migration.
 <p>
 
 *Single-node Sims*
-The [emod-api](https://docs.idmod.org/projects/emod-api/en/latest/emod_api.demographics.html) package contains most of the major functionality to create a demographics file. It is supported by `emodpy-malaria` to add parameters that are more specific to the malaria workflow, imported as `Demographics` in the code chunk below. For single node, non-spatial simulations the `from_template_node` command is most commonly used; however, you may also choose to read in pre-made json files for these types of simulations. We include this command in our demographics builder with it's basic parameters:
+The [emod-api](https://docs.idmod.org/projects/emod-api/en/latest/emod_api.demographics.html) package contains most of the major functionality to create a demographics file. It is supported by `emodpy-malaria` to add parameters that are more specific to the malaria workflow, imported as [`Demographics`](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/demographics/MalariaDemographics.py) in the code chunk below. For single node, non-spatial simulations the `from_template_node` command is most commonly used; however, you may also choose to read in pre-made json files for these types of simulations. We include this command in our demographics builder with it's basic parameters:
     - latitude
     - longitude
     - population size
     - site name
     - forced node ID (if desired)
+    - initial prevalence value (if desired)
     
-With this saved as the `demog` item, we can add additional complexity as needed. This may include things like setting equilibrium vital dynamics so birth and mortality rates are equal, producing a relatively stable population size, or an age distribution for our population. In this example, we pull the age distribution of all of Sub-Saharan Africa from the `emod-api` and then apply it to our demographics item. You may also add complexity through individual properties and other specific parameters as desired.
+With this saved as the `demog` item, we can add additional complexity as needed. This may include things like setting equilibrium vital dynamics so birth and mortality rates are equal, producing a relatively stable population size, or an age distribution for our population. In this example, we pull the [age distribution](https://github.com/numalariamodeling/emod-api/blob/master/emod_api/demographics/PreDefinedDistributions.py) of all of Sub-Saharan Africa from the `emod-api` and then apply it to our demographics item. You may also add complexity through individual properties and other specific parameters as desired.
 
 ```{python, eval=F}
 import emodpy_malaria.demographics.MalariaDemographics as Demographics
@@ -100,7 +101,7 @@ def build_demog():
     This function builds a demographics input file for the DTK using emod_api.
     """
 
-    demog = Demographics.from_template_node(lat=1.00, lon=1.00, pop=1000, name="Example_Site_Name", forced_id=1)
+    demog = Demographics.from_template_node(lat=1.00, lon=1.00, pop=1000, name="Example_Site_Name", forced_id=1, init_prev=0.1)
     
     # Add equal birth and mortality rates
     demog.SetEquilibriumVitalDynamics()
@@ -491,7 +492,7 @@ time-interval within add_migration_event():
 ```{python, eval=F}
 add_migration_event(cb,
                     ...
-                    repititions=4,
+                    repetitions=4,
                     tsteps_btwn=365 # annual event
                     )
 ```
@@ -571,7 +572,7 @@ Once we have generated a demographics file describing the nodes for a simulation
 | ------------- | ------- | ------- | --------- |
 |  example_site |   1.00  |   1.00  |     1     |
 
-This csv is passed as the `site_file` to `emodpy-malaria's` `generate_weather()` function along with the `node_column` that provides the name of our node ID column in the csv and `local_dir` which specifies that output directory. From there we can also specify:
+This csv is passed as the `site_file` to `emodpy-malaria's` [`generate_weather()`](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/weather/__init__.py) function along with the `node_column` that provides the name of our node ID column in the csv and `local_dir` which specifies that output directory. From there we can also specify:
     - `platform`: where the request work item will run (Calculon if associated with IDM)
     - `start_date` and `end_dates`: identify the period of time we are interested in requesting weather for
     - `id_reference`: specify the IDReference attribute for the weather metadata
@@ -599,8 +600,7 @@ print("\n".join(wr.files))
 
 ```
 
-After completing these steps, there should be climate files for air_temperature, rainfall, and relative_humidity in your 
-inputs folder. To reference these when running a simulation, update the configuration parameters to reflect the name and location of your climate files:
+After completing these steps, there should be climate files for air_temperature, rainfall, and relative_humidity in your inputs folder. To reference these when running a simulation, update the configuration parameters to reflect the name and location of your climate files:
 
 ```{python, eval=F}
 def set_param_fn(config):
@@ -650,9 +650,10 @@ def build_demog():
 <details><summary><span style="color: blue";">2. Using IPs in Interventions</span></summary>
 <p>
 
-Most interventions can be targeted to individuals holding specific IP values, typically with the `ind_property_restrictions` function argument and setting the desired IndividualProperty restrictions. This example creates an SMC drug campaign that is limited to individuals in the 'Treatment' group as defined in the demographics file.
+Most interventions can be targeted to individuals holding specific IP values, typically with the `ind_property_restrictions` function argument and setting the desired Individual Property restrictions. This example creates an SMC drug campaign that is limited to individuals in the 'Treatment' group as defined in the demographics file.
 
 ```{python,eval=F}
+import emod_api.campaign as campaign
 import emodpy_malaria.interventions.drug_campaign as drug_campaign
 
 drug_campaign.add_drug_campaign(campaign, 
@@ -712,7 +713,7 @@ To add an IP column to [`ReportEventRecorder`](https://docs.idmod.org/projects/e
 
 ```{python, eval=F}
 from emodpy_malaria.reporters.builtin import *
-  add_event_recorder(task, event_list=["NewClinicalCase","Received_Treatment"],
+add_event_recorder(task, event_list=["NewClinicalCase","Received_Treatment"],
                      start_day=1, end_day=365, node_ids=[1], min_age_years=0,
                      max_age_years=100,
                      ips_to_record=['StudyCohort'])
@@ -720,22 +721,11 @@ from emodpy_malaria.reporters.builtin import *
 
 ## Create a model - *move to top?*
 
-EMOD configuration scripts begin by creating a configbuilder object (the **cb**), then adding and changing it. The *cb* is 
-created by loading default parameters:
-
-```{python, eval=F}
-from dtk.utils.core.DTKConfigBuilder import DTKConfigBuilder
-from simtools.ModBuilder import ModBuilder, ModFn
-cb = DTKConfigBuilder.from_defaults('MALARIA_SIM')
-```
-
-One can also specify different simulation types such as **VECTOR_SIM** to simulate just the vector model without the malaria within-host model, or other simulation types listed [here](https://docs.idmod.org/projects/emod-malaria/en/latest/glossary.html?highlight=Sim_Type#term-simulation-type). After setting the team config defaults, reset the simulation type wtih `config.parameters.Simulation_Type = "MALARIA_SIM"`.
-
 EMOD configuration scripts contain five primary components:
     1. Import modules
         - Import all necessary modules and functions to run subsequent script
     2. Config setup & simulation duration
-        - Set `config.json` parameters to team defaults and update additional parameters as needed using a callback to the `emod-api` config. For example, one can specify different simulation types such as **VECTOR_SIM** to simulate just the vector model without the malaria within-host model, or other simulation types listed [here](https://docs.idmod.org/projects/emod-malaria/en/latest/glossary.html?highlight=Sim_Type#term-simulation-type).
+        - Set `config.json` parameters to team defaults and update additional parameters as needed using a callback to the `emod-api` config. For example, one can specify different simulation types such as **MALARIA_SIM** or **VECTOR_SIM** to simulate just the vector model without the malaria within-host model, or other simulation types listed [here](https://docs.idmod.org/projects/emod-malaria/en/latest/glossary.html?highlight=Sim_Type#term-simulation-type).
         
           ```{python, eval=F}
           def set_param_fn(config):
@@ -755,7 +745,7 @@ EMOD configuration scripts contain five primary components:
               return camp
           ```
     4. Demographics
-        - Build a demographics file using `emod-api`. This is typically done through `from_template_node` for single node sims, but there are other methods available if needed (*see demographics how to*)
+        - Build a demographics file using `emod-api`. This is typically done through [`from_template_node`](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/demographics/MalariaDemographics.py) for single node sims, but there are other methods available if needed (*see demographics how to*)
           
           ```{python, eval=F}
           def build_demog():
@@ -806,7 +796,7 @@ EMOD allows us to specify the distribution of mosquito species in the simulation
 <details><summary><span style="color: blue";">Single Vector Species</span></summary>
 <p>
 
-The example below would populate the model with 100% gambiae mosquitoes and can be included in the config builder.
+The example below would populate the model with 100% gambiae mosquitoes and can be included in the config builder with a simple [`add_species()`](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/malaria_config.py).
 
 ```{python, eval=F}
 import emodpy_malaria.malaria_config as conf
@@ -816,35 +806,42 @@ conf.add_species(config, manifest, ["gambiae"])
 The following default parameters appear in the config file for *A. gambiae*. Some of the default parameters vary between different vector species:
 
 ```{python, eval=F}
-{
-    "Vector_Species_Params": [{
-    "Name": "gambiae",
-    "Larval_Habitat_Types": {
-        "TEMPORARY_RAINFALL": 8e8,
-        "CONSTANT": 8e7
-    },
-    "Aquatic_Arrhenius_1": 84200000000,
-    "Aquatic_Arrhenius_2": 8328,
-    "Aquatic_Mortality_Rate": 0.1,
-    "Immature_Duration": 2,
-    "Male_Life_Expectancy": 10,
-    "Adult_Life_Expectancy": 20,
-    "Days_Between_Feeds": 3,
-    "Anthropophily": 0.85,  # species- and site-specific feeding parameters
-    "Indoor_Feeding_Fraction": 0.95,
-    "Egg_Batch_Size": 100,
-    "Vector_Sugar_Feeding_Frequency": "VECTOR_SUGAR_FEEDING_NONE",
-    "Acquire_Modifier": 0.2,
+"Vector_Species_Params": [{
+    "Acquire_Modifier": 0.8, 
+    "Adult_Life_Expectancy": 20, 
+    "Anthropophily": 0.65, # species- and site-specific feeding parameters
+    "Aquatic_Arrhenius_1": 84200000000.0, 
+    "Aquatic_Arrhenius_2": 8328, 
+    "Aquatic_Mortality_Rate": 0.1, 
+    "Days_Between_Feeds": 3, 
+    "Drivers": [], 
+    "Egg_Batch_Size": 100, 
+    "Gene_To_Trait_Modifiers": [], 
+    "Genes": [], 
+    "Habitats": [{"Habitat_Type": "WATER_VEGETATION", "Max_Larval_Capacity": 20000000}], 
+    "Immature_Duration": 2, 
+    "Indoor_Feeding_Fraction": 0.95, 
     # VECTOR_SIM uses a factor here for human-to-mosquito infectiousness, while 
     # MALARIA_SIM explicitly models gametocytes
-    "Infected_Arrhenius_1": 117000000000,
-    "Infected_Arrhenius_2": 8336,
-    "Infected_Egg_Batch_Factor": 0.8,
-    "Infectious_Human_Feed_Mortality_Factor": 1.5,
-    "Nighttime_Feeding_Fraction": 1,
-    "Transmission_Rate": 0.9  # Based on late-2013 calibration of PfPR vs EIR favoring 1.0 to 0.5
-    }]
-}
+    "Infected_Arrhenius_1": 117000000000.0, 
+    "Infected_Arrhenius_2": 8336, 
+    "Infected_Egg_Batch_Factor": 0.8, 
+    "Infectious_Human_Feed_Mortality_Factor": 1.5, 
+    "Male_Life_Expectancy": 10, 
+    "Microsporidia_Duration_To_Disease_Acquisition_Modification": {"Times": [], "Values": []}, 
+    "Microsporidia_Duration_To_Disease_Transmission_Modification": {"Times": [], "Values": []}, 
+    "Microsporidia_Female_Mortality_Modifier": 1, 
+    "Microsporidia_Female_To_Egg_Transmission_Probability": 0, 
+    "Microsporidia_Female_To_Male_Transmission_Probability": 0, 
+    "Microsporidia_Larval_Growth_Modifier": 1, 
+    "Microsporidia_Male_Mortality_Modifier": 1, 
+    "Microsporidia_Male_To_Female_Transmission_Probability": 0, 
+    "Name": "gambiae", 
+    "Temperature_Dependent_Feeding_Cycle": "NO_TEMPERATURE_DEPENDENCE",
+    "Transmission_Rate": 0.9,  # Based on late-2013 calibration of PfPR vs EIR favoring 1.0 to 0.5
+    "Vector_Sugar_Feeding_Frequency": "VECTOR_SUGAR_FEEDING_NONE"
+    }
+]
 ```
 
 </p> </details>
@@ -861,61 +858,77 @@ conf.add_species(config, manifest, ["gambiae", "arabiensis"])
 
 For each species listed in Vector_Species_Params, a “VectorPopulation” object will be added to the simulation at each node. Each species will be defined by parameters in the simulation configuration file for the vector ecology and behavior of the species. This allows for a mechanistic description of vector abundances and behavior through the effects of climate and weather on different preferred larval habitats.
 
-```{python, eval=F}
-{
-    "Vector_Species_Params": [{
-    "Name": "gambiae",              #First Species
-    "Larval_Habitat_Types": {
-        "TEMPORARY_RAINFALL": 8e8,
-        "CONSTANT": 8e7
-    },
-    "Aquatic_Arrhenius_1": 84200000000,
-    "Aquatic_Arrhenius_2": 8328,
-    "Aquatic_Mortality_Rate": 0.1,
-    "Immature_Duration": 2,
-    "Male_Life_Expectancy": 10,
-    "Adult_Life_Expectancy": 20,
-    "Days_Between_Feeds": 3,
-    "Anthropophily": 0.85,  
+```{python,eval=F}
+"Vector_Species_Params": [{
+    "Acquire_Modifier": 0.8, 
+    "Adult_Life_Expectancy": 20, 
+    "Anthropophily": 0.65, 
+    "Aquatic_Arrhenius_1": 84200000000.0, 
+    "Aquatic_Arrhenius_2": 8328, 
+    "Aquatic_Mortality_Rate": 0.1, 
+    "Days_Between_Feeds": 3, 
+    "Drivers": [], 
+    "Egg_Batch_Size": 100, 
+    "Gene_To_Trait_Modifiers": [], 
+    "Genes": [], 
+    "Habitats": [{"Habitat_Type": "WATER_VEGETATION", "Max_Larval_Capacity": 20000000}], 
+    "Immature_Duration": 2, 
     "Indoor_Feeding_Fraction": 0.95, 
-    "Egg_Batch_Size": 100,
-    "Vector_Sugar_Feeding_Frequency": "VECTOR_SUGAR_FEEDING_NONE",
-    "Acquire_Modifier": 0.2,
-    "Infected_Arrhenius_1": 117000000000,
-    "Infected_Arrhenius_2": 8336,
-    "Infected_Egg_Batch_Factor": 0.8,
-    "Infectious_Human_Feed_Mortality_Factor": 1.5,
-    "Nighttime_Feeding_Fraction": 1,
-    "Transmission_Rate": 0.9
+    "Infected_Arrhenius_1": 117000000000.0, 
+    "Infected_Arrhenius_2": 8336, 
+    "Infected_Egg_Batch_Factor": 0.8, 
+    "Infectious_Human_Feed_Mortality_Factor": 1.5, 
+    "Male_Life_Expectancy": 10, 
+    "Microsporidia_Duration_To_Disease_Acquisition_Modification": {"Times": [], "Values": []}, 
+    "Microsporidia_Duration_To_Disease_Transmission_Modification": {"Times": [], "Values": []}, 
+    "Microsporidia_Female_Mortality_Modifier": 1, 
+    "Microsporidia_Female_To_Egg_Transmission_Probability": 0, 
+    "Microsporidia_Female_To_Male_Transmission_Probability": 0, 
+    "Microsporidia_Larval_Growth_Modifier": 1, 
+    "Microsporidia_Male_Mortality_Modifier": 1, 
+    "Microsporidia_Male_To_Female_Transmission_Probability": 0, 
+    "Name": "gambiae", 
+    "Temperature_Dependent_Feeding_Cycle": "NO_TEMPERATURE_DEPENDENCE", 
+    "Transmission_Rate": 0.9, 
+    "Vector_Sugar_Feeding_Frequency": "VECTOR_SUGAR_FEEDING_NONE"
     },
+    #second species starts here
     {
-    "Name": "arabiensis",          # Second species 
-    "Larval_Habitat_Types": {
-        "TEMPORARY_RAINFALL": 8e8,
-        "CONSTANT": 8e7
-    },
-    "Aquatic_Arrhenius_1": 84200000000,
-    "Aquatic_Arrhenius_2": 8328,
-    "Aquatic_Mortality_Rate": 0.1,
-    "Immature_Duration": 2,
-    "Male_Life_Expectancy": 10,
-    "Adult_Life_Expectancy": 20,
-    "Days_Between_Feeds": 3,
-    "Anthropophily": 0.85,  
-    "Indoor_Feeding_Fraction": 0.5, # This value is different
-    "Egg_Batch_Size": 100,
-    "Vector_Sugar_Feeding_Frequency": "VECTOR_SUGAR_FEEDING_NONE",
-    "Acquire_Modifier": 0.2,
-    "Infected_Arrhenius_1": 117000000000,
-    "Infected_Arrhenius_2": 8336,
-    "Infected_Egg_Batch_Factor": 0.8,
-    "Infectious_Human_Feed_Mortality_Factor": 1.5,
-    "Nighttime_Feeding_Fraction": 1,
-    "Transmission_Rate": 0.9  
-    }]
-}
+    "Acquire_Modifier": 0.8,
+    "Adult_Life_Expectancy": 20, 
+    "Anthropophily": 0.65, 
+    "Aquatic_Arrhenius_1": 84200000000.0, 
+    "Aquatic_Arrhenius_2": 8328, 
+    "Aquatic_Mortality_Rate": 0.1, 
+    "Days_Between_Feeds": 3, 
+    "Drivers": [], 
+    "Egg_Batch_Size": 100, 
+    "Gene_To_Trait_Modifiers": [], 
+    "Genes": [], 
+    "Habitats": [  #different habitats from gambiae
+        {"Habitat_Type": "TEMPORARY_RAINFALL", "Max_Larval_Capacity": 800000000}, 
+        {"Habitat_Type": "CONSTANT", "Max_Larval_Capacity": 80000000}
+        ], 
+    "Immature_Duration": 2, 
+    "Indoor_Feeding_Fraction": 0.5, #different indoor feeding fraction
+    "Infected_Arrhenius_1": 117000000000.0, 
+    "Infected_Arrhenius_2": 8336, 
+    "Infected_Egg_Batch_Factor": 0.8, 
+    "Infectious_Human_Feed_Mortality_Factor": 1.5, 
+    "Male_Life_Expectancy": 10, 
+    "Microsporidia_Duration_To_Disease_Acquisition_Modification": {"Times": [], "Values": []},
+    "Microsporidia_Duration_To_Disease_Transmission_Modification": {"Times": [], "Values": []},
+    "Microsporidia_Female_Mortality_Modifier": 1, 
+    "Microsporidia_Female_To_Egg_Transmission_Probability": 0, 
+    "Microsporidia_Female_To_Male_Transmission_Probability": 0, 
+    "Microsporidia_Larval_Growth_Modifier": 1, 
+    "Microsporidia_Male_Mortality_Modifier": 1, 
+    "Microsporidia_Male_To_Female_Transmission_Probability": 0, 
+    "Name": "arabiensis", 
+    "Temperature_Dependent_Feeding_Cycle": "NO_TEMPERATURE_DEPENDENCE", 
+    "Transmission_Rate": 0.9, 
+    "Vector_Sugar_Feeding_Frequency": "VECTOR_SUGAR_FEEDING_NONE"},
 ```
-
 
 </p> </details>
 
@@ -969,13 +982,13 @@ After those initial parameters are set, habitat can be modified with scaling par
 
 To apply a constant scale factor to all habitats equally for all species, use the **x_Temporary_Larval_Habitat** configuration parameter.
 
-This parameter will scale all habitat parameters for the entire simulation duration without changing the temporal dynamics, so that a new transmission is achieved with the same ratios among the species and same time profile. For example, setting `x_Temporary_Larval_Habitat` 
-to 0.1 would reduce habitat by 90%. 
+This parameter will scale all habitat parameters for the entire simulation duration without changing the temporal dynamics, so that a new transmission is achieved with the same ratios among the species and same time profile. For example, setting `x_Temporary_Larval_Habitat` to 0.1 would reduce habitat by 90%. 
 
 ```{python, eval=F}
 # Ex: Reduce habitat (and thus, adult vectors and biting rate) by 90%.
 config.parameters.x_Temporary_Larval_Habitat = 0.1  
 ```
+
 </p></details>
 
 <details><summary><span style="color: blue";">Node-Specific Habitat Scaling in Demographics</span></summary>
@@ -986,7 +999,7 @@ Node- and species-specific habitat scaling can be set in the demographics file t
 **needs demog setting instructions**
 
 ```{python, eval=F}
-"NodeAttributes: {
+"NodeAttributes": {
     ...
     "LarvalHabitatMultiplier": [
         {
@@ -1026,7 +1039,7 @@ You may need to update a variety of configuration parameters for your simulation
 
 For parameters that won't often change you can hard code them directly into the config building function (`set_param_fn()` in the how-tos), while it may be beneficial to call others as a global variable, such as sim_years, that can be set and then referenced within the setup function.
 
-In this example, we show how to change the `Simulation_Duratiion` and `Run_Number` parameters. Simulation duration is set in days, and in this example is set to last 5 years (5 yrs * 365 days/yr).
+In this example, we show how to change the `Simulation_Duration` and `Run_Number` parameters. Simulation duration is set in days, and in this example is set to last 5 years (5 yrs * 365 days/yr).
 
 ```{python,eval=F}
 sim_years = 5
@@ -1037,16 +1050,14 @@ def set_param_fn(config):
               
     #update simulation duration and run number
     config.parameters.Simulation_Duration = sim_years*365
-    config.parameters.Run_Number = 5
+    config.parameters.Run_Number = 0
     return config
 ```
 
 <details><summary><span style="color: blue";">Enable Births and Deaths</span></summary>
 <p>
 
-Vital dynamics can be specified in the same way as general config parameters. To enable either births or deaths, 
-**Enable_Vital_Dynamics** must be set to 1. Births and deaths can then be modified as needed ("enable" parameters set 
-to 0 = false, 1 = true). Birth rates can be specified by **Birth_Rate_Dependence** to be dependent on a number of 
+Vital dynamics can be specified in the same way as general config parameters; however, emodpy includes [functionality](https://docs.idmod.org/projects/emodpy-malaria/en/latest/faq.html#what-are-some-of-the-key-differences-for-people-used-to-using-dtk-tools) to automatically keep the demographics and config files aligned. For example, if a birth rate is set in the demographics, `Enable_Vital_Dynamics` and `Enable_Birth` will automatically be turned on, and vice versa. Birth rates can be specified by `Birth_Rate_Dependence` to be dependent on a number of 
 factors:  
 - "NONE"
 - "FIXED_BIRTH_RATE"
@@ -1055,127 +1066,84 @@ factors:
 - "INDIVIDUAL_PREGNANCIES"
 - "INDIVIDUAL_PREGNANCIES_BY_AGE_AND_YEAR"
 
-Likewise, **Death_Rate_Dependence** determines individuals likelihood of dying from natural, non-disease causes 
-when **Enable_Natural_Mortality**=1, and can be set to 
+Likewise, `Death_Rate_Dependence` determines individuals likelihood of dying from natural, non-disease causes when `Enable_Natural_Mortality`=1, and can be set to 
 - "NOT_INITIALIZED" 
 - "NONDISEASE_MORTALITY_BY_AGE_AND_GENDER"
 - "NONDISEASE_MORTALITY_BY_YEAR_AND_AGE_FOR_EACH_GENDER"
 
 Detailed descriptions of dependencies can be found [here](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-configuration-population.html).
 
-In this example, we have a fixed birth rate (number of infants born each year is independent of modeled population), age- 
-and gender-specific overall mortality rates (defined in demographics file), and no malaria mortality.
+In this example, we have a fixed birth rate (number of infants born each year is independent of modeled population), age- and gender-specific overall mortality rates (defined in demographics file), and no malaria mortality. These parameters should be set in the config builder function. Based on a demographics including equilibrium vital dynamics, `EEnable_Vital_Dynamics`, `Enable_Birth`, and `Enable_Natural_Mortality` will already be set to 1 (turned on) and `Enable_Disease_Mortality` will be set to 0 (turned off), so we only need to set the rate dependencies.
 
 ```{python,eval=F}
-from dtk.utils.core.DTKConfigBuilder import DTKConfigBuilder
-                      
-cb = DTKConfigBuilder.from_defaults('MALARIA_SIM')
-cb.update_params({'Enable_Vital_Dynamics': 1,
-                  'Enable_Birth': 1,
-                  'Birth_Rate_Dependence' : 'FIXED_BIRTH_RATE'
-                  'Enable_Natural_Mortality': 1,
-                  'Death_Rate_Dependence': 'NONDISEASE_MORTALITY_BY_AGE_AND_GENDER',
-                  'Enable_Disease_Mortality': 0,
-                  })
+def set_param_fn(config):
+    import emodpy_malaria.malaria_config as conf
+    config = conf.set_team_defaults(config, manifest)
+              
+    #update birth and death rate dependence
+    config.parameters.Birth_Rate_Dependence = 'FIXED_BIRTH_RATE'
+    config.parameters.Death_Rate_Dependence = 'NONDISEASE_MORTALITY_BY_AGE_AND_GENDER'
+    return config
 ```
 </p>
 </details>
 
-<details><summary><span style="color: blue";">Configure Log-Levels</span></summary>
-<p>
-
-Log-levels dictate which logging messages will be included in the standard output for simulations. It can be set for all 
-files in the Eradication executable using **logLevel_default** or for specific files where more information is desired 
-with **logLevel_<file_name>**. There are five logging levels:
-
-    1. ERROR: only errors logged
-    2. WARNING: warning and errors logged
-    3. INFO: default; informational messages, warnings, and errors logged
-    4. DEBUG: debug information, informational messages, warnings, and errors logged. May require a special version of the executable (--TestSugar enabled)
-    5. VALID: validation information, debug information, informational messages, warnings, and errors logged. Requires special build.
-
-Lower levels (DEBUG and VALID) should be used sparingly but can be useful to understand if certain things, such as 
-immunity variation, are working as expected.
-
-In this example, we set the default reporting level of all modules to **WARNING**, then set the 
-logLevel_SusceptibilityMalaria module to **DEBUG**.
-```{python, eval=F}
-cb.update_params({'logLevel_default' : 'WARNING',
-                  'logLevel_SusceptibilityMalaria': 'DEBUG' #file-specific example
-})
-```
-</p>
-</details>
 
 ## Add summary reports
 
-![figure](/images/03_highlighted.png)
+The [MalariaSummaryReport](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-malaria-summary.html) is a useful output that reports infection data (prevalence, clinical incidence, parasitemia, infectivity) by age group and aggregated over a user-defined time interval such as years or months. 
 
-The [MalariaSummaryReport](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-malaria-summary.html) 
-is a useful output that reports infection data (prevalence, clinical incidence, parasitemia, infectivity) by age group 
-and aggregated over a user-defined time interval such as years or months. Specific events of interest can be set with **event_trigger_list=** - defaults include 'EveryUpdate' and 'NewInfectionEvent'.
-
-In this example, simulation data is reported starting at day 365, with a monthly aggregation, in 3 age bins. 
+In this example, simulation data is reported starting at day 365 and ending at day 1825 (the end of a sim with a duration of 5 years), with a monthly aggregation, in 3 age bins (0 - 0.25, 0.25 - 5, and 5 - 115 years). The report name will also include a suffix of "monthly_report" to keep separate multiple summary reports with different outputs, such as monthly vs annual or including different IPs.
 
 ```{python,eval=F}
-from dtk.utils.core.DTKConfigBuilder import DTKConfigBuilder
-from malaria.reports.MalariaReport import add_summary_report
-cb = DTKConfigBuilder.from_defaults('MALARIA_SIM')
-add_summary_report(cb, start=365, interval=30,
-                   age_bins=[0.25,5,100],
-                   description='Monthly_Report')
+from emodpy_malaria.reporters.builtin import *
+
+sim_years=5
+
+add_malaria_summary_report(task, manifest, start_day=365, end_day=sim_years*365, 
+                               reporting_interval=30,
+                               age_bins=[0.25, 5, 115],
+                               max_number_reports=20,
+                               filename_suffix="monthly",
+                               pretty_format=True)                   
 ```
 
 ## Event reporting
 
-![figure](/images/03_highlighted.png)
-
-EMOD is capable of tracking a variety of [built-in events](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-campaign-event-list.html) 
-as well as custom campaign events. Custom events can be particularly useful for explicitly tracking and counting the number 
-of interventions distributed. For example, in the simple SMC intervention (see [Add drug campaigns](https://faculty-enrich-2022.netlify.app/modules/emod-how-to/emod-how-to/#add-drug-campaigns)) 
-we defined an event called `'Received_SMC'` to describe children who actually received SMC drugs in the simulation. The 
-[add_health_seeking](https://faculty-enrich-2022.netlify.app/modules/emod-how-to/emod-how-to/#add-case-management) function 
-automatically generates a `'Received_Treatment'` event for each individual receiving treatment for symptomatic malaria. 
-Adding custom events to the config parameter `'Custom_Individual_Events'` is automatically handled by `dtk-tools`.
+EMOD is capable of tracking a variety of [built-in events](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-campaign-event-list.html) as well as custom campaign events. Custom events can be particularly useful for explicitly tracking and counting the number of interventions distributed. For example, in the simple SMC intervention (see [Add drug campaigns](https://faculty-enrich-2022.netlify.app/modules/emod-how-to/emod-how-to/#add-drug-campaigns)) we defined an event called `'Received_SMC'` to describe children who actually received SMC drugs in the simulation. The [add_health_seeking](https://faculty-enrich-2022.netlify.app/modules/emod-how-to/emod-how-to/#add-case-management) function automatically generates a `'Received_Treatment'` event for each individual receiving treatment for symptomatic malaria. Adding custom events to the config parameter `'Custom_Individual_Events'` is automatically handled by `emodpy` during campaign creation.
 
 ### Aggregate Events
 
-To track how many events are occurring each day, request [ReportEventCounter](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-event-counter.html) 
-and specify the list of events you would like to track:
+To track how many events are occurring each day, request [ReportEventCounter](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-event-counter.html) and specify the list of events you would like to track, in this case receiving either of the two above drug-based interventions:
 
 ```{python, eval=F}
-from malaria.reports.MalariaReport import add_event_counter_report
-add_event_counter_report(cb, event_trigger_list=['Received_SMC', 'Received_Treatment'])
+from emodpy_malaria.reporters.builtin import *
+
+sim_years = 5
+add_report_event_counter(task, manifest, start_day=365, end_day=sim_years*365,
+                             event_trigger_list=['Received_SMC', 'Received_Treatment'],
+                             filename_suffix="drug_interventions")
 ```
 
-This generates a ReportEventCounter.json file that reports that total number of events in each day of the simulation. 
-Reporting a subset of node IDs, restricting on age, and restricing on individual property are all configurable. 
-The format of the .json is identical to InsetChart.json, so analyzers written for InsetChart.json can be easily adapted 
-for ReportEventCounter.
+This generates a ReportEventCounter.json file that reports that total number of the specified events in each day of the simulation. Reporting a subset of node IDs (`node_ids`), restricting on age (`min_age_years`, `max_age_years`), and restricting on individual property (`must_have_ip_key_value`) are all configurable. The format of the .json is identical to InsetChart.json, so analyzers written for InsetChart.json can be easily adapted for ReportEventCounter.
 
 ### Individual Events
 
-Sometimes you may want to track individual-level events. To do so, we use [ReportEventRecorder](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-event-recorder.html), 
-which is similar to ReportEventCounter but lists each event as it occurs and provides information about the person experiencing 
-the event.
+Sometimes you may want to track individual-level events. To do so, we use [ReportEventRecorder](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-event-recorder.html), which is similar to `ReportEventCounter` but lists each event as it occurs and provides information about the person experiencing the event. The calls for these two reports are quite similar but the recorder uses `event_list` rather than `event_trigger_list` and has no `filename_suffix`:
 
-1. Update configuration parameters
 ```{python, eval=F}
-cb.update_params({
-  'Report_Event_Recorder': 1,  # Enable generation of ReportEventRecorder.csv  
-  'Report_Event_Recorder_Ignore_Events_In_List': 0, # Logical indicating whether to include or exclude the events specified in the list 
-  'Report_Event_Recorder_Events': ['NewClinicalCase', 'Received_Treatment'], # List of events to include
-  'Report_Event_Recorder_Individual_Properties' : []
-})
+from emodpy_malaria.reporters.builtin import *
+
+sim_years = 5
+add_event_recorder(task, start_day=365, end_day=sim_years*365,
+                       event_list=['Received_SMC', 'Received_Treatment'],
+                       node_ids=[1], min_age_years=0,
+                       max_age_years=100)
 ```
 
-*Note*: If you want to return all events from the simulation, leave the "Events" array empty and set "Ignore_Events_In_List" to 1.
+*Note*: If you want to return all events from the simulation, leave the "events" array empty and set `only_include_events_in_list` to `False`.
 
-There are additional optional parameters that you can specify to refine your report: see full list [here](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-event-recorder.html). 
-This can help reduce file sizes and speed up processing if you know you'll only a subset of the simulation data.
-
-After running, a file called ReportEventRecorder.csv will be generated in the output/ folder for the simulation. Each 
-row of the report represents a distinct event, with the following information in its columns:
+After running, a file called ReportEventRecorder.csv will be generated in the output/ folder for the simulation. Each row of the report represents a distinct event, with the following information in its columns:
 
 Event Details:
 - **Time** (when did event occur)
@@ -1191,14 +1159,13 @@ Individual Details (who did it happen to?):
 - **RelativeBitingRate**
 - **TrueParasiteDensity**
 - **TrueGametocyteDensity**
+- **HasClinicalSymptoms**
 
-Plus an additional column for the value of each additional Individual Property included in the 
-'Report_Event_Recorder_Individual_Properties' list.
+Plus an additional column for the value of any IPs requested through `ips_to_record`.
 
 
 ## Add malaria
 
-![figure](/images/02_highlighted.png)
 
 There are 4 ways to add malaria into a simulation. Ways #1, 2, and 3 are used for idealized situations while #4 is the 
 standard method to use when modeling a specific geography.
@@ -1217,80 +1184,75 @@ add_challenge_trial(cb, start_day=0)
 
 ### 2. Outbreaks
 
-Force a given % of the simulated population to experience a new infection on a specified date or dates. Definition 
-[here](https://github.com/InstituteforDiseaseModeling/dtk-tools/blob/master/dtk/interventions/outbreakindividual.py).
+Force a given fraction (`demographic_coverage`) of the simulated population to experience a new infection on a specified date or dates.
 
 This example infects 5% of the population every year for 5 years, beginning on day 0:
+
 ```{python,eval=F}
-from dtk.utils.core.DTKConfigBuilder import DTKConfigBuilder
-from dtk.interventions.outbreak_individual import recurring_outbreak
-cb = DTKConfigBuilder.from_defaults('MALARIA_SIM')
-recurring_outbreak(cb,
-                   outbreak_fraction=0.05,
-                   start_day=0,
-                   repetitions=5,
-                   tsteps_btwn=365
+from emodpy_malaria.interventions.outbreak import add_outbreak_individual
+import emod_api.campaign as campaign
+
+def add_outbreak_individual(campaign,
+                            start_day = 0,
+                            demographic_coverage = 0.05,
+                            repetitions = 5,
+                            timesteps_between_repetitions = 365
                    )
 ```
 
+Additional targeting of the outbreak can be added with:
+- `ind_property_restrictions`: target specific IP {key:value} pairs
+- `target_age_min`: minimum age (years)
+- `target_age_max`: maximum age (years)
+- `target_gender`: gender targets ("All", "Female", "Male")
+- `ignore_immunity`: force infection despite immunity when "True"
+- `antigen`: antigenic base strain ID of the outbreak infection
+- `genome`: genetic substrain ID of the outbreak infection
+
 ### 3. Forced EIR
 
-See next section on [forced EIR](/modules/emod-how-to/emod-how-to/#set-forced-eir).
+For simulations without mosquitoes, a forced EIR can be used to impose infectious bites. EIR timeseries data are typically recreated from previous literature sources that provide monthly EIR levels, input here as a monthly_site_EIR_annualized list. The `add_scheduled_input_eir` function is called and given the calculated monthly EIR (the annual values divided by 12) to apply to the simulations. You may also choose to use daily values if you interpolate from monthly using the `daily_eir` argument instead of `monthly_eir`. The EIR can be scaled up or down using a `scaling_factor` to apply the same change to all EIR timepoints, in this example we scale the EIR to be 75% of the input values. Additionally, EIR can be setup to be age-dependent with `age_dependence` set to "OFF", "LINEAR", or "SURFACE_AREA_DEPENDENT".
+
+```{python,eval=F}
+from emodpy_malaria.interventions.inputeir import add_scheduled_input_eir
+import emod_api.campaign as campaign
+
+monthly_site_EIR_annualized = [15.99, 5.41, 2.23, 10.33, 7.44, 11.77, 79.40, 85.80, 118.59, 82.97, 46.62, 33.49]
+monthly_EIR = [x/12 for x in site_EIR_annualized]
+EIR_scale_factor = 0.75
+add_scheduled_input_eir(campaign=campaign, start_day=1, monthly_eir=monthly_EIR,
+                            age_dependence="SURFACE_AREA_DEPENDENT",
+                            scaling_factor=EIR_scale_factor)
+```
 
 ### 4. Setting initial prevalence
 
-Initial prevalence is set in the demographics file, in the `['Defaults']['IndividualAttributes']` block. See 
-[documentation on the demographics file](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-demographics.html) for more information.
+Initial prevalence is set in the demographics file, in the `['Defaults']['IndividualAttributes']` block. See [documentation on the demographics file](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-demographics.html) for more information.
 
-In this example, initial prevalence is drawn from a uniform distribution between 0.13 and 0.15:
-```{python,eval=F}
-{
-    "Defaults": {
-        "IndividualAttributes": {
-            ...
-            "PrevalenceDistribution1": 0.13,
-            "PrevalenceDistribution2": 0.15,
-            "PrevalenceDistributionFlag": 1,
-            ...
-        }
-    },
-    ...
-}
-```
-
-## Set forced EIR 
-
-![figure](/images/04_highlighted.png)
-
-For simulations without mosquitoes, a forced EIR can be used to impose infectious bites. EIR timeseries data are 
-typically recreated from previous literature sources that provide monthly EIR levels, input here as a monthly_site_EIR 
-list. This can then be converted to a daily EIR using the `monthly_to_daily_EIR` helper function and summed to calculate 
-the annual EIR for the site. The [add_InputEIR](https://github.com/InstituteforDiseaseModeling/dtk-tools/blob/master/dtk/interventions/input_EIR.py)
- function is called and given the calculated daily EIR to apply to the simulations. It can be scaled using a 
- scaling_factor to apply the same scale factor to all EIR timepoints.
+It can be set simply, as in the demographics example (link to demog), or you can also add a initial prevalence value draw from a uniform distribution if desired. In this example, the value is pulled in a uniform draw from 0.1 to 0.2.
 
 ```{python,eval=F}
-from dtk.utils.core.DTKConfigBuilder import DTKConfigBuilder
-from dtk.interventions.input_EIR import add_InputEIR, monthly_to_daily_EIR
-cb = DTKConfigBuilder.from_defaults('MALARIA_SIM')
-monthly_site_EIR = [15.99, 5.41, 2.23, 10.33, 7.44, 11.77, 79.40, 85.80, 118.59, 82.97, 46.62, 33.49]
-daily_EIR = monthly_to_daily_EIR(monthly_site_EIR)
-EIRscale_factor = 1
-add_InputEIR(cb, start_day=0, EIR_type='DAILY', dailyEIRs=daily_EIR, scaling_factor=EIRscale_factor)
+import emodpy_malaria.demographics.MalariaDemographics as Demographics
+
+def build_demog():
+  
+    demog = Demographics.from_template_node(lat=1.00, lon=1.00, pop=1000, name="Example_Site_Name", forced_id=1)
+    demog.SetInitPrevFromUniformDraw(min_init_prev=0.1, max_init_prev=0.2, description="prevalence_draw_example" )
+    
+    return demog
 ```
+
 
 ## Add ITN
 
-![figure](/images/04_highlighted.png)
-
 ### Basic ITN without seasonal usage
 
-Insecticide-treated bednets can be distributed with the [add_ITN()](https://github.com/InstituteforDiseaseModeling/dtk-tools/blob/master/dtk/interventions/itn.py)
-function, which has many options to configure who is targeted for ITN distribution.
+Insecticide-treated bednets can be distributed with the `add_itn_scheduled()` function, which has many options to configure who is targeted for ITN distribution.
 
 ```{python,eval=F}
-from dtk.interventions.itn import add_ITN
-add_ITN(cb,
+import emod_api.campaign as campaign
+from emodpy_malaria.interventions.bednet import add_itn_scheduled
+add_itn_scheduled(campaign,
         start=365, # starts on first day of second year
         coverage_by_ages=[
           {"coverage":1,"min": 0, "max": 10},     # 100% for 0-10 years old
@@ -1298,7 +1260,7 @@ add_ITN(cb,
           {"coverage":0.6,"min": 50, "max": 125}  # 60% for everyone else
         ],
         repetitions=5, # ITN will be distributed 5 times
-        tsteps_btwn_repetitions= 365*3 # three years between ITN distributions
+        timesteps_between_repetitions= 365*3 # three years between ITN distributions
 )
 ```
 The default `coverage_by_age` sets coverage to 100% for everyone regardless of age.
@@ -1317,17 +1279,16 @@ add_ITN(cb,
 )
 ```
 
-The `waning` arguments configure the strength and duration of the ITN's effects. `dtk-tools` will provide
-[default](https://github.com/InstituteforDiseaseModeling/dtk-tools/blob/master/dtk/interventions/itn.py#L82)
-killing, blocking, and usage decay profiles if none are specified by the user:
+The `waning` arguments configure the strength and duration of the ITN's effects. `dtk-tools` will provide [default](https://github.com/InstituteforDiseaseModeling/dtk-tools/blob/master/dtk/interventions/itn.py#L82) killing, blocking, and usage decay profiles if none are specified by the user:
 1. `Killing_Config`: how well the ITN kills the vector
 2. `Blocking_Config`: how well the ITN blocks the vector from biting
 3. `Repelling_Config`: how well the ITN repels the vector
 4. `Usage_Config`: how long before the user discards their net
 
-The decay profile of any of these configs are specified using
-[WaningEffect classes](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-campaign-waningeffects.html).
+The decay profile of any of these configs are specified using [WaningEffect classes](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-campaign-waningeffects.html).
+
 For example, to change the killing of the ITN to last 10 years at 0.6:
+
 ```{python,eval=F}
 from dtk.interventions.itn import add_ITN
 add_ITN(cb,
@@ -1404,11 +1365,9 @@ automatically add three events into the simulation: `Bednet_Discarded`, `Bednet_
 
 ## Add IRS
 
-![figure](/images/04_highlighted.png)
+IRS campaigns can be added using the `add_scheduled_irs_housing_modification` or `add_triggered_irs_housing_modification` function. These two functions work similarly, with the primary difference being how IRS implementaiton is timed: on a schedule or triggered by specific events.
 
-IRS campaigns can be added using the [add_IRS()](https://github.com/InstituteforDiseaseModeling/dtk-tools/blob/master/dtk/interventions/irs.py) function.
-Adding IRS works very similarly to the simple [add_ITN()](https://faculty-enrich-2022.netlify.app/modules/emod-how-to/emod-how-to/#add-itn) function.
-
+***edit for modified strucutre - not config/waning but indiv params***
 You can either use the default settings or specify the `killing_config` for the killing efficiency and waning properties
 of the insecticide. The function allows you to specify coverage according to age groups, here is an example:
 
@@ -1428,6 +1387,26 @@ add_IRS(cb,
             "Initial_Effect": 0.6
         }
 )
+import emod_api.campaign as campaign
+add_scheduled_irs_housing_modification(campaign, start_day=3, 
+                                       demographic_coverage=0.34,
+                                       killing_initial_effect=0.9, 
+                                       killing_box_duration=30,
+                                       killing_decay_time_constant=60, 
+                                       repelling_initial_effect=0.2,
+                                       repelling_box_duration=60, 
+                                       repelling_decay_time_constant=0)
+add_triggered_irs_housing_modification(campaign=campaign, start_day=2, 
+                                       demographic_coverage=0.77,
+                                       trigger_condition_list=["HappyBirthday"],
+                                       listening_duration=15,
+                                       delay_period_constant=3, 
+                                       killing_initial_effect=0.8,
+                                       killing_box_duration=30, 
+                                       killing_decay_time_constant=60,
+                                       repelling_initial_effect=0.33, 
+                                       repelling_box_duration=60,
+                                       repelling_decay_time_constant=30)
 ```
 
 Note in this case, the effect of IRS follows [a boxed exponential decay](https://docs.idmod.org/projects/emod-generic/en/latest/parameter-campaign-waningeffects.html?highlight=waning#waningeffectboxexponential)
@@ -1436,10 +1415,7 @@ with efficacy of first 60 days held constant, before exponential decay kicks in.
 
 ## Add larvicides
 
-![figure](/images/04_highlighted.png)
-
-Functions for adding attractive targeted sugar baits, topical repellents, outdoor residual spray, eave tubes, and 
-larvicides are found [here](https://github.com/InstituteforDiseaseModeling/dtk-tools/blob/master/dtk/interventions/novel_vector_control.py).
+Functions for adding attractive targeted sugar baits, topical repellents, outdoor residual spray, eave tubes, and larvicides are found [here](https://github.com/InstituteforDiseaseModeling/dtk-tools/blob/master/dtk/interventions/novel_vector_control.py).
 
 To add larvicides: 
 
@@ -1452,6 +1428,19 @@ add_larvicides(cb, start_day=0,
                killing_initial=0.6,         # initial killing efficacy of the insecticide
                killing_decay=150            # decay time constant, in days, for exponential decay of larvicide efficacy
                )
+add_larvicide(
+        campaign,
+        start_day: int = 1,
+        num_repetitions: int = -1,
+        timesteps_between_reps: int = 365,
+        spray_coverage: float = 1.0,
+        killing_effect: float = 1,
+        habitat_target: str = "ALL_HABITATS",
+        insecticide: str = None,
+        box_duration: int = 100,
+        decay_time_constant: float = 0.0,
+        node_ids: list = None
+    )
 ```
 
 
@@ -1488,6 +1477,17 @@ set_species_param(cb, 'gambiae', 'Genes', [
         }
     }
 ])
+
+from emodpy_malaria import vector_config as vector_config
+config.parameters.Simulation_Type = "VECTOR_SIM"
+vector_config.set_team_defaults(config, manifest)  # team defaults
+vector_config.add_species(config, manifest, ["gambiae", "funestus"])
+
+vector_config.add_genes_and_alleles(config, manifest, "gambiae", [("a", 0.5), ("b", 0.5), ("c", 0)])
+vector_config.add_mutation(config, manifest, "gambiae", mutate_from="a", mutate_to="b", probability=0.05)
+vector_config.add_mutation(config, manifest, "gambiae", mutate_from="b", mutate_to="c", probability=0.1)
+vector_config.add_mutation(config, manifest, "gambiae", mutate_from="c", mutate_to="a", probability=0.1)
+vector_config.add_mutation(config, manifest, "gambiae", mutate_from="a", mutate_to="c", probability=0.03)
 ```
 
 Reporting on vector genetics (abundance of alleles and/or genotypes) is requested like so:
@@ -1499,6 +1499,9 @@ cb.add_reports(BaseVectorGeneticsReport(type='ReportVectorGenetics',
                                         gender='VECTOR_FEMALE',
                                         include_vector_state_columns=0,
                                         stratify_by='ALLELE_FREQ'))
+
+from emodpy_malaria.reporters.builtin import *
+add_report_vector_genetics(task, manifest, species="gambiae")
 ```
 
 ### Relate genotype to phenotype
@@ -1565,6 +1568,11 @@ cb.update_params({
         }
     ]
 })
+
+vector_config.add_insecticide_resistance(config, manifest, "pyrethroid", "gambiae", 
+                                          [["b", "b"]],
+                                          blocking=0.0, 
+                                          killing=0.0)
 ```
 
 ### Add vector control with specific insecticide
@@ -1583,24 +1591,13 @@ add_ITN(cb, start=200, coverage_by_ages=[{'min': 0, 'max': 100, 'coverage': 0.6}
 
 ## Add case management
 
-![figure](/images/04_highlighted.png)
+Case management is controlled in EMOD by an `add_treatment_seeking()` function within emodpy-malaria. This function is a node level intervention that allows you to target individuals on the node for malaria treatment through health seeking behavior. 
 
-Case management is controlled in EMOD by an 
-[add_health_seeking()](https://github.com/InstituteforDiseaseModeling/dtk-tools-malaria/blob/master/malaria/interventions/health_seeking.py) 
-function within dtk-tools-malaria. This function is a node level intervention that allows you to target individuals on 
-the node for malaria treatment through health seeking behavior. 
-
-In this example, treatment is triggered by a new clinical case and codes for differences in case management coverage 
-between individuals of age 0-5 yrs and 5-100yrs as set by the two trigger dictionaries' respective 'agemin' and 'agemax'. 
-'Seek' dictates the proportion of people who will seek care with a new clinical case - it is usually set to 1 such that 
-'coverage' is the true case management coverage level. 'Rate' represents how quickly the case will receive treatment. 
-It is used to create an exponential distribution of the delay period. We usually set `rate = 1/3.` for clinical cases and 
-`rate = 1/2.` for severe cases.
+In this example, treatment is triggered by a new clinical case and codes for differences in case management coverage between individuals of age 0-5 yrs and 5-100yrs as set by the two trigger dictionaries' respective `agemin` and `agemax`. `Seek` dictates the proportion of people who will seek care with a new clinical case - it is usually set to 1 such that `coverage` is the true case management coverage level. `Rate` represents how quickly the case will receive treatment. It is used to create an exponential distribution of the delay period. We usually set `rate = 1/3` for clinical cases and `rate = 1/2.` for severe cases.
 
 You can also specify which drugs are used for case management. The default is Artemether-Lumefantrine with age-based dosing. 
 
-Additional parameters can be added to restrict case management to certain nodes, node properties, or individual 
-properties. See [here](https://github.com/InstituteforDiseaseModeling/dtk-tools-malaria/blob/master/malaria/interventions/health_seeking.py) for more information.
+Additional parameters can be added to restrict case management to certain nodes, node properties, or individual properties. See [here](https://github.com/InstituteforDiseaseModeling/dtk-tools-malaria/blob/master/malaria/interventions/health_seeking.py) for more information.
 
 
 ```{python,eval=F}
@@ -1628,107 +1625,96 @@ add_health_seeking(cb, start_day=0,
                                'rate': 0.5}],
                    drug=['Artemether', 'Lumefantrine'])
     
+
+
+import emod_api.campaign as camp
+cm.add_treatment_seeking(camp, start_day=0, drug=['Artemether', 'Lumefantrine'],
+                         targets=[{'trigger': 'NewClinicalCase', 
+                                   'coverage': 0.7, 'agemin': 0, 'agemax': 5,
+                                   'seek': 1,'rate': 0.3},
+                                 {'trigger': 'NewClinicalCase', 
+                                  'coverage': 0.5, 'agemin': 5, 'agemax': 100,
+                                  'seek': 1,'rate': 0.3},
+                                 {'trigger': 'NewSevereCase', 
+                                  'coverage': 0.85, 'agemin': 0, 'agemax': 100,
+                                  'seek': 1,'rate': 0.5}],
+                         broadcast_event_name="Received_Treatment")
 ```
 
 ## Change drug adherence
 
-![figure](/images/04_highlighted.png)
+Adherence to drugs can be modified using `adherent_drug`. This allows you to detail doses (and drugs given), intervals between doses, actual adherence values, and more. More documentation on how to configure adherent drugs is [here](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-campaign-individual-adherentdrug.html).
 
-Adherence to drugs can be modified using [configure_adherent_drug()](https://github.com/InstituteforDiseaseModeling/dtk-tools-malaria/blob/master/malaria/interventions/adherent_drug.py). 
-This allows you to detail doses (and drugs given), 
-intervals between doses, actual adherence values, and more. More documentation on how to configure adherent drugs is 
-[here](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-campaign-individual-adherentdrug.html).
-
-Configuring adherence is not required. In the absence of specific configuration, adherence to the full treatment course 
-is assumed to be 100%.
+Configuring adherence is not required. In the absence of specific configuration, adherence to the full treatment course is assumed to be 100%.
 
 ```{python,eval=F}
-from dtk.utils.core.DTKConfigBuilder import DTKConfigBuilder
-from malaria.interventions.adherent_drug import configure_adherent_drug
-cb = DTKConfigBuilder.from_defaults('MALARIA_SIM')
-def smc_adherent_configuration(cb, adherence):
-    smc_adherent_config = configure_adherent_drug(cb,
-                                                  doses=[["SulfadoxinePyrimethamine",'Amodiaquine'],
-                                                         ['Amodiaquine'],
-                                                         ['Amodiaquine']],
-                                                  dose_interval=1,
-                                                  non_adherence_options=['Stop'],
-                                                  non_adherence_distribution=[1],
-                                                  adherence_config={
-                                                        "class": "WaningEffectMapCount",
-                                                        "Initial_Effect": 1,
-                                                        "Durability_Map": {
-                                                            "Times": [
-                                                                1.0,
-                                                                2.0,
-                                                                3.0
-                                                            ],
-                                                            "Values": [
-                                                                1,
-                                                                adherence,
-                                                                adherence
-                                                            ]
-                                                        }
-                                                    }
-    )
-    return smc_adherent_config
-    
-adherent_drug_configs = smc_adherent_configuration(cb, adherence=0.7)
+import emod_api.campaign as campaign
+import emodpy_malaria.interventions.drug_campaign as drug_campaign
+import emodpy_malaria.interventions.adherentdrug as ad
+
+adherent_drug = ad.adherent_drug(campaign=campaign,
+                                     doses=[["Sulfadoxine", "Pyrimethamine", 'Amodiaquine'],
+                                            ['Amodiaquine'],
+                                            ['Amodiaquine']],
+                                     dose_interval=1,
+                                     non_adherence_options=['Stop'],
+                                     non_adherence_distribution=[1],
+                                     adherence_values=[
+                                         1,    # for day 1
+                                         0.6,  # day 2
+                                         0.4   # day 3
+                                     ]
+                                     )
+
 ```
 
 ## Add drug campaigns
 
-![figure](/images/04_highlighted.png)
+Using `add_drug_campaign()` you can set different drug campaigns including MDA, MSAT, SMC, fMDA, MTAT, rfMSAT, and rfMDA. This function also includes the ability to set coverage levels, repetitions (such as SMC cycles) and the timesteps between them, diagnostics information for campaigns that include testing, target groups, and restrictions on who can receive drugs by node or individual properties. Node and individual properties are set in the demographics file and can be called upon here for things like low vs high access groups (see drug IP example **link**).
 
-Using add_drug_campaign() you can set different drug campaigns including MDA, MSAT, SMC, fMDA, MTAT, rfMSAT, and rfMDA. 
-This function also includes the ability to set coverage levels, repetitions (such as SMC cycles) and the timesteps 
-between them, diagnostics information for campaigns that include testing, target groups, and restrictions on who can 
-receive drugs by node or individual properties. For more details on all possible specifications see 
-[malaria_drug_campaigns.py](https://github.com/InstituteforDiseaseModeling/dtk-tools-malaria/blob/master/malaria/interventions/malaria_drug_campaigns.py) 
-in dtk-tools-malaria. Node and individual properties are set in the demographics file and can be called upon here for 
-things like low vs high access groups.
-
-This example details a simple SMC intervention. Its coverage level, number of cycles, and start day are specified in the model builder as they may change more regularly based on the purpose of different analyses. Timesteps between repetitions (if more than one cycle given) is set to 30 days as SMC is given on a monthly basis during peak season. The target group is also specified here to limit the age group to 0.25-5 year old children. This example uses adherent drug configurations as previously shown.
+This example details an SMC intervention. Timesteps between repetitions (if more than one cycle given) is set to 30 days as SMC is given on a monthly basis during peak season. The target group is also specified here to limit the age group to 0.25-5 year old children. This example uses adherent drug configurations as previously shown.
 
 ```{python,eval=F}
-from malaria.interventions.malaria_drug_campaigns import add_drug_campaign
-def smc_intervention(cb, day, cycles, coverage_level):
-    add_drug_campaign(cb, campaign_type='SMC',
-                          coverage=coverage_level, start_days=[(sim_years - 1) * 365 + day],
-                          repetitions=cycles, tsteps_btwn_repetitions=30,
-                          adherent_drug_configs=[adherent_drug_configs],
-                          target_group={'agemin': 0.25, 'agemax': 5},
-                          receiving_drugs_event_name='Received_SMC')
+import emod_api.campaign as campaign
+import emodpy_malaria.interventions.drug_campaign as drug_campaign
+
+drug_campaign.add_drug_campaign(campaign, 
+                                campaign_type="SMC", 
+                                start_days=[165], 
+                                #drug_code="SPA", #single code if not using adherent drug
+                                adherent_drug_configs=[adherent_drug_configs],
+                                repetitions=4, 
+                                tsteps_btwn_repetitions=30, 
+                                coverage=0.7,
+                                target_group={'agemin': 0.25, 'agemax': 5},
+                                receiving_drugs_event_name="Received_SMC")                       
 ```
 
 
 ## Add diagnostic surveys
 
-![figure](/images/04_highlighted.png)
+Diagnostic surveys are useful interventions for triggering events based on an individual's diagnosis. Testing can be performed at regular intervals (`tsteps_between_repetitions`) for a set number of `repetitions` based on `target` groups and `coverage`. Testing can also be triggered by other events, such as receiving a particular dose of PMC in this example.
 
-[Diagnostic surveys](https://github.com/InstituteforDiseaseModeling/dtk-tools-malaria/blob/master/malaria/interventions/malaria_diagnostic.py) are useful interventions for triggering events based on an individual's diagnosis. Testing can be performed at regular intervals (**tsteps_between_repetitions**) for a set number of **repetitions** based on **target** groups and **coverage**. Testing can also be triggered by other events, such as receiving a particular dose of IPTi in this example.
-
-Different methods of diagnostic testing may also be utilized, including *TRUE_PARASITE_DENSITY*, *BLOOD_SMEAR*, *PCR*, *PF_HRP2*, *TRUE_INFECTION_STATUS*, and *HAS_FEVER*. Diagnostic threshold, sensitivity, and specificity can all be parameterized. Once a positive or negative result is obtained in the simulation, the relative configs parameter dictates what will happen to that individual. In this example, either diagnosis broadcasts an event for that individual that they were positive or negative on the day that they received their first dose of IPTi.
+Different methods of diagnostic testing may also be utilized, including *TRUE_PARASITE_DENSITY*, *BLOOD_SMEAR*, *PCR*, *PF_HRP2*, *TRUE_INFECTION_STATUS*, and *HAS_FEVER*. Diagnostic threshold, sensitivity, and specificity can all be parameterized. Once a positive or negative result is obtained in the simulation, the relative configs parameter dictates what will happen to that individual. In this example, either diagnosis broadcasts an event for that individual that they were positive or negative on the day that they received their first dose of PMC.
 
 ```{python,eval=F}
-from malaria.interventions.malaria_drug_campaigns import add_drug_campaign, add_diagnostic_survey
-                              
-def diagnostic_survey(cb, sim_day, thresh=10, dose=1):
-    # day 0 positivity
-    add_diagnostic_survey(cb, start_day=sim_day,
-                          diagnostic_threshold=thresh,
-                          trigger_condition_list=[f'Received_IPTi_{dose}'],
-                          diagnostic_type='TRUE_PARASITE_DENSITY'
-                          positive_diagnosis_configs=[{'class': 'BroadcastEvent',
-                                                       'Broadcast_Event': 'Day_0_positive'}],
-                          negative_diagnosis_configs=[{'class': 'BroadcastEvent',
-                                                       'Broadcast_Event': 'Day_0_negative'}])
+import emod_api.campaign as campaign
+import emodpy_malaria.interventions.diag_survey as diagnostic_survey
+import emod_api.interventions.common
+
+parasites_detected = emod_api.interventions.common.BroadcastEvent(campaign, Event_Trigger="Day_0_positive")
+no_parasites_detected = emod_api.interventions.common.BroadcastEvent(campaign, Event_Trigger="Day_0_negative")
+
+diagnostic_survey.add_diagnostic_survey(campaign=campaign, start_day=0, 
+                                        diagnostic_type="TRUE_PARASITE_DENSITY",
+                                        diagnostic_threshold=20,
+                                        trigger_condition_list=['Received_PMC_1'],
+                                        positive_diagnosis_configs=[parasites_detected],
+                                        negative_diagnosis_configs=[no_parasites_detectedc])
 ```
 
 
 ## Add vaccine
-
-![figure](/images/04_highlighted.png)
 
 Malaria vaccines can be added using the [add_vaccine()](https://github.com/InstituteforDiseaseModeling/dtk-tools-malaria/blob/master/malaria/interventions/malaria_vaccine.py#L19) function.
 The function is generic: it can handle pre-erythrocytic vaccines, transmission-blocking vaccines, and RTS,S specifically.
@@ -1741,6 +1727,48 @@ add_vaccine(cb,
             vaccine_type='RTSS',
             start_days=[365],
             coverage=0.8)
+            
+import emod_api.campaign as campaign
+import emodpy_malaria.interventions.vaccine as vaccine            
+vaccine.add_scheduled_vaccine(campaign,
+                          start_day: int = 1,
+                          demographic_coverage: float = 1.0,
+                          target_num_individuals: int = None,
+                          node_ids: list = None,
+                          repetitions: int = 1,
+                          timesteps_between_repetitions: int = 365,
+                          ind_property_restrictions: list = None,
+                          target_age_min: int = 0,
+                          target_age_max: int = 125,
+                          target_gender: str = "All",
+                          broadcast_event: str = None,
+                          vaccine_type: str = "AcquisitionBlocking",
+                          vaccine_take: float = 1,
+                          vaccine_initial_effect: float = 1,
+                          vaccine_box_duration: int = 365,
+                          vaccine_decay_time_constant: float = 100,
+                          efficacy_is_multiplicative: bool = True)
+
+vaccine.add_triggered_vaccine(campaign,
+                          start_day: int = 1,
+                          trigger_condition_list: list = None,
+                          listening_duration: int = -1,
+                          delay_period_constant: float = 0,
+                          demographic_coverage: float = 1.0,
+                          node_ids: list = None,
+                          repetitions: int = 1,
+                          timesteps_between_repetitions: int = 365,
+                          ind_property_restrictions: list = None,
+                          target_age_min: int = 0,
+                          target_age_max: int = 125,
+                          target_gender: str = "All",
+                          broadcast_event: str = None,
+                          vaccine_type: str = "AcquisitionBlocking",
+                          vaccine_take: float = 1,
+                          vaccine_initial_effect: float = 1,
+                          vaccine_box_duration: int = 365,
+                          vaccine_decay_time_constant: float = 100,
+                          efficacy_is_multiplicative: bool = True)
 ```
 
 
@@ -1777,6 +1805,30 @@ change_individual_property(cb,
                            ind_property_restrictions=[{'VaccineStatus': 'None'}],
                            trigger_condition_list=['Received_Vaccine'],
                            blackout_flag=False)
+
+change_individual_property_triggered( camp,
+                                          triggers: list,
+                                          new_ip_key: str,
+                                          new_ip_value: str,
+                                          start_day: int=0, 
+                                          daily_prob: float=1,
+                                          max_duration: int=9.3228e+35,
+                                          revert_in_days:int=-1,
+
+                                          node_ids: list=None, # where
+
+                                          ip_restrictions:list=None,
+                                          coverage: float=1.0,
+                                          target_age_min: float=0,
+                                          target_age_max: float=_MAX_AGE,
+                                          target_sex: str="All",
+                                          target_residents_only: bool=False,
+
+                                          delay=None,
+                                          listening_duration: int=-1,
+                                          blackout: bool=True,
+                                          check_at_trigger: bool=False
+    )
 ```
 
 Those who have received their 3rd dose of vaccine are eligible for a booster at the age of 2 years (730 days) old. The
@@ -1803,7 +1855,7 @@ change_individual_property(cb,
 
 
 
-## Triggered interventions
+## Triggered interventions - likely remove because specific ones
 
 ![figure](/images/04_highlighted.png)
 
@@ -1823,8 +1875,6 @@ add_ITN(cb,
 
 ## Using the model builder to set up multi-simulation experiments
 
-![figure](/images/05_highlighted.png)
-
 We often want to run a series of simulations where most parameters are held constant but one or more are varied. To set 
 this up in a `dtk-tools` script, we use a `builder` and the `ModBuilder` function with associated `ModFn`s.
 
@@ -1833,59 +1883,54 @@ parameters. A few example uses are shown below.
 
 ### Set the number of stochastic realizations (replicates) to run
 
-The **Run_Number** config parameter sets the simulation's random seed. 
-To run multiple stochastic realizations of the same simulation, vary **Run_Number** in the builder.
-In this example, the builder creates 10 identical simulations except for the value of **Run_Number**, which ranges 
-from 0-9.
+The **Run_Number** config parameter sets the simulation's random seed. To run multiple stochastic realizations of the same simulation, vary **Run_Number** in the builder. In this example, the builder creates 10 identical simulations except for the value of **Run_Number**, which ranges from 0-9.
 
 ```{python, eval=F}
-from dtk.utils.core.DTKConfigBuilder import DTKConfigBuilder
-from simtools.ModBuilder import ModBuilder, ModFn
-expt_name = 'multi_seed_experiment'
-numseeds = 10 
-cb = DTKConfigBuilder.from_defaults('MALARIA_SIM')
-builder = ModBuilder.from_list([[ModFn(DTKConfigBuilder.set_param, 'Run_Number', x)
-                                 ]
-                                for x in range(numseeds)
-                                ])
-run_sim_args = {
-    'exp_name': expt_name,
-    'config_builder': cb,
-    'exp_builder' : builder
-}
+from emodpy.emod_task import EMODTask
+from idmtools.builders import SimulationBuilder
+from idmtools.entities.experiment import Experiment
+
+def set_param(simulation, param, value):
+    # sets a specific config parameter to the specified value, useful for sweeps
+    return simulation.task.set_parameter(param, value)
+
+num_seeds = 10
+builder = SimulationBuilder()
+    
+builder.add_sweep_definition(partial(set_param, param='Run_Number'), range(num_seeds))
+
+# create experiment from builder
+experiment = Experiment.from_builder(builder, task, name="multi_seed_experiment")
 ```
 
 ### Sweeping through multiple config parameters
 
-In this example, we sweep through 20 values of **x_Temporary_Larval_Habitat** and 10 **Run_Number**s for each habitat 
-value, creating 200 simulations.
+In this example, we sweep through 20 values of **x_Temporary_Larval_Habitat** and 10 **Run_Number** values/stochastic realizations for each habitat value, creating 200 total simulations.
 
 ```{python, eval=F}
+from emodpy.emod_task import EMODTask
+from idmtools.builders import SimulationBuilder
+from idmtools.entities.experiment import Experiment
+
 import numpy as np
-from dtk.utils.core.DTKConfigBuilder import DTKConfigBuilder
-from simtools.ModBuilder import ModBuilder, ModFn
-expt_name = 'multi_habitat_and_seed_experiment'
-numseeds = 10 
-cb = DTKConfigBuilder.from_defaults('MALARIA_SIM')
-builder = ModBuilder.from_list([[ModFn(DTKConfigBuilder.set_param, 'Run_Number', x),
-                                 ModFn(DTKConfigBuilder.set_param, 'x_Temporary_Larval_Habitat, hab)
-                                 ]
-                                for x in range(numseeds)
-                                for hab in np.logspace(-2, 2, 20)
-                                ])
-run_sim_args = {
-    'exp_name': expt_name,
-    'config_builder': cb,
-    'exp_builder' : builder
-}
+
+def set_param(simulation, param, value):
+    # sets a specific config parameter to the specified value, useful for sweeps
+    return simulation.task.set_parameter(param, value)
+
+num_seeds = 10
+builder = SimulationBuilder()
+    
+builder.add_sweep_definition(partial(set_param, param='Run_Number'), range(num_seeds))
+builder.add_sweep_definition(partial(set_param, param='x_Temporary_Larval_Habitat'), np.logspace(-2, 2, 20))
+
+# create experiment from builder
+experiment = Experiment.from_builder(builder, task, name="multi_habitat_and_seed_experiment")
 ```
 
 ### Setting up complex sweeps
 
-The following model builder implements specific functions from the NU team's SMC work. Two wrapper functions, 
-`smc_intervention` and `set_EIR`, have been defined since this user doesn't need to vary over every argument in 
-`add_drug_campaign` or `add_InputEIR`. Note that these wrapper functions *must* return a dictionary for the `ModBuilder` 
-to function correctly.
+The following model builder implements specific functions from the NU team's SMC work. Two wrapper functions, `smc_intervention` and `set_EIR`, have been defined since this user doesn't need to vary over every argument in `add_drug_campaign` or `add_InputEIR`. Note that these wrapper functions *must* return a dictionary for the `ModBuilder` to function correctly.
 
 ```{python,eval=F}
 import numpy as np
@@ -1925,7 +1970,7 @@ run_sim_args = {
 ```
 
 
-## Setting up the experiment manager
+## Setting up the experiment manager - maybe change to be earlier (we introduce with sweeping currently)
 
 ![figure](/images/06_highlighted.png)
 
@@ -1953,47 +1998,33 @@ if __name__ == "__main__":
 
 ![figure](/images/02_highlighted.png)
 
-Some simulations can take a long time to run and the part you are really interested in analyzing isn’t until closer to 
-the end. You’d like to save the state of the simulation just before the interesting stuff and then restart from that 
-spot. This would allow you to iterate more quickly on different intervention strategies or just trying to understand 
-what the simulation is doing better. EMOD supports this ability with a feature called “serialized populations.”
+Some simulations can take a long time to run and the part you are really interested in analyzing isn’t until closer to the end. You’d like to save the state of the simulation just before the interesting stuff and then restart from that spot. This would allow you to iterate more quickly on different intervention strategies or just trying to understand what the simulation is doing better. EMOD supports this ability with a feature called “serialized populations.”
 
-The serialized population feature in EMOD allows you to save the state of the people and restart from that saved state. 
-This state includes the person’s health, infections, any interventions that they have, and more. This is especially 
-useful when you need to create a population that has natural immunity to a pathogen (i.e. the pathogen is not novel and 
-the population is not naive.) 
+The serialized population feature in EMOD allows you to save the state of the people and restart from that saved state. This state includes the person’s health, infections, any interventions that they have, and more. This is especially useful when you need to create a population that has natural immunity to a pathogen (i.e. the pathogen is not novel and the population is not naive.) 
 
 ### Simple Burn-in
 
-To create a population with an endemic disease, we start with a naive population and run the simulation till 
-disease dynamics reach an equilibrium, usually around 50 years.
+To create a population with an endemic disease, we start with a naive population and run the simulation till disease dynamics reach an equilibrium, usually around 50 years.
 
-For the initial burn-in simulation, you need to tell EMOD that you would like it to save a serialized population and at 
-what timestep(s).
+For the initial burn-in simulation, you need to tell EMOD that you would like it to save a serialized population and at what timestep(s), in this case the last day of the simulation.
 
 ```{python,eval=F}
-serialize_year = 50    # Number of years to run burn-in
-cb.update_params({
-            'Serialization_Time_Steps': [365 * serialize_year],
-            'Serialization_Type': 'TIMESTEP',
-            'Serialized_Population_Writing_Type': 'TIMESTEP',
-            'Serialized_Population_Reading_Type': 'NONE',
-            'Serialization_Mask_Node_Write': 0,
-            'Serialization_Precision': 'REDUCED'
-        })
+serialize_years = 50 # Number of years to run burn-in
+
+#put the following in config builder
+    
+#Add serialization - add burnin "write" parameters to config.json
+config.parameters.Serialized_Population_Writing_Type = "TIMESTEP"
+config.parameters.Serialization_Time_Steps = [365 * serialize_years]
+config.parameters.Serialization_Mask_Node_Write = 0
+config.parameters.Serialization_Precision = "REDUCED"
 ```
 
-Then, run this simulation as you would any other. When the simulation has succeeded, the output/ directory should 
-contain a state-*.dtk file, where * is the 5-digit date of serialization. In this example, a state-18250.dtk file 
-would be created.
+Then, run this simulation as you would any other. When the simulation has succeeded, the output/ directory should contain a state-*.dtk file, where * is the 5-digit date of serialization. In this example, a state-18250.dtk file would be created.
 
 ### Picking up from Serialized Burn-in
 
-![figure](/images/02_highlighted.png)
-
-To pick up from the end of a saved burn-in simulation, and run for some additional time, you need the name of the state*.dtk 
-file from the burn-in and the path to the .dtk file. If you know the path to the .dtk file, you can specify it
-directly:
+To pick up from the end of a saved burn-in simulation, and run for some additional time, you need the name of the state*.dtk file from the burn-in and the path to the .dtk file. If you know the path to the .dtk file, you can specify it directly:
 
 ```{python,eval=F}
 burnin_id = <ExperimentID> # replace with burn-in ID
@@ -2007,6 +2038,13 @@ cb.update_params({
             'Serialization_Mask_Node_Read': 0,
             'Enable_Default_Reporting' : 0
         })
+serialize_years = 50 # Number of years to run burn-in
+
+#put the following in config builder
+#add serialization - add pickup "read" parameters to config.json
+config.parameters.Serialized_Population_Reading_Type = "READ"
+config.parameters.Serialization_Mask_Node_Read = 0
+config.parameters.Serialization_Time_Steps = [serialize_years*365]
 ```
 
 If you know the experiment ID of your burn-in simulation, you can use that instead through the `retrieve_experiment` 
@@ -2022,10 +2060,11 @@ cb.update_params({
             ...
             'Serialized_Population_Path': os.path.join(output_paths[0], 'output')     # takes the first simulation in the experiment
         })
+
+
 ```
 
-If you ran a burn-in experiment that varied key parameters that you would like to also reuse during pickup, you can 
-incorporate setting the `Serialized_Population_Path` in the builder:
+If you ran a burn-in experiment that varied key parameters that you would like to also reuse during pickup, you can incorporate setting the `Serialized_Population_Path` in the builder:
 
 ```{python, eval=F}
 from simtools.Utilities.Experiments import retrieve_experiment
@@ -2049,6 +2088,25 @@ builder = ModBuilder.from_list([[...,
               ...],
           for r,row in ser_df.iterrows()   # Run pick-up from each unique burn-in scenario
           ])
+
+
+from utils_slurm import build_burnin_df ##for slurm, needs adding to emodpy or moving from example
+
+def update_serialize_parameters(simulation, df, x: int):
+    path = df["serialized_file_path"][x]
+    seed = int(df["Run_Number"][x])
+    
+    simulation.task.set_parameter("Serialized_Population_Filenames", df["Serialized_Population_Filenames"][x])
+    simulation.task.set_parameter("Serialized_Population_Path", os.path.join(path, "output"))
+    simulation.task.set_parameter("Run_Number", seed) #match pickup simulation run number to burnin simulation
+
+    return {"Run_Number":seed}
+
+#in general simulation creation:
+#create burnin df, retrieved from burnin ID (defined above)
+burnin_df = build_burnin_df(burnin_exp_id, platform, serialize_years*365)
+
+builder.add_sweep_definition(partial(update_serialize_parameters, df=burnin_df), range(len(burnin_df.index)))
 ```
 
 
@@ -2056,10 +2114,7 @@ builder = ModBuilder.from_list([[...,
 
 ![figure](/images/07_highlighted.png)
 
-Most of [EMOD generated output files](https://docs.idmod.org/projects/emod-malaria/en/latest/software-outputs.html)
-are in json format, and the remainder are csv's. In `dtk-tools`, _Analyzer_ functions facilitate extracting information
-from EMOD's raw output files to produce results in csv's or as figures.
-
+Most of [EMOD generated output files](https://docs.idmod.org/projects/emod-malaria/en/latest/software-outputs.html)are in json format, and the remainder are csv's. In `emodpy`, _Analyzer_ functions facilitate extracting information from EMOD's raw output files to produce results in csv's or as figures.
 
 __Required modules__
 
@@ -2067,35 +2122,25 @@ __Required modules__
 import os
 import pandas as pd
 import numpy as np
-from simtools.Analysis.AnalyzeManager import AnalyzeManager
-from simtools.Analysis.BaseAnalyzers import BaseAnalyzer
-from simtools.SetupParser import SetupParser
+from idmtools.entities import IAnalyzer	
+from idmtools.entities.simulation import Simulation
+from idmtools.analysis.analyze_manager import AnalyzeManager
+from idmtools.core import ItemType
+from idmtools.core.platform_factory import Platform
 ```
 
 Other modules such as `datetime` may also be helpful, depending on the type of output and desired manipulations.
 
-
-
 __Basic structure of an Analyzer__
 
-The Analyzer Class should be defined using a meaningful name, i.e. `InsetChartAnalyzer` for an analyzer that processes   `InsetChart.json` outputs.
-A [class](https://docs.python.org/3/tutorial/classes.html) in Python allows constructing custom objects with associated attributes and functions.
+The Analyzer Class should be defined using a meaningful name, i.e. `InsetChartAnalyzer` for an analyzer that processes   `InsetChart.json` outputs. A [class](https://docs.python.org/3/tutorial/classes.html) in Python allows constructing custom objects with associated attributes and functions. Each class starts with a definition of custom parameters and objects attributes via  `__init__` and `self`. This requires a few edits across simulation experiments but tends to stay relatively unchanged within the same experiment setup.
 
-Each class starts with a definition of custom parameters and objects attributes via  `__init__` and `self`. This
-requires a few edits across simulation experiments but tends to stay relatively unchanged within the same experiment setup.
+The `filter` function is optional. It allows the analyzer to only analyze a subset of simulations in an experiment by filtering based on simulation tags. For example, the user can request the analyzer only analyze simulations where the tag `SMC_Coverage` has the value 1 (if this is a tag the user specified when building their experiment), or simulations that succeeded. This functionality can be useful when debugging large experiments. If the `filter` function is not specified, then all simulations are targeted for analysis.
 
-The `filter` function is optional. It allows the analyzer to only analyze a subset of simulations in an experiment by
-filtering based on simulation tags. For example, the user can request the analyzer only analyze simulations where the tag
-`SMC_Coverage` has the value 1 (if this is a tag the user specified when building their experiment), or simulations that succeeded. This functionality
- can be useful when debugging large experiments. If the `filter` function is not specified, then all simulations are
- targeted for analysis.
-
-The `select_simulation_data` is a custom function applied to extract data from the EMOD output file and needs to be
+The `map` is a custom function applied to extract data from the EMOD output file and needs to be
 modified the most across different EMOD output file types and according to the user's needs.
 
-Finally, the `finalize` checks the extracted data, aggregates data from multiple simulations in the same experiment, and
-then saves or plots the data. The checking of the simulation stays mostly the same across simulations while the part of
-processing the simulation data is highly variable across projects and depends on the desired results.
+Finally, the `reduce`` checks the extracted data, aggregates data from multiple simulations in the same experiment, and then saves or plots the data. The checking of the simulation stays mostly the same across simulations while the part of processing the simulation data is highly variable across projects and depends on the desired results.
 
 
 ```{python, eval=F}
@@ -2106,10 +2151,10 @@ class InsetChartAnalyzer(BaseAnalyzer): ...
     def filter(self, simulation):
         ...
     # 2 - Extract and select data from the json output files
-    def select_simulation_data(self, data, simulation):
+    def map(self, data, simulation):
         ...
     # 3 - Check the extracted data and then save or plot the data
-    def finalize(self, all_data):
+    def reduce(self, all_data):
         ...
 ```
 
@@ -2121,30 +2166,18 @@ The InsetChartAnalyzer is used to explain the Analyzer structure in detail.
 <p>
 
 You don't need to understand the python fundamentals in depth, just what each line does and what to modify.
-- The first two lines including the `__init__(self,..` and `super` is required in each analyzer class. Be sure to update
-the analyzer name in `super`.
-- The second line `filenames=["output/InsetChart.json"]` defines the EMOD output file to be analyzed. It is written in a
-list so that analyzers have the capability of combining data from multiple files. Generally we use 1 output file per analyzer.
-
-- The next lines that start with `self` attach each argument that the user has passed to the analyzer (`expt_name`, etc)
-to the analyzer class via `self`. This allows easy access to any of these values from any analyzer function via the
-`self` object.
-- This analyzer allows the user to specify the parameters `expt_name`, `sweep_variables` , `channels`, and `start_year`.
-Generally we use `expt_name` and `sweep_variables` across all analyzers we write, while the others are
- specific to this particular analyzer. All these requested parameters can be modified or extended with additional
- parameters if needed, according to the user's needs.
-  - These parameters allow the analyzer to take in experiment specific values, for instance simulation `start_year` is
-  used to convert timesteps into date-time values, as we generally run EMOD in simulation time instead of calendar time.
-  - The `expt_name` parameter lets the user specify the name of the experiment. We often use the experiment name in the
-  file names of outputs from the analyzer, for example aggregated csv's and figures.
-  - The `sweep_variables` parameter is a list of simulation tags from the experiment that the user would like attached
-  to each simulation. For example, `Run_Number` to track the random seed, or `SMC_Coverage` if the experiment sweeps over SMC coverage.
-  - The `channels` is an optional parameter as it takes default values if not specified. It is included in this analyzer
-  so the user has the flexibility to extract different channels from InsetChart.json if needed. If the same channels are
-  always used, one could instead hard code the desired channel names into `self.channels` and remove the optional argument.
+- The first two lines including the `__init__(self,..` and `super` is required in each analyzer class. Be sure to update the analyzer name in `super`.
+- The second line `filenames=["output/InsetChart.json"]` defines the EMOD output file to be analyzed. It is written in a list so that analyzers have the capability of combining data from multiple files. Generally we use 1 output file per analyzer.
+- The next lines that start with `self` attach each argument that the user has passed to the analyzer (`expt_name`, etc) to the analyzer class via `self`. This allows easy access to any of these values from any analyzer function via the `self` object.
+- This analyzer allows the user to specify the parameters `expt_name`, `sweep_variables` , `channels`, and `start_year`. Generally we use `expt_name` and `sweep_variables` across all analyzers we write, while the others are specific to this particular analyzer. All these requested parameters can be modified or extended with additional parameters if needed, according to the user's needs.
+  - These parameters allow the analyzer to take in experiment specific values, for instance simulation `start_year` is used to convert timesteps into date-time values, as we generally run EMOD in simulation time instead of calendar time.
+  - The `expt_name` parameter lets the user specify the name of the experiment. We often use the experiment name in the file names of outputs from the analyzer, for example aggregated csv's and figures.
+  - The `sweep_variables` parameter is a list of simulation tags from the experiment that the user would like attached to each simulation. For example, `Run_Number` to track the random seed, or `SMC_Coverage` if the experiment sweeps over SMC coverage.
+  - The `channels` is an optional parameter as it takes default values if not specified. It is included in this analyzer so the user has the flexibility to extract different channels from InsetChart.json if needed. If the same channels are always used, one could instead hard code the desired channel names into `self.channels` and remove the optional argument.
 
 
 ```{python, eval=F}
+class MonthlyInsetChartAnalyzer(IAnalyzer):
     def __init__(self, expt_name, sweep_variables=None, channels=None, working_dir=".", start_year=2022):
         super(MonthlyInsetChartAnalyzer, self).__init__(working_dir=working_dir, filenames=["output/InsetChart.json"])
         self.sweep_variables = sweep_variables or ["Run_Number"]
@@ -2156,32 +2189,21 @@ Generally we use `expt_name` and `sweep_variables` across all analyzers we write
 </p>
 </details>
 
-
-
-<details><summary><span style="color: blue";">2 Select simulation data</span></summary>
+<details><summary><span style="color: blue";">2. Map simulation data</span></summary>
 <p>
 
-The `select_simulation_data` is a custom function that will change the most when adapting an analyzer to different EMOD outputs.
-Do not change the function definition (the line beginning `def select_simulation_data(`).
+The `map` is a custom function that will change the most when adapting an analyzer to different EMOD outputs. Do not change the function definition (the line beginning `def map()`.
 
-EMOD output from the requested output file(s) is stored in `data`. The first activity of `select_simulation_data()` is
-therefore to extract the desired data out of `data`. `data` is a dictionary where the keys are the filenames stored in
-`self.filenames` and the values are the content of each file.
+EMOD output from the requested output file(s) is stored in `data`. The first activity of `map()` is therefore to extract the desired data out of `data`. `data` is a dictionary where the keys are the filenames stored in `self.filenames` and the values are the content of each file.
 
-In this example using `InsetChart.json`, we read in the data from the json file, keeping only channels that have been
-specified in `self.channels`, and convert into a pandas dataframe. The dataframe will have one column for each channel,
-and each row is the channel value for each timestep in the simulation.
+In this example using `InsetChart.json`, we read in the data from the json file, keeping only channels that have been specified in `self.channels`, and convert into a pandas dataframe. The dataframe will have one column for each channel, and each row is the channel value for each timestep in the simulation.
 
-Next, we want to convert the timesteps (row number) into calendar dates. Those are the next 5 lines. We copy `simdata.index`
-into `simdata['Time']` and create additional variables for Day, Month and Year that are easier to work with, as well as
-a `date` column that is a `datetime.date` object.
+Next, we want to convert the timesteps (row number) into calendar dates. Those are the next 5 lines. We copy `simdata.index` into `simdata['Time']` and create additional variables for Day, Month and Year that are easier to work with, as well as a `date` column that is a `datetime.date` object.
 
-Finally, the sweep variables corresponding to the simulation tags of the experiment are attached, the dataframe is returned,
-and the returned dataframe is automatically passed on to the next and final step of the analyzer. It is not required to
-return a dataframe but it is required to return something: the data of interest from the simulation.
+Finally, the sweep variables corresponding to the simulation tags of the experiment are attached, the dataframe is returned, and the returned dataframe is automatically passed on to the next and final step of the analyzer. It is not required to return a dataframe but it is required to return something: the data of interest from the simulation.
 
 ```{python, eval=F}
-    def select_simulation_data(self, data, simulation):
+    def map(self, data, simulation):
         simdata = pd.DataFrame({x: data[self.filenames[0]]['Channels'][x]['Data'] for x in self.inset_channels})
         simdata['Time'] = simdata.index
         simdata['Day'] = simdata['Time'] % 365
@@ -2194,25 +2216,19 @@ return a dataframe but it is required to return something: the data of interest 
         return simdata
 ```
 
-
 </p>
 </details>
 
-
-<details><summary><span style="color: blue";">3 Finalize </span></summary>
+<details><summary><span style="color: blue";">3. Reduce </span></summary>
 <p>
 
-This part checks the simulation data returned by `select_simulation_data` and aggregates data across all simulations in
- the experiment into the `adf` dataframe. In this example, the analyzer saves results into the specified working_dir/expt_name subfolder. Other
- analyzers may use the `finalize()` function to plot and save a figure.
+This part checks the simulation data returned by `map()` and aggregates data across all simulations in the experiment into the `adf` dataframe. In this example, the analyzer saves results into the specified working_dir/expt_name subfolder. Other analyzers may use the `reduce()` function to plot and save a figure.
 
-We typically do not modify the first 4 lines of `finalize()` (creation of `selected` and checking that it contains data).
-If `select_simulation_data` returns a dataframe, then the `adf = ...` line can stay the same as well. Everything after that
-should be customized to the user's needs.
+We typically do not modify the first 4 lines of `reduce()` (creation of `selected` and checking that it contains data). If `map()` returns a dataframe, then the `adf = ...` line can stay the same as well. Everything after that should be customized to the user's needs.
 
 
 ```{python, eval=F}
-    def finalize(self, all_data):
+    def map(self, all_data):
         selected = [data for sim, data in all_data.items()]
         if len(selected) == 0:
             print("No data have been returned... Exiting...")
@@ -2225,8 +2241,6 @@ should be customized to the user's needs.
 
 </p>
 </details>
-
-
 
 <details><summary><span style="color: blue";">Optional analyzer extensions and helper functions</span></summary>
 <p>
@@ -2257,35 +2271,27 @@ Helper function to convert months.
 
 ### Analyze MalariaSummaryReport
 
-The summary report aggregates the monitored simulation outputs into user-specified agebins, monitoring intervals,
-and/or parasitemia bins. Outputs such as prevalence by age, incidence by age, and parasite density by age can be
-obtained through the summary report. Multiple summary reports can be requested in the simulation run script, and analyzers
-can be built to handle working with multiple summary reports.
-
+The summary report aggregates the monitored simulation outputs into user-specified agebins, monitoring intervals, and/or parasitemia bins. Outputs such as prevalence by age, incidence by age, and parasite density by age can be obtained through the summary report. Multiple summary reports can be requested in the simulation run script, and analyzers can be built to handle working with multiple summary reports.
 
 ```{python, eval=F}
-class AnnualAgebinPfPRAnalyzer(BaseAnalyzer):
+class AnnualAgebinPfPRAnalyzer(IAnalyzer):
     def __init__(self, expt_name, sweep_variables=None, working_dir='./', start_year=2022,
                  end_year=2025, burnin=None):
         super(AnnualAgebinPfPRAnalyzer, self).__init__(working_dir=working_dir,
-                                                       filenames=["output/MalariaSummaryReport_Annual_Agebin.json"])
+                              filenames=["output/MalariaSummaryReport_Annual_Agebin.json"])
 ```
 
 
-Documentation on the summary report is [here](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-malaria-summary.html).
-If you are writing a new summary report analyzer, you will need to know which part of the summary report contains the data you need.
+Documentation on the summary report is [here](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-malaria-summary.html). If you are writing a new summary report analyzer, you will need to know which part of the summary report contains the data you need.
 
-Within each summary report the channel `DataByTimeAndAgeBins` reports monitored outputs per _time_ and _age_ it therefore
-needs to be indexed twice, one for selecting time range and one for selecting agebin. The outer list is time and the inner list is age.
+Within each summary report the channel `DataByTimeAndAgeBins` reports monitored outputs per _time_ and _age_ it therefore needs to be indexed twice, one for selecting time range and one for selecting agebin. The outer list is time and the inner list is age.
 
-In this example, the data of interest is in `DataByTimeAndAgeBins`: we extract, for each age group, annually-aggregated
-PfPR, clinical incidence, severe incidence, and population. All outcomes are combined into a dataframe for each age group, then
-the age-specific dataframes are concatenated into a single dataframe.
+In this example, the data of interest is in `DataByTimeAndAgeBins`: we extract, for each age group, annually-aggregated PfPR, clinical incidence, severe incidence, and population. All outcomes are combined into a dataframe for each age group, then the age-specific dataframes are concatenated into a single dataframe.
 
 Attaching the sweep variable for the respective simulation is done the same way across analyzers.
 
 ```{python, eval=F}
-    def select_simulation_data(self, data, simulation):
+    def map(self, data, simulation):
         adf = pd.DataFrame()
         nyears = (self.end_year - self.start_year)
         age_bins = data[self.filenames[0]]['Metadata']['Age Bins']
@@ -2311,24 +2317,22 @@ Attaching the sweep variable for the respective simulation is done the same way 
 
 ### Analyze ReportEventCounter
 
-The ReportEventCounter, InsetChart, and ReportMalariaFiltered json outputs all have very similar structure, so an analyzer
-written for one of these output types can usually be easily adapted for another.
+The `ReportEventCounter`, `InsetChart`, and `ReportMalariaFiltered` json outputs all have very similar structure, so an analyzer written for one of these output types can usually be easily adapted for another.
 
-In the example below, the `InsetChart.json` is read in addition to  `ReportEventCounter.json` to obtain not
-only number of individuals who received and intervention but also the total population per timestep in the simulation.
-Data from both output files are combined into the same dataframe.
+In the example below, the `InsetChart.json` is read in addition to  `ReportEventCounter.json` to obtain not only number of individuals who received and intervention but also the total population per timestep in the simulation. Data from both output files are combined into the same dataframe.
 
 ```{python, eval=F}
-class ReceivedCampaignAnalyzer(BaseAnalyzer):
+class ReceivedCampaignAnalyzer(IAnalyzer):
     def __init__(self, expt_name, channels=None, sweep_variables=None, working_dir='./', start_year=2022):
         super(ReceivedCampaignAnalyzer, self).__init__(working_dir=working_dir,
-                                                       filenames=["output/ReportEventCounter.json",
-                                                                  "output/InsetChart.json"])
+                              filenames=["output/ReportEventCounter.json",
+                                         "output/InsetChart.json"])
         self.sweep_variables = sweep_variables or ["Run_Number"]
         self.channels = channels or ['Received_Treatment']
         self.start_year = start_year
         self.expt_name = expt_name
-    def select_simulation_data(self, data, simulation):
+        
+    def map(self, data, simulation):
         simdata = pd.DataFrame({x: data[self.filenames[0]]['Channels'][x]['Data'] for x in self.channels})
         simdata['Population'] = data[self.filenames[1]]['Channels']['Statistical Population']['Data']
         simdata['Time'] = simdata.index
@@ -2345,18 +2349,16 @@ class ReceivedCampaignAnalyzer(BaseAnalyzer):
 
 ### Analyze ReportEventRecorder
 
-The ReportEventRecorder is in csv format instead of json and includes events for each single individual in the simulation per event that happened.
-Some individuals occur multiple times in the csv file while other might not appear even once, depending on the events specified (i.e. if `Births` are specified every new individual born in the simulation will appear once).
+The ReportEventRecorder is in csv format instead of json and includes events for each single individual in the simulation per event that happened. Some individuals occur multiple times in the csv file while other might not appear even once, depending on the events specified (i.e. if `Births` are specified every new individual born in the simulation will appear once).
 
-In this example, we look for the event `Received_Severe_Treatment` and count the number of events by age group. We also account
-for the case where none of these events occurred during the simulation.
+In this example, we look for the event `Received_Severe_Treatment` and count the number of events by age group. We also account for the case where none of these events occurred during the simulation.
 
 ```{python, eval=F}
-class IndividualEventsAnalyzer(BaseAnalyzer):
+class IndividualEventsAnalyzer(IAnalyzer):
     def __init__(self, expt_name, agebins=None,
                  sweep_variables=None, working_dir=".", start_year=2010, end_year=2020):
         super(IndividualEventsAnalyzer, self).__init__(working_dir=working_dir,
-                                                       filenames=["output/ReportEventRecorder.csv"]
+                              filenames=["output/ReportEventRecorder.csv"]
                                                        )
         self.sweep_variables = sweep_variables or ["Run_Number"]
         self.event_name = 'Received_Severe_Treatment'
@@ -2364,7 +2366,8 @@ class IndividualEventsAnalyzer(BaseAnalyzer):
         self.expt_name = expt_name
         self.start_year = start_year
         self.end_year = end_year
-    def select_simulation_data(self, data, simulation):
+        
+    def map(self, data, simulation):
         output_data = data[self.filenames[0]]
         output_data = output_data[output_data['Event_Name'] == self.event_name]
         simdata = pd.DataFrame()
