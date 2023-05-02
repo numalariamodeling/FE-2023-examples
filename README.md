@@ -848,17 +848,33 @@ Now, referring to the scripts you wrote for previous examples, you should be abl
     - One node receives ITNs every 3 years only  
     - One node receives no interventions   
 - 10 stochastic realizations / random seeds each (sweep over `Run_Number`)  
-- add Filtered Spatial Reports and Event Recorder to outputs, inside `general_sim()`   
+- add Filtered Spatial Reports and Event Counters to outputs, inside `general_sim()`   
     -  `add_spatial_report_malaria_filtered(...)`  
         - Filter to final year 3 years of the simulation  
         - For a daily report, use `reporting_interval = 1`  
         - Filter to ages 0.25-100  
         - include spatial_output_channels 'Population', 'PCR_Parasite_Prevalence', and 'New_Clinical_Cases' (though any InsetChart Channels will work)  
-   - `add_event_recorder(...)`  
-        - the `event_list` should include 'Received_Treatment' and 'Received_ITN'  
+   - Use the code below to `add_report_event_counter(...)` **by node** 
+        - the `event_trigger_list` should include 'Received_Treatment' and 'Received_ITN'  
             - *Note:* These events need to be added to `config.parameters.Custom_Individual_Events=[...]` inside `set_param_fn()` as well.
-        **CHANGE THIS TO REPORT EVENT COUNTER**    
+        ```py
+        
+        demo_df = pd.read_csv(os.path.join(manifest.input_dir, "demographics", "nodes.csv"))
+        for node in demo_df['node_id']:
+          add_report_event_counter(task, manifest,
+                                   start_day = start_report,
+                                   end_day = end_report,
+                                   node_ids = [node],
+                                   min_age_years = 0,
+                                   max_age_years = 100,
+                                   event_trigger_list = ["Received_ITN", "Received_Treatment"],
+                                   filename_suffix = "_".join(("node",str(node))))
+        
+        ```
+        
 **Part 2. Analyze Spatial Simulations** 
+
+**FIX PATH PLACEHOLDERS**
 
 To analyze the `SpatialReportMalariaFiltered_.bin` files generated for each channel and simulation, use the script `analyzer_spatial.py`
 
@@ -878,7 +894,7 @@ if __name__ == "__main__":
     # {'experiment label' : 'exp_id'}
     expts = {'FE_example' : '9729c597-1161-4631-a222-ac1be450887c'}
    
-   ## Paths ##
+    ## Paths ##
     ###########
     # experiments folder
     jdir =  '/projects/b1139/indie_emodpy/experiments'
@@ -923,13 +939,67 @@ This will produce a file inside `working_dir/simulation_output/experiment_name/S
 * PCR_Parasite_Prevalence
 * New_Clinical_Cases
 
+To analyze the event counts from each `ReportEventCounter_node_#.json`, run the script `analyzer_events.py`
+
+Edit **only** the following lines at the bottom of the script before running:
+
+```py
+...
+...
+...
+
+if __name__ == "__main__":
+    ...
+    ...
+    ...
+    
+    expts = {'experiment_name': '######-exp-id-#####'}
+    # input directory
+    jdir =  '/projects/b1139/indie_emodpy/experiments' 
+    # output directory
+    wdir=os.path.join('/projects/b1139/indie_emodpy/simulation_output', 'eventReports')
+    if not os.path.exists(wdir):
+        os.mkdir(wdir)
+    # Grouping variables (besides time and node)
+    sweep_variables = ['Run_Number','xTLH']
+    # Events to capture
+    events = ['Received_ITN', 'Received_Treatment']
+    
+    with Platform('SLURM_LOCAL',job_directory=jdir) as platform:
+        for expname, exp_id in expts.items():  
+            
+            analyzer = [EventCounterAnalyzer(exp_name = expname, 
+                                             exp_id = exp_id, 
+                                             sweep_variables = sweep_variables, 
+                                             nodes = ["1","2","3","17"], 
+                                             events = events,
+                                             working_dir = wdir)]
+            
+            # Create AnalyzerManager with required parameters
+            manager = AnalyzeManager(configuration={},ids=[(exp_id, ItemType.EXPERIMENT)],
+                                     analyzers=analyzer, partial_analyze_ok=True)
+            # Run analyze
+            manager.analyze()
+   
+
+```
+
+This will produce a file inside `working_dir/simulation_output/experiment_name/CountedEvents.csv' with columns:  
+* Time  
+* Node  
+* Run_Number  
+* xTLH  
+* Received Treatment  
+* Received ITN  
+
+
 **Part 3. Plot Spatial Results**
 
-1. Open 'spatial_plotter.rmd'  
-2. Replace the `sr_path` in the first chunk with the path to the 'SpatialReportMalariaFiltered.csv' generated in step 2 above
-3. Replace the `plot_path` in the first chunk with the path to the desired folder for storing plots (ex. `project_dir/simulation_outputs/spatial_example/`
+1. Open 'plot_spatial_example.rmd'  
+2. Update the `root` in the first chunk with the path to folder containing the `SpatialReportMalariaFiltered.csv` and `CountedEvents.csv` generated above. This is also where the output plot will be saved. 
 3. Run the `spatial_plotter.rmd` file
 
+View the SpatialSummary.png that was created.
 
 </p>
 </details>
