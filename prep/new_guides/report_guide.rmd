@@ -1,1 +1,80 @@
+---
+title: "Reporters Guide"
+author: "Anne Stahlfeld & Tobias Holden"
+date: "`r Sys.Date()`"
+output: html_document
+---
 
+## Add summary reports
+
+The [MalariaSummaryReport](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-malaria-summary.html) is a useful output that reports infection data (prevalence, clinical incidence, parasitemia, infectivity) by age group and aggregated over a user-defined time interval such as years or months. 
+
+In this example, simulation data is reported starting at day 365 and ending at day 1825 (the end of a sim with a duration of 5 years), with a monthly aggregation, in 3 age bins (0 - 0.25, 0.25 - 5, and 5 - 115 years), as called by [`add_malaria_summary_report()`](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/reporters/builtin.py). The report name will also include a suffix of "monthly_report" to keep separate multiple summary reports with different outputs, such as monthly vs annual or including different IPs.
+
+```{python,eval=F}
+from emodpy_malaria.reporters.builtin import *
+
+sim_years=5
+
+add_malaria_summary_report(task, manifest, start_day=365, end_day=sim_years*365, 
+                               reporting_interval=30,
+                               age_bins=[0.25, 5, 115],
+                               max_number_reports=20,
+                               filename_suffix="monthly",
+                               pretty_format=True)                   
+```
+
+## Event reporting
+
+EMOD is capable of tracking a variety of [built-in events](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-campaign-event-list.html) as well as custom campaign events. Custom events can be particularly useful for explicitly tracking and counting the number of interventions distributed. For example, in the simple SMC intervention (see [Add drug campaigns](https://faculty-enrich-2022.netlify.app/modules/emod-how-to/emod-how-to/#add-drug-campaigns)) we defined an event called `'Received_SMC'` to describe children who actually received SMC drugs in the simulation. The [`add_treatment_seeking`](https://faculty-enrich-2022.netlify.app/modules/emod-how-to/emod-how-to/#add-case-management) function automatically generates a `'Received_Treatment'` event for each individual receiving treatment for symptomatic malaria. Adding custom events to the config parameter `'Custom_Individual_Events'` is automatically handled by `emodpy` during campaign creation.
+
+### Aggregate Events
+
+To track how many events are occurring each day, request [`ReportEventCounter`](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-event-counter.html) with [`add_report_event_counter()`](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/reporters/builtin.py) and specify the list of events you would like to track, in this case receiving either of the two above drug-based interventions:
+
+```{python, eval=F}
+from emodpy_malaria.reporters.builtin import *
+
+sim_years = 5
+add_report_event_counter(task, manifest, start_day=365, end_day=sim_years*365,
+                             event_trigger_list=['Received_SMC', 'Received_Treatment'],
+                             filename_suffix="drug_interventions")
+```
+
+This generates a ReportEventCounter.json file that reports that total number of the specified events in each day of the simulation. Reporting a subset of node IDs (`node_ids`), restricting on age (`min_age_years`, `max_age_years`), and restricting on individual property (`must_have_ip_key_value`) are all configurable. The format of the .json is identical to InsetChart.json, so analyzers written for InsetChart.json can be easily adapted for ReportEventCounter.
+
+### Individual Events
+
+Sometimes you may want to track individual-level events. To do so, we use [`add_event_recorder()`](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/reporters/builtin.py) to call the  [`ReportEventRecorder`](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-event-recorder.html), which is similar to `ReportEventCounter` but lists each event as it occurs and provides information about the person experiencing the event. The calls for these two reports are quite similar but the recorder uses `event_list` rather than `event_trigger_list` and has no `filename_suffix`:
+
+```{python, eval=F}
+from emodpy_malaria.reporters.builtin import *
+
+sim_years = 5
+add_event_recorder(task, start_day=365, end_day=sim_years*365,
+                       event_list=['Received_SMC', 'Received_Treatment'],
+                       node_ids=[1], min_age_years=0,
+                       max_age_years=100)
+```
+
+*Note*: If you want to return all events from the simulation, leave the "events" array empty and set `only_include_events_in_list` to `False`.
+
+After running, a file called ReportEventRecorder.csv will be generated in the output/ folder for the simulation. Each row of the report represents a distinct event, with the following information in its columns:
+
+Event Details:
+- **Time** (when did event occur)
+- **Node_ID** (where did event occur)
+- **Event_Name** (what happened)
+
+Individual Details (who did it happen to?):
+- **Individual_ID**
+- **Age**
+- **Gender**
+- **Infected** (1 = True)
+- **Infectiousness**
+- **RelativeBitingRate**
+- **TrueParasiteDensity**
+- **TrueGametocyteDensity**
+- **HasClinicalSymptoms**
+
+Plus an additional column for the value of any IPs requested through `ips_to_record`.

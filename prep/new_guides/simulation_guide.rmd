@@ -72,3 +72,120 @@ EMOD configuration scripts contain five primary components:
               # The last step is to call run() on the ExperimentManager to run the simulations.
               experiment.run(wait_until_done=True, platform=platform)
           ```
+
+
+## Add malaria
+
+There are 3 ways to add malaria into a simulation. Ways #1 and 2 are used for idealized situations while #3 is the 
+standard method to use when modeling a specific geography.
+
+### 1. Outbreaks
+
+Force a given fraction (`demographic_coverage`) of the simulated population to experience a new infection on a specified date or dates with an [`add_outbreak_individual()`](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/interventions/outbreak.py) campaign.
+
+This example infects 5% of the population every year for 5 years, beginning on day 0:
+
+```{python,eval=F}
+from emodpy_malaria.interventions.outbreak import add_outbreak_individual
+import emod_api.campaign as campaign
+
+def add_outbreak_individual(campaign,
+                            start_day = 0,
+                            demographic_coverage = 0.05,
+                            repetitions = 5,
+                            timesteps_between_repetitions = 365
+                   )
+```
+
+Additional targeting of the outbreak can be added with:
+- `ind_property_restrictions`: target specific IP {key:value} pairs
+- `target_age_min`: minimum age (years)
+- `target_age_max`: maximum age (years)
+- `target_gender`: gender targets ("All", "Female", "Male")
+- `ignore_immunity`: force infection despite immunity when "True"
+- `antigen`: antigenic base strain ID of the outbreak infection
+- `genome`: genetic substrain ID of the outbreak infection
+
+### 2. Forced EIR
+
+For simulations without mosquitoes, a forced EIR campaign can be used to impose infectious bites. EIR timeseries data are typically recreated from previous literature sources that provide monthly EIR levels, input here as a monthly_site_EIR_annualized list. The [`add_scheduled_input_eir`](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/interventions/inputeir.py) function is called and given the calculated monthly EIR (the annual values divided by 12) to apply to the simulations. You may also choose to use daily values if you interpolate from monthly using the `daily_eir` argument instead of `monthly_eir`. The EIR can be scaled up or down using a `scaling_factor` to apply the same change to all EIR timepoints, in this example we scale the EIR to be 75% of the input values. Additionally, EIR can be setup to be age-dependent with `age_dependence` set to "OFF", "LINEAR", or "SURFACE_AREA_DEPENDENT".
+
+```{python,eval=F}
+from emodpy_malaria.interventions.inputeir import add_scheduled_input_eir
+import emod_api.campaign as campaign
+
+monthly_site_EIR_annualized = [15.99, 5.41, 2.23, 10.33, 7.44, 11.77, 79.40, 85.80, 118.59, 82.97, 46.62, 33.49]
+monthly_EIR = [x/12 for x in site_EIR_annualized]
+EIR_scale_factor = 0.75
+add_scheduled_input_eir(campaign=campaign, start_day=1, monthly_eir=monthly_EIR,
+                            age_dependence="SURFACE_AREA_DEPENDENT",
+                            scaling_factor=EIR_scale_factor)
+```
+
+### 3. Setting initial prevalence
+
+Initial prevalence is set in the demographics file, in the `['Defaults']['IndividualAttributes']` block. See [documentation on the demographics file](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-demographics.html) for more information.
+
+It can be set simply, as in the demographics example (***link to demog***), or you can also add a initial prevalence value draw from a uniform distribution if desired. In this example, the value is pulled in a uniform draw from 0.1 to 0.2. setting-specific mosquitoes should also be added to the simulation to maintain transmission in the population using the vector configuration how tos. ***LINK***
+
+```{python,eval=F}
+import emodpy_malaria.demographics.MalariaDemographics as Demographics
+
+def build_demog():
+  
+    demog = Demographics.from_template_node(lat=1.00, lon=1.00, pop=1000, name="Example_Site_Name", forced_id=1)
+    demog.SetInitPrevFromUniformDraw(min_init_prev=0.1, max_init_prev=0.2, description="prevalence_draw_example" )
+    
+    return demog
+```
+
+## Update config parameters
+
+You may need to update a variety of configuration parameters for your simulations. These parameters can be explored more in depth in the [EMOD config documentation](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-configuration.html). Broadly, configuration parameters can be used to set up certain things in these categories: drugs and treatments, enable/disable features, general disease, geography and the environment, immunity, incubation, infectivity and transmission, input files, larval habitat, migration, mortality and survival, output settings, parasite dynamics, population dynamics, sampling, scalars and multipliers, simulation setup, symptoms and diagnosis, vector control, and vector life cycle. 
+
+For parameters that won't often change you can hard code them directly into the config building function (called `set_param_fn()` in the how-tos), while it may be beneficial to call others as a global variable, such as sim_years, that can be set and then referenced within the setup function.
+
+In this example, we show how to change the `Simulation_Duration` and `Run_Number` parameters, but the `config.parameters.X` structure works for any [config parameter](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-configuration.html). Simulation duration is set in days, and in this example is set to last 5 years (5 yrs * 365 days/yr).
+
+```{python,eval=F}
+sim_years = 5
+
+def set_param_fn(config):
+    import emodpy_malaria.malaria_config as conf
+    config = conf.set_team_defaults(config, manifest)
+              
+    #update simulation duration and run number
+    config.parameters.Simulation_Duration = sim_years*365
+    config.parameters.Run_Number = 0
+    return config
+```
+
+### Enable Births and Deaths
+
+Vital dynamics can be specified in the same way as general config parameters; however, emodpy includes [functionality](https://docs.idmod.org/projects/emodpy-malaria/en/latest/faq.html#what-are-some-of-the-key-differences-for-people-used-to-using-dtk-tools) to automatically keep the demographics and config files aligned. For example, if a birth rate is set in the demographics, `Enable_Vital_Dynamics` and `Enable_Birth` will automatically be turned on, and vice versa. Birth rates can be specified by `Birth_Rate_Dependence` to be dependent on a number of factors:  
+- "NONE"
+- "FIXED_BIRTH_RATE"
+- "POPULATION_DEP_RATE"
+- "DEMOGRAPHIC_DEP_RATE"
+- "INDIVIDUAL_PREGNANCIES"
+- "INDIVIDUAL_PREGNANCIES_BY_AGE_AND_YEAR"
+
+Likewise, `Death_Rate_Dependence` determines individuals likelihood of dying from natural, non-disease causes when `Enable_Natural_Mortality`=1, and can be set to 
+- "NOT_INITIALIZED" 
+- "NONDISEASE_MORTALITY_BY_AGE_AND_GENDER"
+- "NONDISEASE_MORTALITY_BY_YEAR_AND_AGE_FOR_EACH_GENDER"
+
+Detailed descriptions of dependencies can be found [here](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-configuration-population.html).
+
+In this example, we have a fixed birth rate (number of infants born each year is independent of modeled population), age- and gender-specific overall mortality rates (defined in demographics file), and no malaria mortality. These parameters should be set in the config builder function. Based on a demographics including equilibrium vital dynamics, `Enable_Vital_Dynamics`, `Enable_Birth`, and `Enable_Natural_Mortality` will already be set to 1 (turned on) and `Enable_Disease_Mortality` will be set to 0 (turned off), so we only need to set the rate dependencies.
+
+```{python,eval=F}
+def set_param_fn(config):
+    import emodpy_malaria.malaria_config as conf
+    config = conf.set_team_defaults(config, manifest)
+              
+    #update birth and death rate dependence
+    config.parameters.Birth_Rate_Dependence = 'FIXED_BIRTH_RATE'
+    config.parameters.Death_Rate_Dependence = 'NONDISEASE_MORTALITY_BY_AGE_AND_GENDER'
+    return config
+```

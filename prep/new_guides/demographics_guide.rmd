@@ -9,18 +9,40 @@ output: html_document
 
 The demographics file is a required input file for EMOD that specifies characteristics of the population in a 
 simulation. This includes aspects like the population size, birth rates, non-malaria mortality rates, age structure, 
-initial prevalence, and more. Full documentation on the demographics file can be found [here](https://docs.idmod.org/projects/emod-malaria/en/latest/software-demographics.html).
-
-At least one demographics file is required for every simulation unless you set the parameter 
-**Enable_Demographics_Builtin** to 1 (one) in the configuration file. This setting does not represent a real 
-location and is generally only used for testing and validating code.
-
-For many applications, users often will reuse a standard demographics file and make modifications by hand or by 
-script. In more complex simulations, creating a demographics file from scratch may be needed.
-
-## Parts of a demographics file
+initial prevalence, and more. Full documentation on the [demographics file](https://docs.idmod.org/projects/emod-malaria/en/latest/software-demographics.html) and its [parameters/structure](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-demographics.html) are available in the malaria model documentation.
 
 ## Single-node simulations
+
+The [emod-api](https://docs.idmod.org/projects/emod-api/en/latest/emod_api.demographics.html) package contains most of the major functionality to create a demographics file. It is supported by `emodpy-malaria` to add parameters that are more specific to the malaria workflow, imported as [`Demographics`](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/demographics/MalariaDemographics.py) in the code chunk below. For single node, non-spatial simulations the `from_template_node` command is most commonly used; however, you may also choose to read in pre-made json files for these types of simulations. We include this command in our demographics builder with it's basic parameters:
+    - latitude
+    - longitude
+    - population size
+    - site name
+    - forced node ID (if desired)
+    - initial prevalence value (if desired)
+    
+With this saved as the `demog` item, we can add additional complexity as needed. This may include things like setting equilibrium vital dynamics so birth and mortality rates are equal, producing a relatively stable population size, or an age distribution for our population. In this example, we pull the [age distribution](https://github.com/numalariamodeling/emod-api/blob/master/emod_api/demographics/PreDefinedDistributions.py) of all of Sub-Saharan Africa from the `emod-api` and then apply it to our demographics item. You may also add complexity through individual properties and other specific parameters as desired.
+
+```{python, eval=F}
+import emodpy_malaria.demographics.MalariaDemographics as Demographics
+import emod_api.demographics.PreDefinedDistributions as Distributions
+
+def build_demog():
+    """
+    This function builds a demographics input file for the DTK using emod_api.
+    """
+
+    demog = Demographics.from_template_node(lat=1.00, lon=1.00, pop=1000, name="Example_Site_Name", forced_id=1, init_prev=0.1)
+    
+    # Add equal birth and mortality rates
+    demog.SetEquilibriumVitalDynamics()
+    
+    # Call and add age distribution
+    age_distribution = Distributions.AgeDistribution_SSAfrica
+    demog.SetAgeDistribution(age_distribution)
+
+    return demog
+```
 
 ## Generate demographics for multiple nodes
 
@@ -41,7 +63,7 @@ Ex. "my_nodes.csv"
 
 Then, you can generate demographics for each node in every simulation, by adding this code to `build_demog()`
 
-``` python
+```{python,eval=F}
 def build_demog():
     """
     This function builds a demographics input file for the DTK using emod_api.
@@ -50,7 +72,7 @@ def build_demog():
     # From template node #
     ######################
     # This snippet allows you to manually specify the node details instead of using a .csv
-#    demog = Demographics.from_template_node(lat=1, lon=2, pop=1000, name="Example_Site")
+    # demog = Demographics.from_template_node(lat=1, lon=2, pop=1000, name="Example_Site")
     # From input file csv #
     #######################
     demog = Demographics.from_csv(input_file = os.path.join(<path_to_file>,"my_nodes.csv"),

@@ -14,8 +14,7 @@ Exercises usually consist of a simulation and an analyzer of simulation outputs.
 A few primary scripts are provided at the main level of this repository including running examples and analyzers. Most of the work for this course will be done by you building your own scripts based on the instructions with the help of these scripts. For each week, suggested simulation scripts for comparison or help during the exercise are provided in the respective week's [solution scripts](https://github.com/numalariamodeling/FE-2023-examples/tree/main/solution_scripts) folder. There is also an analyzer collection file in the solutions scripts that includes many commonly used analyzers that you may want to explore in more depth for your project. **Note: if you use an analyzer from the collection, be sure to add the right reporters to create the necessary output files.**
 
 **Prerequisites:** 
-Before running the weekly example scripts, please ensure that the emodpy virtual environment has been successfully [installed](https://faculty-enrich-2022.netlify.app/modules/install-emod/) **UPDATE LINK**
-and that this [repository has been cloned](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) to your home directory on QUEST, ideally as _/home/<.username>/FE-2023-examples_. Running your scripts will require that the emodpy virtual environment is loaded and assumes files are run from a working directory set to where the script is located. On QUEST there is an existing venv that can be loaded using `source activate /projects/b1139/environments/emodpy_alt` - this environment uses the idmtools platform `SLURM_LOCAL`. Before you start on an exercise, make sure that you have pulled or fetched the latest changes from the repository (see git-guides [git-pull](https://github.com/git-guides/git-pull)).
+Before running the weekly example scripts, please ensure that the emodpy virtual environment has been successfully [installed](https://numalariamodeling.github.io/FE-2023-quarto-website/guides/install_guide.html) and that this [repository has been cloned](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) to your home directory on QUEST, ideally as _/home/<.username>/FE-2023-examples_. Running your scripts will require that the emodpy virtual environment is loaded and assumes files are run from a working directory set to where the script is located. On QUEST there is an existing venv that can be loaded using `source activate /projects/b1139/environments/emodpy_alt` - this environment uses the idmtools platform `SLURM_LOCAL`. Before you start on an exercise, make sure that you have pulled or fetched the latest changes from the repository (see git-guides [git-pull](https://github.com/git-guides/git-pull)).
 
 ## Week 1: Overview of EMOD
 This week we will be discussing EMOD's general structure and content as well as making sure you are ready to run the model on our linux-based HPC, QUEST. You will set up your own virtual environment to run EMOD via emodpy and idmtools and clone this github repository to your home directory on QUEST. We will not be running any example scripts, but please familiarize yourself with the repo, website, and EMOD documentation.
@@ -30,7 +29,7 @@ When you run an EMOD simulation script on QUEST, it will generate a set of initi
 
 ![](static/example_run.png)
 
-After a short waiting period, you will also see additional lines providing information on the commissioning of your simulation(s). You can expect to see a line saying that the EMODTask is being created, a few warnings and notices about file creation, then the bars showing progress on asset discovery and simulation commissioning. Once fully commissioned, you will also see the QUEST job ID, job directory, suite ID, and experiment ID. A line in the [example_run.py](https://github.com/numalariamodeling/FE-2023-examples/blob/main/example_run.py) tells the terminal to wait until all of the simulations are finished running, so there is an additional progress bar and assertion that the experiment succeeded, or failed, (once complete) that may not be present in all runs if this line is excluded. Notice that we have commissioned and successfully run 1 simulation here (see 1/1 at end of progress bars).
+After a short waiting period, you will also see additional lines providing information on the commissioning of your simulation(s). You can expect to see a line saying that the EMODTask is being created, a few warnings and notices about file creation, then the bars showing progress on asset discovery and simulation commissioning. Once fully commissioned, you will also see the QUEST job ID, job directory, suite ID, and experiment ID. A line in the [run_example.py](https://github.com/numalariamodeling/FE-2023-examples/blob/main/run_example.py) tells the terminal to wait until all of the simulations are finished running, so there is an additional progress bar and assertion that the experiment succeeded, or failed, (once complete) that may not be present in all runs if this line is excluded. Notice that we have commissioned and successfully run 1 simulation here (see 1/1 at end of progress bars).
 
 ![](static/example_commission.png)
 
@@ -75,10 +74,10 @@ Click the arrow to expand:
 - Navigate to your local copy of this repository on QUEST: `cd ~/FE-2023-examples`  
 - Notice your job directory path in `manifest.py`: `/projects/b1139/FE-2023-examples/experiments/<username>`. This will help your track your simulations separately from other participants.  
 - Load your emodpy `SLURM_LOCAL` virtual environment (see prerequisites)  
-- Run simulation via `python3 example_run.py -l`
+- Run simulation via `python3 run_example.py -l`
     - The `-l` argument allows you to use `SLURM_LOCAL` platform as the `selected_platform` in this example
 - Wait for simulation to finish (~2 minutes)  
-- Go to the job directory (see `experiments/<your username>` above) folder to find the generated experiment - it will be under a set of 16-digit alphanumeric strings. The structure of these strings is `Suite > Experiment > Simulations`. Due to current handling systems with SLURM you will not be able to see the experiment name given within the `example_run.py` script; however, this can be found in the experiment and simulation-level metadata.json files. You may also choose to sort your files based on time such that most recent experiments will appear first. 
+- Go to the job directory (see `experiments/<your username>` above) folder to find the generated experiment - it will be under a set of 16-digit alphanumeric strings. The structure of these strings is `Suite > Experiment > Simulations`. Due to current handling systems with SLURM you will not be able to see the experiment name given within the `run_example.py` script; however, this can be found in the experiment and simulation-level metadata.json files. You may also choose to sort your files based on time such that most recent experiments will appear first. 
 - Take a look through what was generated even in this simple run and get familiar with the file structure.  
     - *NOTE: be sure to go all the way into the folder structure to see your simulations & their outputs. For more information on what to expect, see [Week 1](https://github.com/numalariamodeling/FE-2023-examples#week-1-overview-of-emod)*
 
@@ -107,8 +106,8 @@ This exercise demonstrates how to create demographics and climate files and how 
     - Now that you know what the scripts do, load your virtual environment and use `python3 extract_weather.py` to run the extraction.   
         - Enter the credentials to access Calculon and wait for your weather files to be generated, when that is complete check your repo's inputs to make sure the files are there.   
         - Then run `python3 recreate_weather.py` and verify that the modified weather files have been created. Make sure you check the `recreate_weather.py` script to see where they should be located.
-    - Copy `example_run.py` and name it `example_run_inputs.py` and in the script change the experiment name to `f'{user}_FE_example_inputs'`
-    - Update default parameters in your simulation script (`example_run_inputs.py`)'s `set_param_fn()`. You'll also need to add your folder of climate files as an asset directory to the EMODTask in `general_sim()`, this must be set after the task is defined and before the experiment is created. It is recommended you put it directory after the "set sif":
+    - Copy `run_example.py` and name it `run_example_inputs.py` and in the script change the experiment name to `f'{user}_FE_example_inputs'`
+    - Update default parameters in your simulation script (`run_example_inputs.py`)'s `set_param_fn()`. You'll also need to add your folder of climate files as an asset directory to the EMODTask in `general_sim()`, this must be set after the task is defined and before the experiment is created. It is recommended you put it directory after the "set sif":
 
 ```py
 def set_param_fn():
@@ -154,7 +153,7 @@ def build_demog():
 ```
 
 3. Modifying configs
-    - We also often want to modify some of the [config parameters](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-configuration.html) that control things like the within-host model, vectors, and simulation setup. In `example_run.py` we set the malaria team defaults using `config = conf.set_team_defaults(config, manifest)`, but we can also specify individual parameters like we did with the climate file names. Let's start with some simple things like adding setting the `Simulation_Duration` (how long the simulation should run in days) and the `Run_Number` (the random seed for the simulation) in `set_param_fn()`. Both of these can be done directly by referencing them as `config.parameters.<param_name>` and setting them to the desired value. The team typically uses a structure of `sim_years*365` with sim_years defined globally, at the top of the script beneath all imports, to set the duration.
+    - We also often want to modify some of the [config parameters](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-configuration.html) that control things like the within-host model, vectors, and simulation setup. In `run_example.py` we set the malaria team defaults using `config = conf.set_team_defaults(config, manifest)`, but we can also specify individual parameters like we did with the climate file names. Let's start with some simple things like adding setting the `Simulation_Duration` (how long the simulation should run in days) and the `Run_Number` (the random seed for the simulation) in `set_param_fn()`. Both of these can be done directly by referencing them as `config.parameters.<param_name>` and setting them to the desired value. The team typically uses a structure of `sim_years*365` with sim_years defined globally, at the top of the script beneath all imports, to set the duration.
     - Set the duration to 1 year and the run number to any number of your choosing
         - *NOTE: this run number value is just the random seed value, NOT the number of stochastic realizations to run.*
     - Next, we'll add some mosquito species. There is a specific function for this, `add_species()` in emodpy_malaria malaria config. Try adding *A. gambiae*, *A. arabiensis*, and *A. funestus* to your config file:
@@ -171,7 +170,7 @@ def set_param_fn():
     config.parameters.Run_Number = 0
 ```
 
-4. Now that you've added these changes, try running your new script with `python3 example_run_inputs.py -l`. Once it has succeeded go check on what has run. Do you see the changes to your demographics.json and the climate folder in the experiment's `Assets` directory? How about to config.json or stdout.txt? You should also see [`InsetChart.json`](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-inset-chart.html) in the simulation's output folder - this is EMOD's default report that will give you an idea of what's going on in your simulation. We'll explore this more later in the Analysis section of Week 2.
+4. Now that you've added these changes, try running your new script with `python3 run_example_inputs.py -l`. Once it has succeeded go check on what has run. Do you see the changes to your demographics.json and the climate folder in the experiment's `Assets` directory? How about to config.json or stdout.txt? You should also see [`InsetChart.json`](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-inset-chart.html) in the simulation's output folder - this is EMOD's default report that will give you an idea of what's going on in your simulation. We'll explore this more later in the Analysis section of Week 2.
 
 </p>
 </details>
@@ -182,7 +181,7 @@ def set_param_fn():
 
 This exercise demonstrates how to add some of the malaria built-in reporters to our sims. These reports can help us understand what is going on in our simulations from basic targets like incidence and prevalence to more detailed pictures of events or within-host data such as parasitemia. You can read more about the possible types of analyzers in the [EMOD output file documentation](https://docs.idmod.org/projects/emod-malaria/en/latest/software-outputs.html). In this exercise we'll add the Report Event Recorder and Malaria Summary Report to the simulations.
 
-- Copy your `example_run_inputs.py` script and name it `example_run_outputs.py`. Change the experiment name to `f'{user}_FE_example_outputs'`.
+- Copy your `run_example_inputs.py` script and name it `run_example_outputs.py`. Change the experiment name to `f'{user}_FE_example_outputs'`.
 - We need to import the malaria reporters from emodpy_malaria. You'll need to add this line to the rest of your emodpy_malaria importers `from emodpy_malaria.reporters.builtin import *` at the top of your script. Notice the "*" at the end, this means we are importing all of the reporters from the builtin reporter script by their names.
 - [Report Event Recorder](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-event-recorder.html) allows us to look at various events happening to each individual in our sim, as well as some basic demographic and health status information about the individual. This report is especially useful for monitoring different interventions, such as receiving treatment, but for now we'll only look at simple events such as births or existing individuals' birthdays. We can control the time period we want to report on, from `start_day` to `end_day` as well as things like target age group and nodes while we add the reporter. For now, let's add the report for the entire simulation and targeting ages 0-100 years, so likely the whole population. It can be added to our `general_sim()` with `add_event_recorder()` after the task has been defined, around line 110:
 
@@ -279,7 +278,7 @@ For now we'll start with a simple sweep over one config parameter, such as the r
 There are additional more complicated sweeping methods, particularly with creating campaigns, that we will discuss later in the program.
 
 
-- Copy your `example_run_outputs.py` script and name it `example_run_sweeps.py`. Change the experiment name to `f'{user}_FE_example_sweep'`.
+- Copy your `run_example_outputs.py` script and name it `run_example_sweeps.py`. Change the experiment name to `f'{user}_FE_example_sweep'`.
 - To sweep over variables we'll have to switch to using a simulation builder from `idmtools` rather than creating simulations directly from the task. Add `from idmtools.builders import SimulationBuilder` to your import statements. We'll modify this simulation creation in `general_sim()` shortly.
 - Beneath where you set the `sim_years`, set `num_seeds = 5`. We'll use this later to tell EMOD how many different run numbers, or stochastic realizations, we want for this experiment.
 - Next, define a simple function that will allow you to set individual config parameters under the `set_param_fn()` where you define the constant config parameters. 
@@ -333,7 +332,7 @@ Depending on our project and site there are a variety of different parameters yo
 
 
 1. Running calibration sweeps
-    - Copy `example_run_sweeps.py` to a new script named `example_run_calibration.py`
+    - Copy `run_example_sweeps.py` to a new script named `run_example_calibration.py`
     - Update `sim_years` to run for at least 20 years
     - Beneath the sweep we added last time, add another one for `x_Temporary_Larval_Habitat` (default = 1). This parameter multiplies the default larval habitat value, so we'll want to start over a relatively small range of values. One nice way of doing this is to use a numpy command, `logspace`, that will divide the range evenly in logspace - we'll try -0.5 to 1 in logspace (0.316 to 10 in terms of actual parameter value) for 10 separate values. Logspace is particularly useful for this parameter as the actual larval habitat values can be quite large so we tend to want to explore the lower values in our range more closely. Be sure to also `import numpy as np` with the rest of your import statements.
     
@@ -354,7 +353,7 @@ Depending on our project and site there are a variety of different parameters yo
                                filename_suffix=f'Monthly_U5_{sim_year}')
       ```
     - Update the `expt_name` and run your simulations.
-    - Update the `expt_name` and exp_id in the `calibration_analyzer.py` then run the script - check out the differences between this and previous analyzers (and their outputs).
+    - Update the `expt_name` and exp_id in the `analyzer_calibration.py` then run the script - check out the differences between this and previous analyzers (and their outputs).
     
 2. Parameter selection
     - The `example_calibration_selection.py` script is a simple example of how we may select the best match parameter value for calibration. It calculates the average log-likelihood of each `x_Temporary_Larval_Habitat` based on simulation outputs and produces some plots to visualize the parameter selection.
@@ -371,7 +370,7 @@ This serialization exercise has three parts. In part 1 you will run and save a b
 
 1. Burning in
     - Description: Typically, we create 50-year burnin simulations to initialize transmission and immunity in our population of interest prior to trying to answer our research questions. For this example, we will start by only running the burnin for 10 years with 500 people to make sure everything is running correctly. For now we will also want to run 3 replicates. Be sure to use your calibrated `x_Temporary_Larval_Habitat` from the previous example.
-     - Create a new python script named `example_run_burnin.py`
+     - Create a new python script named `run_example_burnin.py`
      - Based on what you've learned from previous examples, add the basic code chunks needed to run a simulation. Check the details below for suggestions and additional comments. Feel free to refer to any old scripts you've been using to help write this one but be sure not just to copy and paste the whole thing!
         - Import modules
         - Config setup & simulation duration
@@ -400,11 +399,11 @@ This serialization exercise has three parts. In part 1 you will run and save a b
               config.parameters.Serialization_Precision = "REDUCED"
           ```
     - Run the script, wait for it to finish, and checkout your outputs.
-    - While waiting for your simulations to finish, we can adapt the `analyzer_w2.py` to better meet the needs of serialization. Copy this script and name it `serialization_analyzer.py`
+    - While waiting for your simulations to finish, we can adapt the `analyzer_w2.py` to better meet the needs of serialization. Copy this script and name it `analyzer_serialization.py`
         - Start by adding a section to the executable `if __name__ == "__main__":` section of the analyzer that defines the serialization duration and which step (burnin or pickup) you'd like to analyze, in this case the burnin.
         
           ```py
-          serialize_years = 10  # Same as in example_run_burnin.py
+          serialize_years = 10  # Same as in run_example_burnin.py
           step = 'burnin'
           ```
         - We may also want to adjust our sweep variables and `InsetChart` channels. Let's try changing the channels to the four below and adding an if statement to set sweep variables for the pickup. Right now this is the same as the burnin and only sweeps over Run_Number, but this can be used for additional parameters, such as intervention coverage, as you add complexity to the pickup. 
@@ -456,7 +455,7 @@ This serialization exercise has three parts. In part 1 you will run and save a b
     - Run the analyzer script
     
 2. Picking up
-    - Create a new script, `example_run_pickup.py` that will be used to run a simulation picking up from the 10-year burnin simulations you ran in Part 1. You may choose to copy over the contents of your burnin or start fresh, being thoughtful about which parts are necessary or you expect may change for the pickup.
+    - Create a new script, `run_example_pickup.py` that will be used to run a simulation picking up from the 10-year burnin simulations you ran in Part 1. You may choose to copy over the contents of your burnin or start fresh, being thoughtful about which parts are necessary or you expect may change for the pickup.
         - Be sure to update or add any reporters that may be of interest to see what is happening in during the pickup. It is recommended to at least include the summary reporter we have been using in previous examples.
         - As mentioned above, pickups are often the most useful when thinking about different intervention scenarios. We will discuss adding these interventions in greater depth in later exercises and focus primarily on the process of creating the pickup in this exercise. 
         - *Note that the start/end days for items such as reports and interventions are relative to the beginning of the pick-up simulation - in other words, they re-start at zero.*
@@ -512,14 +511,14 @@ This serialization exercise has three parts. In part 1 you will run and save a b
           builder.add_sweep_definition(partial(update_serialize_parameters, df=burnin_df), range(len(burnin_df.index)))
       ```
     - Run the experiment, wait for it to finish, and checkout your outputs.
-    - While waiting for it to finish, make any modifications to the analyzer that you need such as the `expt_name`, `exp_id`, `step`, and pickup `end_year`. Once the experiment finishes you can run `serialization_analyzer.py` 
+    - While waiting for it to finish, make any modifications to the analyzer that you need such as the `expt_name`, `exp_id`, `step`, and pickup `end_year`. Once the experiment finishes you can run `analyzer_serialization.py` 
     
 3. Compare pickup simulations across varying burnin durations
-    - Run a longer burnin of 50 years using `example_run_burnin.py`
-    - When it finishes running (it may take a while), update the `burnin_exp_id` in `example_run_pickup.py`
+    - Run a longer burnin of 50 years using `run_example_burnin.py`
+    - When it finishes running (it may take a while), update the `burnin_exp_id` in `run_example_pickup.py`
     - Before running the experiment, update the `exp_name` (i.e. add 'burnin50'), to keep track of your simulation iterations. Do not change anything else in the pickup simulation, to allow for comparison across iterations picking up from different burnin durations.
     - Run the experiment, wait for it to finish, and checkout your outputs.
-    - Using `serialization_analyzer.py`, run the `InsetChartAnalyzer` for both burnin and pickup. Make sure to modify your `serialization_years`. Feel free to change the `channels_inset_chart` to other ones depending on what differences you may be most interested in exploring.
+    - Using `analyzer_serialization.py`, run the `InsetChartAnalyzer` for both burnin and pickup. Make sure to modify your `serialization_years`. Feel free to change the `channels_inset_chart` to other ones depending on what differences you may be most interested in exploring.
     - Try plotting your results to show both burnin and pickup on the same plot for your channels of interest over time. You may use R or python to do so - if you get stuck there is a sample python plotting script in `Solution_scripts/Week3` called `plot_example_serialization.py` but we strongly recommend trying to make your own version of a plot first.
         - *NOTE: these plots and analyzer scripts are just baselines for you to go off! You may want to make changes or include additional things, such as additional sweep variable, confidence intervals, or additional reports with new analyzers (and outputs), as you develop your project, especially as you add complexity to the pickup.*
     - Compare the plots between the experiments with 10 and 50 year burnins. Do you notice any differences?
@@ -542,7 +541,7 @@ Click the arrow to expand:
 
 As we start thinking about adding interventions to our simulations, we should also think about how to construct the timeline. This is particularly useful for project work as you match to specific sites with data on incidence and prevalence, when (and what) interventions were implemented, etc. For now, let's think about it more simply, building off of what we learned last week. We'll first want to initialize the population through a 50 year burnin with no interventions. Increase your population size back to 1000 for 5 replicates and re-run the burnin while you work on this exercise's scripts (the pickup).
 
-- Copy the `example_run_pickup.py` script you made last week, rename it `example_pickup_CM.py`. *NOTE: we are adding interventions to a pickup in this example, but you do not have to serialize to use interventions, individual properties, or multi-node simulations*
+- Copy the `run_example_pickup.py` script you made last week, rename it `run_example_pickup_CM.py`. *NOTE: we are adding interventions to a pickup in this example, but you do not have to serialize to use interventions, individual properties, or multi-node simulations*
 - You'll need to import the treatment seeking/case management functionalities to your script from emodpy-malaria in order to use this intervention function:
 
     ```py
@@ -607,7 +606,7 @@ As we start thinking about adding interventions to our simulations, we should al
 
 - Update the `ReportEventRecorder` event list to include `Received_Treatment` from our case management campaign (either in addition to the event list we've used previously or as the only event).
 - Update the experiment name to `example_sim_pickup_CM`.
-- Run the script. While you wait, update `serialization_analyzer.py` with your new experiment name, ID, and sweep variables.
+- Run the script. While you wait, update `analyzer_serialization.py` with your new experiment name, ID, and sweep variables.
 - When the simulations finish, run the analyzer.
 - Try plotting your results. You can build off of the scripts you made for the previous serialization example, but how might you consider the changes we've made this week? Should you make changes based on the added intervention? What about the sweeps?
 - Check out some of the other [interventions](https://github.com/numalariamodeling/emodpy-malaria/tree/main/emodpy_malaria/interventions) in emodpy-malaria. [Drug campaigns](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/interventions/drug_campaign.py), [ITNs](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/interventions/bednet.py), and [IRS](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/interventions/irs.py) may be of particular interest. For an added challenge, try adding one (or more!) of these interventions to this simulation on your own or with the help of the How-Tos. An example script with multiple interventions is located in the solution scripts **IN PROGRESS**
@@ -623,7 +622,7 @@ Individual properties (IPs) can be added to any simulation to add additional inf
 In this example, we'll continue building off of the serialization structure, adding a case management access IP to our previous workflow.  We'll use individual properties to create 2 subgroups for this access: low access, high access. For simplicity, it is assumed that their relative size is equal (50% low access, 50% high access).
 
 1. Burnin - Adding IPs to demographics and reports
-    - Copy the `example_run_burnin.py` script to a blank python script and name it `example_burnin_IP.py`
+    - Copy the `run_example_burnin.py` script to a blank python script and name it `run_example_burnin_IP.py`
     - In the demographics builder, we can define and add a custom individual property that will be applied to the simulation's population. In this example, we want to include high and low levels of access to care. 
         - Start by defining the `initial_distribution` for the property in a list where each value is the proportion of the population that will be distributed to each property level, 50% low access and 50% high access.
         - Next use the `AddIndividualPropetyAndHINT()` from the imported `Demographics` package to add our access property to the demographics file we are building. In this function, set the `Property="Access"`, `Values=["Low","High"]`, and `InitialDistribution=initial_distribution`. The property is our high level label whereas the values represent the levels (such as high and low) of the property. The initial distribution uses the distribution we used in the last step to apply the values to the population, respectively.
@@ -653,7 +652,7 @@ In this example, we'll continue building off of the serialization structure, add
     - Update the experiment name and ID in the analyzer while you wait for it to finish running. You may also start part 2 while you wait.
     
 2. Pickup - Adding IPs to interventions
-    - Copy the `example_pickup_CM.py` script to a blank python script and name it `example_pickup_CM_withIP.py`.
+    - Copy the `run_example_pickup_CM.py` script to a blank python script and name it `run_example_pickup_CM_withIP.py`.
     - Update the `burnin_exp_id` to the experiment you ran in part 1.
     - In `build_camp()` we will add IPs to the case management intervention setup. A key part of this will be adjusting the coverage level to reflect the differences that the low and high access groups experience, based on a population-level coverage. Try writing your own helper to do this and when you're ready check your work below.
       <details><summary><span><em>Check your coverage adjustment</em></span></summary>
