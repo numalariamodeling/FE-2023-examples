@@ -221,15 +221,16 @@ This exercise demonstrates how to add some of the malaria built-in reporters to 
 
 Now that you've learned the basics of how to run EMOD and add inputs/outputs you can start actually analyzing some data! We use analyzer scripts to extract the data we want from our simulations' reports to understand what the simulation is doing, how it is changing, and answer research questions. This week's analyzer script, `analyzer_W2.py` contains two different analyzers:
 
-1. `InsetChartAnalyzer` that extracts data from `Inset_Chart.json`. Notice the `channels_inset_chart` in line 159 - this tells defines which data channels we are interested in looking at. Six different channels are included currently but these can always be modified depending on what you want to explore. 
-2. `MonthlyPfPRAnalyzer` that extracts data from the monthly summary report. If you look at the guts of the analyzer (lines 62 - 138), you'll see that this will particularly focus on extracting PfPR, Clinical Incidence (per person per year), Severe Incidence (per person per year), and Population, all by time (month, year) and age bins.
+1. `InsetChartAnalyzer` that extracts data from `Inset_Chart.json`. Notice the `channels_inset_chart` in line 164 - this tells defines which data channels we are interested in looking at. Six different channels are included currently but these can always be modified depending on what you want to explore. 
+2. `MonthlyPfPRAnalyzer` that extracts data from the monthly summary report. If you look at the guts of the analyzer (lines 63 - 140), you'll see that this will particularly focus on extracting PfPR, Clinical Incidence (per person per year), Severe Incidence (per person per year), and Population, all by time (month, year) and age bins.
 
 - There are start and/or end_years included in both analyzers to match simulation time to real time. You can provide any relevant values that will be helpful to your processing (such as 2000 - 2009 for a 10 year simulation).
-- You'll also notice `sweep_variables` being defined and going into both analyzers - we'll discuss this in more depth in Week 3, but for now you can think of this like a tag (or set of tags) for our simulation(s).
+- You'll also notice `sweep_variables` being defined and going into both analyzers - we'll discuss this in more depth in Week 3, but for now you can think of this like a tag (or set of tags) for our simulation(s). These sweep variable tags are useful for grouping the simulations for aggregation and understanding differences between them. 
+    - Because we are only using the "Run_Number" (random seed for stochastic realization) in this week's example, you may see a warning message : `FutureWarning: In a future version of pandas, a length 1 tuple will be returned when iterating over a groupby with a grouper equal to a list of length 1. Don't supply a list with a single grouper to avoid this warning.` This warning is just to say you should preferably provide more than one variable for grouping.
 
 - Before we can run the analyzer script, you need to make a few changes:
     1. Set your `jdir` (short for job directory) to where your experiments are saved (*/projects/b1139/FE-2023-examples/experiments/<username>*). Notice that this is used for the platform, and we also set `wdir` (working directory) for the analyzer where the analyzers will output any results you have requested
-    2. Define your experiment name and ID in the `expts` dictionary (line 147) - these should match the UID and name in the experiment level `metadata.json` for your experiment of interest, in this case the `f'{user}_FE_example_outputs'` experiment you just ran:
+    2. Define your experiment name and ID in the `expts` dictionary (line 149) - these should match the UID and name in the experiment level `metadata.json` for your experiment of interest, in this case the `f'{user}_FE_example_outputs'` experiment you just ran:
 
     ```py
     expts = {
@@ -246,6 +247,7 @@ Now that you've learned the basics of how to run EMOD and add inputs/outputs you
         - How have the outcomes changed? 
         - What do you recognize about running time?
     - You may also want to run the analyzer on your very first, simple EMOD run to see how adding our input files has changed the simulation
+        - *Tip: be sure to think about what outputs you have (or don't) before running*
 
 
 </p>
@@ -272,7 +274,9 @@ Click the arrow to expand:
 
 This exercise demonstrates how to "sweep" over parameters to have a set of different values across simulations in our experiment.
 
-For now we'll start with a simple sweep over one config parameter, such as the run number. There are additional more complicated sweeping methods, particularly with creating campaigns, that we will discuss later in the program.
+For now we'll start with a simple sweep over one config parameter, such as the run number. As previously discussed, the run number controls the random seed value for the simulation. By setting the simulations to a range of run number/random seed values, we can produce more stochastic replicates. Each replicate will produce slightly different results for the same overall simulation due to this draw from the random probability distribution; therefore, it is important to run multiple replicates for scientifically valid results.
+
+There are additional more complicated sweeping methods, particularly with creating campaigns, that we will discuss later in the program.
 
 
 - Copy your `example_run_outputs.py` script and name it `example_run_sweeps.py`. Change the experiment name to `f'{user}_FE_example_sweep'`.
@@ -310,8 +314,8 @@ For now we'll start with a simple sweep over one config parameter, such as the r
     
          ## reports are still located here
     
-        # create experiment from builder
-       experiment = Experiment.from_builder(builder, task, name="example_sim_sweep")
+         # create experiment from builder
+         experiment = Experiment.from_builder(builder, task, name="example_sim_sweep")
       ```
 
 - Run the script, wait for it to finish, and checkout your outputs.
