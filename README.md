@@ -233,7 +233,7 @@ Now that you've learned the basics of how to run EMOD and add inputs/outputs you
 
     ```py
     expts = {
-            '<user>_FE_example_outputs' : '<experiment UID'
+            '<user>_FE_example_outputs' : '<experiment UID>'
         }
     ```
 
