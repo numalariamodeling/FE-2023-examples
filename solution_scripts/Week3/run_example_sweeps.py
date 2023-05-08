@@ -136,7 +136,8 @@ def general_sim(selected_platform):
                                pretty_format=True)
 
     # create experiment from builder
-    experiment = Experiment.from_builder(builder, task, name="example_sim_sweep")
+    user = os.getlogin()
+    experiment = Experiment.from_builder(builder, task, name=f'{user}_FE_example_sweep')
 
 
     # The last step is to call run() on the ExperimentManager to run the simulations.
