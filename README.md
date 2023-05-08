@@ -333,7 +333,7 @@ Depending on our project and site there are a variety of different parameters yo
 
 1. Running calibration sweeps
     - Copy `run_example_sweeps.py` to a new script named `run_example_calibration.py`
-    - Update `sim_years` to run for at least 20 years
+    - Update `sim_years` to run for at least 20 years with `sim_start_year=2000`. This start year is just meant to help us place our simulatinos in time, as with the analyzer, rather than actually change any of the time steps in the simulation.
     - Beneath the sweep we added last time, add another one for `x_Temporary_Larval_Habitat` (default = 1). This parameter multiplies the default larval habitat value, so we'll want to start over a relatively small range of values. One nice way of doing this is to use a numpy command, `logspace`, that will divide the range evenly in logspace - we'll try -0.5 to 1 in logspace (0.316 to 10 in terms of actual parameter value) for 10 separate values. Logspace is particularly useful for this parameter as the actual larval habitat values can be quite large so we tend to want to explore the lower values in our range more closely. Be sure to also `import numpy as np` with the rest of your import statements.
     
       ```py
@@ -346,14 +346,14 @@ Depending on our project and site there are a variety of different parameters yo
         start_day = 0 + 365 * year
         sim_year = sim_start_year + year
         add_malaria_summary_report(task, manifest, start_day=start_day, 
-                               end_day=365+sim_year*365, reporting_interval=30,
+                               end_day=365+year*365, reporting_interval=30,
                                age_bins=[0.25, 5, 115],
                                max_number_reports=13,
                                pretty_format=True, 
                                filename_suffix=f'Monthly_U5_{sim_year}')
       ```
     - Update the `expt_name` and run your simulations.
-    - Update the `expt_name` and exp_id in the `analyzer_calibration.py` then run the script - check out the differences between this and previous analyzers (and their outputs).
+    - Update the `expt_name`, `exp_id`, and years to analyze in the `analyzer_calibration.py` then run the script - check out the differences between this and previous analyzers (and their outputs).
     
 2. Parameter selection
     - The `example_calibration_selection.py` script is a simple example of how we may select the best match parameter value for calibration. It calculates the average log-likelihood of each `x_Temporary_Larval_Habitat` based on simulation outputs and produces some plots to visualize the parameter selection.
