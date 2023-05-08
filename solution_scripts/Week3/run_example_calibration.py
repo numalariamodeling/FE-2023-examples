@@ -30,6 +30,7 @@ from emodpy_malaria.reporters.builtin import *
 import manifest
 
 sim_years=5
+sim_start_year=2010
 num_seeds=5
 
 def set_param_fn(config):
