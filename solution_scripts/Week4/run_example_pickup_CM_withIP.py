@@ -229,30 +229,16 @@ def general_sim(selected_platform):
 
 
     # The last step is to call run() on the ExperimentManager to run the simulations.
-    experiment.run(wait_until_done=True, platform=platform)
+    experiment.run(wait_until_done=False, platform=platform)
 
-
-    # Check result
-    if not experiment.succeeded:
-        print(f"Experiment {experiment.uid} failed.\n")
-        exit()
-
-    print(f"Experiment {experiment.uid} succeeded.")
 
 
 
 if __name__ == "__main__":
     import emod_malaria.bootstrap as dtk
     import pathlib
-    import argparse
 
     dtk.setup(pathlib.Path(manifest.eradication_path).parent)
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-l', '--local', action='store_true', help='select slurm_local')
-    args = parser.parse_args()
-    if args.local:
-        selected_platform = "SLURM_LOCAL"
-    else:
-        selected_platform = "SLURM_BRIDGED"
-    
+
+    selected_platform = "SLURM_LOCAL"
     general_sim(selected_platform)

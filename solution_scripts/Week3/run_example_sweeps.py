@@ -156,15 +156,8 @@ def general_sim(selected_platform):
 if __name__ == "__main__":
     import emod_malaria.bootstrap as dtk
     import pathlib
-    import argparse
 
     dtk.setup(pathlib.Path(manifest.eradication_path).parent)
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-l', '--local', action='store_true', help='select slurm_local')
-    args = parser.parse_args()
-    if args.local:
-        selected_platform = "SLURM_LOCAL"
-    else:
-        selected_platform = "SLURM_BRIDGED"
-    
+
+    selected_platform = "SLURM_LOCAL"
     general_sim(selected_platform)
