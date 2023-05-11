@@ -184,11 +184,13 @@ if __name__ == "__main__":
                                 ]
 
             if step == 'burnin':
-                am = AnalyzeManager(expt_id, analyzers=analyzers_burnin)
+                am = AnalyzeManager(configuration={}, ids=[(exp_id, ItemType.EXPERIMENT)],
+                                     analyzers=analyzers_burnin, partial_analyze_ok=True)
                 am.analyze()
-                
+
             elif step == 'pickup':
-                am = AnalyzeManager(expt_id, analyzers=analyzers_pickup)
+                am = AnalyzeManager(configuration={}, ids=[(exp_id, ItemType.EXPERIMENT)],
+                                     analyzers=analyzers_pickup, partial_analyze_ok=True)
                 am.analyze()
             
             else:
