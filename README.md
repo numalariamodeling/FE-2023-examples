@@ -444,8 +444,11 @@ This serialization exercise has three parts. In part 1 you will run and save a b
         - Start by adding a section to the executable `if __name__ == "__main__":` section of the analyzer that defines the serialization duration and which step (burnin or pickup) you'd like to analyze, in this case the burnin.
         
           ```python
-          serialize_years = 10  # Same as in run_example_burnin.py
-          step = 'burnin'
+	  if __name__ == "__main__":
+		#import statements, setting directories
+	
+          	serialize_years = 10  # Same as in run_example_burnin.py
+          	step = 'burnin'
           ```
         - We may also want to adjust our sweep variables and `InsetChart` channels. Let's try changing the channels to the four below and adding an if statement to set sweep variables for the pickup. Right now this is the same as the burnin and only sweeps over Run_Number, but this can be used for additional parameters, such as intervention coverage, as you add complexity to the pickup. 
         
@@ -484,11 +487,13 @@ This serialization exercise has three parts. In part 1 you will run and save a b
                                       ]
   
               if step == 'burnin':
-                  am = AnalyzeManager(expt_id, analyzers=analyzers_burnin)
+              	  am = AnalyzeManager(configuration={}, ids=[(expt_id, ItemType.EXPERIMENT)],
+                                     analyzers=analyzers_burnin, partial_analyze_ok=True)
                   am.analyze()
-                
+
               elif step == 'pickup':
-                  am = AnalyzeManager(expt_id, analyzers=analyzers_pickup)
+                  am = AnalyzeManager(configuration={}, ids=[(expt_id, ItemType.EXPERIMENT)],
+                                     analyzers=analyzers_pickup, partial_analyze_ok=True)
                   am.analyze()
             
               else:
