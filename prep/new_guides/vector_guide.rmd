@@ -96,3 +96,48 @@ add_scale_larval_habitats(campaign, df=habitat_df, start_day=0)
 ```
 
 The `habitat_df` argument requires column name(s) for each habitat type being scaled, with column values being the scale factor(s). Many configuration options are available, including by species, by node, and by date.
+
+### Set up vector genetics
+
+```{python,eval=F}
+from emodpy_malaria import vector_config as vector_config
+config.parameters.Simulation_Type = "VECTOR_SIM"
+vector_config.set_team_defaults(config, manifest)  # team defaults
+vector_config.add_species(config, manifest, ["gambiae", "funestus"])
+
+vector_config.add_genes_and_alleles(config, manifest, "gambiae", 
+                                  [("a", 0.85), ("b", 0.1), ("c", 0.05)])
+                                  
+vector_config.add_mutation(config, manifest, "gambiae", 
+                                    mutate_from="a", mutate_to="b", probability=0.05)
+vector_config.add_mutation(config, manifest, "gambiae", 
+                                    mutate_from="b", mutate_to="c", probability=0.1)
+vector_config.add_mutation(config, manifest, "gambiae", 
+                                    mutate_from="c", mutate_to="a", probability=0.1)
+vector_config.add_mutation(config, manifest, "gambiae", 
+                                    mutate_from="a", mutate_to="c", probability=0.03)
+```
+
+Reporting on vector genetics (abundance of alleles and/or genotypes) is requested like so:
+
+```{python,eval=F}
+from emodpy_malaria.reporters.builtin import *
+add_report_vector_genetics(task, manifest, species = 'gambiae',
+                            gender = 'VECTOR_FEMALE',
+                            include_vector_state = False,
+                            stratify_by = 'ALLELE_FREQ')
+```
+
+#### Relate genotype to phenotype
+
+The `Insecticides` config param is a list of dictionaries, one per insecticide. For each insecticide, genotype-specific modifications of killing, blocking, repelling, and larval killing can be set. In this example, all *A. gambiae* vectors with an allele combination of "bb" will be completely resistant to pyrethroid.
+
+```{python,eval=F}
+from emodpy_malaria import vector_config as vector_config
+vector_config.add_insecticide_resistance(config, manifest, "pyrethroid", "gambiae", 
+                                          [["b", "b"]],
+                                          blocking=0.0, 
+                                          killing=0.0,
+                                          repelling=0.0,
+                                          larval_killing=0.0)
+```

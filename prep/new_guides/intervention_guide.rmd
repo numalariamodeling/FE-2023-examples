@@ -113,6 +113,25 @@ diagnostic_survey.add_diagnostic_survey(campaign=campaign, start_day=0,
 
 ### Bednets
 
+Insecticide-treated bednets can be distributed with the `add_itn_scheduled()` function, which has many options to configure who is targeted for ITN distribution.
+
+```{python,eval=F}
+import emod_api.campaign as campaign
+from emodpy_malaria.interventions.bednet import add_itn_scheduled
+add_itn_scheduled(campaign,
+        start=365, # starts on first day of second year
+        coverage_by_ages=[
+          {"coverage":1,"min": 0, "max": 10},     # 100% for 0-10 years old
+          {"coverage":0.75,"min": 10, "max": 50}, # 75% for 10-50 years old
+          {"coverage":0.6,"min": 50, "max": 125}  # 60% for everyone else
+        ],
+        repetitions=5, # ITN will be distributed 5 times
+        timesteps_between_repetitions= 365*3 # three years between ITN distributions
+)
+```
+
+The default `coverage_by_age` sets coverage to 100% for everyone regardless of age.
+
 ### Indoor Residual Spraying (IRS)
 
 ### Larvicides

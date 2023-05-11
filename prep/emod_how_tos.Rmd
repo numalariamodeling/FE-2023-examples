@@ -535,25 +535,7 @@ completely customizable.
 <details><summary><span style="color: blue";">1. Adding to a demographics file</span></summary>
 <p>
 
-Individual properties, possible property values, and initial distributions of property values must be specified in the demographics file.
 
-In this example we create a study cohort where 50% of individuals are assigned to 'Placebo' and the other 50% are assigned to 'Treatment' without any transitions between the groups or differences in transmission by group. We add this property set directly to the basic demographics item. This example includes only one property but you can define as many as needed.
-
-```{python,eval=F}
-import emodpy_malaria.demographics.MalariaDemographics as Demographics
-def build_demog():
-
-    demog = Demographics.from_template_node(lat=1, lon=2, pop=1000, name="Example_Site")
-    demog.SetEquilibriumVitalDynamics()
-    
-    age_distribution = Distributions.AgeDistribution_SSAfrica
-    demog.SetAgeDistribution(age_distribution)
-    
-    initial_distribution = [0.5, 0.5]
-    demog.AddIndividualPropertyAndHINT(Property="StudyCohort", Values=["Placebo", "Treatment"],
-                                       InitialDistribution=initial_distribution)              
-    return demog
-```
 
 </p>
 </details>
@@ -561,74 +543,18 @@ def build_demog():
 <details><summary><span style="color: blue";">2. Using IPs in Interventions</span></summary>
 <p>
 
-Most interventions can be targeted to individuals holding specific IP values, typically with the `ind_property_restrictions` function argument and setting the desired Individual Property restrictions. This example creates an SMC drug campaign that is limited to individuals in the 'Treatment' group as defined in the demographics file.
 
-```{python,eval=F}
-import emod_api.campaign as campaign
-import emodpy_malaria.interventions.drug_campaign as drug_campaign
-
-drug_campaign.add_drug_campaign(campaign, 
-                                campaign_type="SMC", 
-                                start_days=[165], 
-                                drug_code="SPA",
-                                repetitions=4, 
-                                tsteps_btwn_repetitions=30, 
-                                coverage=0.7,
-                                ind_property_restrictions=[{'StudyCohort': 'Treatment'}],
-                                target_group={'agemin': 0.25, 'agemax': 5},
-                                receiving_drugs_event_name="Received_SMC")                  
-```
 </p>
 </details>
 
 <details><summary><span style="color: blue";">3. Using IPs in Reporting</span></summary>
 <p>
 
-Individual properties can also be used in reporting to limit the report to only those individuals in the specified group, to track the number of individuals with an IP or combination of IPs, or to report the IPs of individuals.
 
-For the [`MalariaSummaryReport`](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-malaria-summary.html), aggregation can be restricted by IP using the `ipfilter` argument. For example, the following function will report, on
-aggregate, every 30 days on new infections and other infection updates in the Placebo group across the three age bins.
-
-```{python,eval=F}
-from emodpy_malaria.reporters.builtin import *
-add_malaria_summary_report(task, manifest, 
-                           start_day=1, 
-                           end_day=sim_years*365, 
-                           reporting_interval=30,
-                           age_bins=[0.25, 5, 115],
-                           must_have_ip_key_value='StudyCohort:Placebo',
-                           filename_suffix='_placebo',
-                           pretty_format=True)
-```
 </p>
 </details>
 
-The [`PropertyReport`](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-property.html) outputs select channels (population, infected, new infections, and disease deaths) for all combinations of IPs and IP values. This output can get very large if there are many IPs and/or IP values in play.
 
-To request the `PropertyReport`:
-
-```{python,eval=F}
-# add to config parameter setup
-config.parameters.Enable_Property_Output = 1
-```
-
-The [`NodeDemographicsReport`](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-malaria-node-demographics.html) reports on node-level counts of individuals by age bin, infection status, and IPs if requested through `IP_key_to_collect`:
-
-```{python,eval=F}
-from emodpy_malaria.reporters.builtin import *
-add_report_node_demographics(task, manifest, 
-                             IP_key_to_collect='StudyCohort')
-```
-
-To add an IP column to [`ReportEventRecorder`](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-event-recorder.html) that reports the IP value for each individual experiencing the requested events, use `ips_to_record`:
-
-```{python, eval=F}
-from emodpy_malaria.reporters.builtin import *
-add_event_recorder(task, event_list=["NewClinicalCase","Received_Treatment"],
-                     start_day=1, end_day=365, node_ids=[1], min_age_years=0,
-                     max_age_years=100,
-                     ips_to_record=['StudyCohort'])
-```
 
 ## Create a model - *move to top?*
 
@@ -680,23 +606,7 @@ Node- and species-specific habitat scaling can be set in the demographics file t
 
 ### Basic ITN without seasonal usage
 
-Insecticide-treated bednets can be distributed with the `add_itn_scheduled()` function, which has many options to configure who is targeted for ITN distribution.
 
-```{python,eval=F}
-import emod_api.campaign as campaign
-from emodpy_malaria.interventions.bednet import add_itn_scheduled
-add_itn_scheduled(campaign,
-        start=365, # starts on first day of second year
-        coverage_by_ages=[
-          {"coverage":1,"min": 0, "max": 10},     # 100% for 0-10 years old
-          {"coverage":0.75,"min": 10, "max": 50}, # 75% for 10-50 years old
-          {"coverage":0.6,"min": 50, "max": 125}  # 60% for everyone else
-        ],
-        repetitions=5, # ITN will be distributed 5 times
-        timesteps_between_repetitions= 365*3 # three years between ITN distributions
-)
-```
-The default `coverage_by_age` sets coverage to 100% for everyone regardless of age.
 
 ITNs can be delivered at birth by specifying in the `coverage_by_ages` list:
 
@@ -800,7 +710,7 @@ automatically add three events into the simulation: `Bednet_Discarded`, `Bednet_
 
 IRS campaigns can be added using the `add_scheduled_irs_housing_modification` or `add_triggered_irs_housing_modification` function. These two functions work similarly, with the primary difference being how IRS implementaiton is timed: on a schedule or triggered by specific events.
 
-***edit for modified strucutre - not config/waning but indiv params***
+***edit for modified structure - not config/waning but indiv params***
 You can either use the default settings or specify the `killing_config` for the killing efficiency and waning properties
 of the insecticide. The function allows you to specify coverage according to age groups, here is an example:
 
@@ -886,127 +796,14 @@ Modeling insecticide resistance involves 3 steps:
 2. Relate genotypes to phenotype: define insecticide response of resistance genotypes
 3. Add intervention that distributes insecticide (vector control)
 
+**note: added 1&2 to vector guide, 3 should go in interventions?**
+
 ### Set up vector genetics
 
-```{python,eval=F}
-from dtk.utils.core.DTKConfigBuilder import DTKConfigBuilder
-from dtk.vector.species import set_species_param, set_species
-cb = DTKConfigBuilder.from_defaults('MALARIA_SIM')
-set_species(cb, ['gambiae'])
-set_species_param(cb, 'gambiae', 'Genes', [
-    {
-        "Alleles": {
-            "a0": 0.8,
-            "a1": 0.19999999999999996,
-            "a2": 0.0
-        },
-        "Mutations": {
-            "a0:a1": 0,
-            "a0:a2": 0,
-            "a1:a0": 0,
-            "a1:a2": 0,
-            "a2:a0": 0,
-            "a2:a1": 0
-        }
-    }
-])
 
-from emodpy_malaria import vector_config as vector_config
-config.parameters.Simulation_Type = "VECTOR_SIM"
-vector_config.set_team_defaults(config, manifest)  # team defaults
-vector_config.add_species(config, manifest, ["gambiae", "funestus"])
-
-vector_config.add_genes_and_alleles(config, manifest, "gambiae", [("a", 0.5), ("b", 0.5), ("c", 0)])
-vector_config.add_mutation(config, manifest, "gambiae", mutate_from="a", mutate_to="b", probability=0.05)
-vector_config.add_mutation(config, manifest, "gambiae", mutate_from="b", mutate_to="c", probability=0.1)
-vector_config.add_mutation(config, manifest, "gambiae", mutate_from="c", mutate_to="a", probability=0.1)
-vector_config.add_mutation(config, manifest, "gambiae", mutate_from="a", mutate_to="c", probability=0.03)
-```
-
-Reporting on vector genetics (abundance of alleles and/or genotypes) is requested like so:
-
-```{python,eval=F}
-from dtk.utils.reports import BaseVectorGeneticsReport
-cb.add_reports(BaseVectorGeneticsReport(type='ReportVectorGenetics',
-                                        species='gambiae',
-                                        gender='VECTOR_FEMALE',
-                                        include_vector_state_columns=0,
-                                        stratify_by='ALLELE_FREQ'))
-
-from emodpy_malaria.reporters.builtin import *
-add_report_vector_genetics(task, manifest, species="gambiae")
-```
 
 ### Relate genotype to phenotype
 
-The `Insecticides` config param is a list of dictionaries, one per insecticide. For each insecticide, genotype-specific 
-modifications of killing, blocking, repelling, and larval killing can be set.
-
-```{python,eval=F}
-cb.update_params({
-    "Insecticides": [
-        {
-            "Name": "pyrethroid",
-            "Resistances": [
-                {
-                    "Allele_Combinations": [
-                        [
-                            "a1",
-                            "a1"
-                        ]
-                    ],
-                    "Blocking_Modifier": 1.0,
-                    "Killing_Modifier": 0.05,
-                    "Larval_Killing_Modifier": 0,
-                    "Repelling_Modifier": 0,
-                    "Species": "gambiae"
-                }
-            ]
-        },
-        {
-            "Name": "carbamate",
-            "Resistances": [
-                {
-                    "Allele_Combinations": [
-                        [   # for this specification, any allele in combination with a2 will have these modifiers
-                            "a2",
-                            "*"
-                        ]
-                    ],
-                    "Blocking_Modifier": 1.0,
-                    "Killing_Modifier": 0.25,
-                    "Larval_Killing_Modifier": 0,
-                    "Repelling_Modifier": 0,
-                    "Species": "gambiae"
-                }
-            ]
-        },
-        {
-            "Name": "pyrethroid-PBO",
-            "Resistances": [
-                {
-                    "Allele_Combinations": [
-                        [
-                            "a1",
-                            "a1"
-                        ]
-                    ],
-                    "Blocking_Modifier": 1.0,
-                    "Killing_Modifier": 0.5,
-                    "Larval_Killing_Modifier": 0,
-                    "Repelling_Modifier": 0,
-                    "Species": "gambiae"
-                }
-            ]
-        }
-    ]
-})
-
-vector_config.add_insecticide_resistance(config, manifest, "pyrethroid", "gambiae", 
-                                          [["b", "b"]],
-                                          blocking=0.0, 
-                                          killing=0.0)
-```
 
 ### Add vector control with specific insecticide
 

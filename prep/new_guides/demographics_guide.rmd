@@ -1,5 +1,5 @@
 ---
-title: "EMOD How To's"
+title: "Demographics Guide"
 author: "Anne Stahlfeld & Tobias Holden"
 date: "`r Sys.Date()`"
 output: html_document
