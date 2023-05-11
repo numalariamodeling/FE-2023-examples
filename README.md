@@ -486,12 +486,12 @@ This serialization exercise has three parts. In part 1 you will run and save a b
                                       ]
   
               if step == 'burnin':
-              	  am = AnalyzeManager(configuration={}, ids=[(expt_id, ItemType.EXPERIMENT)],
+              	  am = AnalyzeManager(configuration={}, ids=[(exp_id, ItemType.EXPERIMENT)],
                                      analyzers=analyzers_burnin, partial_analyze_ok=True)
                   am.analyze()
 
               elif step == 'pickup':
-                  am = AnalyzeManager(configuration={}, ids=[(expt_id, ItemType.EXPERIMENT)],
+                  am = AnalyzeManager(configuration={}, ids=[(exp_id, ItemType.EXPERIMENT)],
                                      analyzers=analyzers_pickup, partial_analyze_ok=True)
                   am.analyze()
             
