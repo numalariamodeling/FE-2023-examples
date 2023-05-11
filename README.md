@@ -444,7 +444,7 @@ This serialization exercise has three parts. In part 1 you will run and save a b
         - Start by adding a section to the executable `if __name__ == "__main__":` section of the analyzer that defines the serialization duration and which step (burnin or pickup) you'd like to analyze, in this case the burnin.
         
           ```python
-	  if __name__ == "__main__":
+	  #if name ...
 		#import statements, setting directories
 	
           	serialize_years = 10  # Same as in run_example_burnin.py
