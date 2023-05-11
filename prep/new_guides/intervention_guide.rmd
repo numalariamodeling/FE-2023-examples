@@ -7,9 +7,56 @@ output: html_document
 
 ## Drug-Based Interventions
 
-### Treatment-Seeking
+### Case management
+
+Case management is controlled in EMOD by an [`add_treatment_seeking()`](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/interventions/treatment_seeking.py) function within emodpy-malaria. This function is a node level intervention that allows you to target individuals on the node for malaria treatment through health seeking behavior. 
+
+In this example, treatment is triggered by a new clinical case and codes for differences in case management coverage between individuals of age 0-5 yrs and 5-100yrs as set by the two trigger dictionaries' respective `agemin` and `agemax`. `Seek` dictates the proportion of people who will seek care with a new clinical case - it is usually set to 1 such that `coverage` is the true case management coverage level. `Rate` represents how quickly the case will receive treatment. It is used to create an exponential distribution of the delay period. We usually set `rate = 1/3` for clinical cases and `rate = 1/2.` for severe cases.
+
+You can also specify which drugs are used for case management. The default is Artemether-Lumefantrine with age-based dosing. 
+
+Additional parameters can be added to restrict case management to certain nodes, node properties, or individual properties. See [here](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/interventions/treatment_seeking.py) for more information.
+
+
+```{python,eval=F}
+import emod_api.campaign as camp
+import emodpy_malaria.interventions.treatment_seeking as cm
+
+cm.add_treatment_seeking(camp, start_day=0, drug=['Artemether', 'Lumefantrine'],
+                         targets=[{'trigger': 'NewClinicalCase', 
+                                   'coverage': 0.7, 'agemin': 0, 'agemax': 5,
+                                   'seek': 1,'rate': 0.3},
+                                 {'trigger': 'NewClinicalCase', 
+                                  'coverage': 0.5, 'agemin': 5, 'agemax': 100,
+                                  'seek': 1,'rate': 0.3},
+                                 {'trigger': 'NewSevereCase', 
+                                  'coverage': 0.85, 'agemin': 0, 'agemax': 100,
+                                  'seek': 1,'rate': 0.5}],
+                         broadcast_event_name="Received_Treatment")
+```
 
 ### Drug Campaigns
+
+Using [`add_drug_campaign()`](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/interventions/drug_campaign.py) you can set different drug campaigns including MDA, MSAT, SMC, fMDA, MTAT, rfMSAT, and rfMDA. This function also includes the ability to set coverage levels, repetitions (such as SMC cycles) and the timesteps between them, diagnostics information for campaigns that include testing, target groups, and restrictions on who can receive drugs by node or individual properties. Node and individual properties are set in the demographics file and can be called upon here for things like low vs high access groups (see drug IP example **link**).
+
+This example details an SMC intervention. Timesteps between repetitions (if more than one cycle given) is set to 30 days as SMC is given on a monthly basis during peak season. The target group is also specified here to limit the age group to 0.25-5 year old children. This example uses adherent drug configurations as previously shown.
+
+```{python,eval=F}
+import emod_api.campaign as campaign
+import emodpy_malaria.interventions.drug_campaign as drug_campaign
+
+drug_campaign.add_drug_campaign(campaign, 
+                                campaign_type="SMC", 
+                                start_days=[165], 
+                                drug_code="SPA", #single code if not using adherent drug
+                                #adherent_drug_configs=[adherent_drug], #use adherent drug in next how to
+                                repetitions=4, 
+                                tsteps_btwn_repetitions=30, 
+                                coverage=0.7,
+                                target_group={'agemin': 0.25, 'agemax': 5},
+                                receiving_drugs_event_name="Received_SMC")                       
+```
+
 
 ### Change Drug Adherence
 
@@ -17,8 +64,7 @@ Adherence to drugs can be modified using [`adherent_drug`](https://github.com/nu
 
 Configuring adherence is not required. In the absence of specific configuration, adherence to the full treatment course is assumed to be 100%.
 
-```{python}
-#| output: asis
+```{python, eval=F}
 import emod_api.campaign as campaign
 import emodpy_malaria.interventions.drug_campaign as drug_campaign
 import emodpy_malaria.interventions.adherentdrug as ad
@@ -36,6 +82,29 @@ adherent_drug = ad.adherent_drug(campaign=campaign,
                                      ]
                                      )
 ```
+
+## Diagnostic Surveys
+
+Diagnostic surveys are useful interventions for triggering events based on an individual's diagnosis. Testing can be performed at regular intervals (`tsteps_between_repetitions`) for a set number of `repetitions` based on `target` groups and `coverage`. Testing can also be triggered by other events, such as receiving a particular dose of PMC in this example.
+
+Different methods of diagnostic testing may also be utilized, including *TRUE_PARASITE_DENSITY*, *BLOOD_SMEAR*, *PCR*, *PF_HRP2*, *TRUE_INFECTION_STATUS*, and *HAS_FEVER*. Diagnostic threshold, sensitivity, and specificity can all be parameterized. Once a positive or negative result is obtained in the simulation, the relative configs parameter dictates what will happen to that individual. In this example, either diagnosis broadcasts an event for that individual that they were positive or negative on the day that they received their first dose of PMC.
+
+```{python,eval=F}
+import emod_api.campaign as campaign
+import emodpy_malaria.interventions.diag_survey as diagnostic_survey
+import emod_api.interventions.common
+
+parasites_detected = emod_api.interventions.common.BroadcastEvent(campaign, Event_Trigger="Day_0_positive")
+no_parasites_detected = emod_api.interventions.common.BroadcastEvent(campaign, Event_Trigger="Day_0_negative")
+
+diagnostic_survey.add_diagnostic_survey(campaign=campaign, start_day=0, 
+                                        diagnostic_type="TRUE_PARASITE_DENSITY",
+                                        diagnostic_threshold=20,
+                                        trigger_condition_list=['Received_PMC_1'],
+                                        positive_diagnosis_configs=[parasites_detected],
+                                        negative_diagnosis_configs=[no_parasites_detectedc])
+```
+
 ## Vaccination
 
 ### RTS,S

@@ -29,7 +29,8 @@ from emodpy_malaria.reporters.builtin import *
 
 import manifest
 
-sim_years=5
+sim_years=20
+sim_start_year=2000
 num_seeds=5
 
 def set_param_fn(config):
@@ -132,7 +133,7 @@ def general_sim(selected_platform):
         start_day = 0 + 365 * year
         sim_year = sim_start_year + year
         add_malaria_summary_report(task, manifest, start_day=start_day,
-                               end_day=365+sim_year*365, reporting_interval=30,
+                               end_day=365+year*365, reporting_interval=30,
                                age_bins=[0.25, 5, 115],
                                max_number_reports=13,
                                pretty_format=True, 
@@ -144,30 +145,15 @@ def general_sim(selected_platform):
 
 
     # The last step is to call run() on the ExperimentManager to run the simulations.
-    experiment.run(wait_until_done=True, platform=platform)
-
-
-    # Check result
-    if not experiment.succeeded:
-        print(f"Experiment {experiment.uid} failed.\n")
-        exit()
-
-    print(f"Experiment {experiment.uid} succeeded.")
+    experiment.run(wait_until_done=False, platform=platform)
 
 
 
 if __name__ == "__main__":
     import emod_malaria.bootstrap as dtk
     import pathlib
-    import argparse
 
     dtk.setup(pathlib.Path(manifest.eradication_path).parent)
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-l', '--local', action='store_true', help='select slurm_local')
-    args = parser.parse_args()
-    if args.local:
-        selected_platform = "SLURM_LOCAL"
-    else:
-        selected_platform = "SLURM_BRIDGED"
-    
+
+    selected_platform = "SLURM_LOCAL"
     general_sim(selected_platform)
