@@ -444,11 +444,10 @@ This serialization exercise has three parts. In part 1 you will run and save a b
         - Start by adding a section to the executable `if __name__ == "__main__":` section of the analyzer that defines the serialization duration and which step (burnin or pickup) you'd like to analyze, in this case the burnin.
         
           ```python
-	  #if name ...
-		#import statements, setting directories
+	  #import statements, setting directories
 	
-          	serialize_years = 10  # Same as in run_example_burnin.py
-          	step = 'burnin'
+          serialize_years = 10  # Same as in run_example_burnin.py
+          step = 'burnin'
           ```
         - We may also want to adjust our sweep variables and `InsetChart` channels. Let's try changing the channels to the four below and adding an if statement to set sweep variables for the pickup. Right now this is the same as the burnin and only sweeps over Run_Number, but this can be used for additional parameters, such as intervention coverage, as you add complexity to the pickup. 
         
