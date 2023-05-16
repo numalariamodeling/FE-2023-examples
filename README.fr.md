@@ -49,7 +49,7 @@ module load R/4.1.1
 </p>
 </details>
 
-## Semaine 1 : Vue d'ensemble d'EMOD
+## Semaine 1: Vue d'ensemble d'EMOD
 Cette semaine, nous discuterons de la structure générale et du contenu d'EMOD et nous nous assurerons que vous êtes prêts à exécuter le modèle sur notre HPC linux, QUEST. Vous allez mettre en place votre propre environnement virtuel pour exécuter EMOD via emodpy et idmtools et cloner ce dépôt github dans votre répertoire personnel sur QUEST. Veuillez vous familiariser avec le dépôt, le site web et la documentation EMOD avant d'exécuter l'exemple simple à la fin de cette semaine.
 
 **Ce à quoi on peut s'attendre**
@@ -112,7 +112,7 @@ Cliquez sur la flèche pour développer :
 - Attendez que la simulation se termine (~2 minutes)  
 - Allez dans le répertoire de travail (voir `experiments/<username>` ci-dessus) pour trouver l'expérience générée - elle sera sous un ensemble de chaînes alphanumériques de 16 chiffres. La structure de ces chaînes est `Suite > Expérience > Simulations`. En raison des systèmes de gestion actuels de SLURM, vous ne pourrez pas voir le nom de l'expérience donné dans le script `run_example.py`; cependant, il peut être trouvé dans les fichiers metadata.json au niveau de l'expérience et de la simulation. Vous pouvez également choisir de trier vos fichiers en fonction du temps, de sorte que les expériences les plus récentes apparaissent en premier. 
 - Jetez un coup d'œil à ce qui a été généré même lors de cette simple exécution et familiarisez-vous avec la structure des fichiers. Vous devez toujours vérifier vos résultats après avoir effectué des simulations pour vous assurer qu'ils correspondent à ce que vous attendiez. 
-- *Note: assurez-vous d'aller jusqu'au bout de la structure des dossiers pour voir vos simulations et leurs résultats. Pour plus d'informations sur ce à quoi vous pouvez vous attendre, voir [Semaine 1 "What to Expect"](https://github.com/numalariamodeling/FE-2023-examples#week-1-overview-of-emod).*
+- *Note: assurez-vous d'aller jusqu'au bout de la structure des dossiers pour voir vos simulations et leurs résultats. Pour plus d'informations sur ce à quoi vous pouvez vous attendre, voir [Semaine 1 "Ce à quoi on peut s'attendre"](https://github.com/numalariamodeling/FE-2023-examples/blob/main/README.fr.md#semaine-1--vue-densemble-demod).*
 
 </p>
 </details>
