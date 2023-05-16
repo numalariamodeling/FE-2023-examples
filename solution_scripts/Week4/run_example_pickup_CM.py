@@ -35,7 +35,6 @@ from utils_slurm import build_burnin_df
 
 serialize_years=50
 pickup_years=5
-num_seeds=5
 burnin_exp_id = 'ac7d567c-aa94-4fd3-929a-f295cc682b1c'
 
 def set_param_fn(config):

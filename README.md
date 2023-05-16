@@ -40,7 +40,7 @@ alias load_emodpy='source activate /projects/b1139/environments/emodpy_alt'
 module purge all
 module load singularity/3.8.1
 module load git/2.8.2
-module load python/anaconda3.6
+module load python/3.8.4
 module load R/4.1.1
 ```
 
@@ -109,7 +109,7 @@ Click the arrow to expand:
 - Run simulation via `python3 run_example.py`
 - Wait for simulation to finish (~2 minutes)  
 - Go to the job directory (see `experiments/<your username>` above) folder to find the generated experiment - it will be under a set of 16-digit alphanumeric strings. The structure of these strings is `Suite > Experiment > Simulations`. Due to current handling systems with SLURM you will not be able to see the experiment name given within the `run_example.py` script; however, this can be found in the experiment and simulation-level metadata.json files. You may also choose to sort your files based on time such that most recent experiments will appear first. 
-- Take a look through what was generated even in this simple run and get familiar with the file structure.  
+- Take a look through what was generated even in this simple run and get familiar with the file structure. You should always check your outputs after running simulations to make sure they did what you expected. 
     - *Note: be sure to go all the way into the folder structure to see your simulations & their outputs. For more information on what to expect, see [Week 1's "What to Expect"](https://github.com/numalariamodeling/FE-2023-examples#week-1-overview-of-emod)*
 
 </p>
@@ -135,7 +135,7 @@ This exercise demonstrates how to create demographics and climate files and how 
     - Next, we'll run `extract_weather.py` - this script will run the weather generator. Notice that it reads information from `example_site.csv` to look for the right site and you can request weather for your time frame of interest. You'll also see that the platform for this is called *Calculon* - this is IDM's HPC _(requires access for climate database : ask someone from NU team)_
         - We can also run `recreate_weather.py` which will convert the weather files we just generated to a csv format that we can modify. For this example we don't need to make any modifications but this can be useful for research questions such as those relating to climate change. After running any modifications in the script we then convert the csv back to weather files.  
     - Now that you know what the scripts do, load your virtual environment and use `python3 extract_weather.py` to run the extraction.   
-        - Enter the credentials to access Calculon and wait for your weather files to be generated, when that is complete check your repo's inputs to make sure the files are there.   
+        - Enter the credentials to access Calculon and wait for your weather files to be generated. When that is complete check your repo's inputs to make sure the files have been created.   
         - Then run `python3 recreate_weather.py` and verify that the modified weather files have been created. Make sure you check the `recreate_weather.py` script to see where they should be located.
     - Copy `run_example.py` and name it `run_example_inputs.py` and in the script change the experiment name to `f'{user}_FE_example_inputs'`
     - Update default parameters in your simulation script (`run_example_inputs.py`)'s `set_param_fn()`. You'll also need to add your folder of climate files as an asset directory to the EMODTask in `general_sim()`, this must be set after the task is defined and before the experiment is created. It is recommended you put it directory after the "set sif":
@@ -246,7 +246,8 @@ This exercise demonstrates how to add some of the malaria built-in reporters to 
                                    pretty_format=True)
     ```
 
-- Now try running your new script as you learned in the past two examples and wait for it to finish before navigating to your experiment directory. When it's done running, check out the simulation outputs and your new report.
+- Try running your new script as you learned in the past two examples and wait for it to finish before navigating to your experiment directory. When it's done running, check out the simulation outputs and your new report. You should both verify that the files were created and look at what they contain. What do you notice?
+    - *Tip: it's especially important to check all of your outputs when you are making big changes to your script. If you don't examine them, you may miss problems that aren't actually causing your simulations to fail (but are doing something you don't want them to).*
 
 </p>
 </details>
@@ -277,10 +278,10 @@ Now that you've learned the basics of how to run EMOD and add inputs/outputs you
 
 - This week's analyzer script also includes a basic python plotter for the results from `InsetChartAnalyzer` that will help you visualize each of the `channels_inset_chart` throughout the simulation. Take a look through the code to see if you can tell what it is doing before running it.
 - Run the analyzer
-- Wait for the analyzer to succeed. Once it is finished check out your new outputs (see if you can find the `wdir` mentioned above without help). You should see two csvs, one from each analyzer, as well as a InsetChart.png.
+- Wait for the analyzer to succeed. Once it is finished check out your new outputs (see if you can find the `wdir` mentioned above without help). You should see two csvs, one from each analyzer, as well as a InsetChart.png. Make sure these files have been created and examine the data they contain.
 - As an additional exercise, try to make a data visualization in R or python based off of the MonthlyPfPRAnalyzer output (PfPR_Clinical_Incidence_monthly.csv), based on the `MalariaSummaryReport`. You'll need to take a look through the output file and decide what kind of figure may be interesting and inform you about your simulation. *Note: there is no solution script for this, it is an exercise of creativity and data visualization skills where everyone may have unique ideas. Check out the plotting resources, then discuss with your colleagues or the instructional staff if you get stuck.*
 - Once you've completed your data visualization exercise, feel free to try changing some other [config parameters](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-configuration.html) in your example script. Run additional simulations with different durations, population sizes, agebins, etc. - whatever you think would be interesting! This is a great time to look through the EMOD documentation and explore parameters so you get to know the EMOD ecosystem better. *(Tip: change your experiment name to keep track of your simulations in both the metadata and analyzer outputs)*
-    - You can also run these sims through the analyzer script by updating the experiment name and ID, as above. Do this and inspect the outputs as well as any changes compared to your first run. What do you see? 
+    - You should also run these sims through the analyzer script by updating the experiment name and ID, as above. Inspect the outputs as well as any changes compared to your first run. What do you see? 
         - How have the outcomes changed? 
         - What do you recognize about running time?
     - You may also want to run the analyzer on your very first, simple EMOD run to see how adding our input files has changed the simulation
@@ -338,7 +339,7 @@ There are additional more complicated sweeping methods, particularly with creati
 - As mentioned, we also need to adjust the way we create our experiments in `general_sim()`. Notice that we are currently use `Experiment.from_task()` which creates the experiment and simulations directly from the defined task. To sweep over variables we'll have to switch to using `Experiment.from_builder()` that works to setup each simulation directly rather than an entire experiment with the same parameters.
     - First, initialize the builder such that `builder = SimulationBuilder()`. This should go in `general_sim()` between adding assets and reports. 
     - Add the sweep to the builder using `add_sweep_definition()`. Here you'll create a partial of `set_param` (defined above), pass the config parameter that you'd like to set to this partial, and then provide the range of values to sweep over. In this example, tell the function to sweep over `Run_Number` over the range of the `num_seeds` defined above (will output values of 0 - `num_seeds`).
-    - Finally, you'll need to remove the `Experiment.from_task()` creation and replace with `Experiment.from_builder(builder, task, name=<expt_name>)`. This will create experiments based on the task but with the additional information contained in the builder, including the added sweep. Make sure you keep the modified experiment name!
+    - Finally, you'll need to remove the `Experiment.from_task()` experiment creation and replace with `Experiment.from_builder(builder, task, name=<expt_name>)`. This will create experiments based on the task but with the additional information contained in the builder, including the added sweep. Make sure you keep the modified experiment name!
   
       ```python
       def general_sim()
@@ -356,8 +357,10 @@ There are additional more complicated sweeping methods, particularly with creati
       ```
 
 - Run the script, wait for it to finish, and checkout your outputs.
-- Update the experiment name and ID in `analyzer_W2.py`. You'll notice that the `sweep_variable` parameter is already set to `Run_Number` so the analyzer will pull out this tag for each simulation. This list can take more parameters/tags as necessary when you start adding more complex sweeps. 
-    - Checkout the `InsetChart` plot generated by the analyzer - how does it look different now that we've swept over the run number.
+    - Do your outputs look like you expect? 
+    - *Hint: there should be five simulations as we created five stochastic realizations*
+- Update the experiment name and ID in `analyzer_W2.py`. You'll notice that the `sweep_variable` parameter is already set to `Run_Number` so the analyzer will pull out this tag for each simulation. This list can take more parameters/tags as necessary when you start adding more complex sweeps. Run the analyzer.
+    - Checkout the `InsetChart` plot generated by the analyzer - how does it look different now that we've swept over the run number?
 - Try adding the output of the sweep to your MonthlyPfPRAnalyzer visualization script from last time. How might you account for adding this to your plot?
 
 </p>
@@ -393,8 +396,10 @@ Depending on our project and site there are a variety of different parameters yo
     - In the `general_sim()`, find the command `experiment.run(wait_until_done=True, platform=platform)` (line 148 in the solution script). This is the command that submits and runs our simulations. Notice that it has an argument to "wait until done" - this is what gives us the progress bar for the completion of our simulations after submission. Now that we are running longer simulations, set that to `False` to free up your terminal.
         -*Tip: You should also remove the print messages following this line about whether or not the experiment has succeeded as we are no longer waiting for it to finish before getting to them*
     - Update the `expt_name` and run your simulations.
+            - These simulations may take longer due to the longer simulation duration. You can check the progress of your jobs and what else is running on the same allocation using `squeue -A b1139` or just the progress of your jobs with `squeue -u <username>`.
+            - Once the simulations finish running, check your outputs. Is everything there? Do all your reports look like you expect?
     - Update the `expt_name`, `exp_id`, and years to analyze in the `analyzer_calibration.py` then run the script when your simulations finish - check out the differences between this and previous analyzers (and their outputs).
-        - You can check the progress of your jobs and what else is running on the same allocation using `squeue -A b1139` or just the progress of your jobs with `squeue -u <username>`
+
     
 2. Parameter selection
     - The `example_calibration_selection.py` script is a simple example of how we may select the best match parameter value for calibration. It calculates the average log-likelihood of each `x_Temporary_Larval_Habitat` based on simulation outputs and produces some plots to visualize the parameter selection.
@@ -439,7 +444,8 @@ This serialization exercise has three parts. In part 1 you will run and save a b
               config.parameters.Serialization_Mask_Node_Write = 0
               config.parameters.Serialization_Precision = "REDUCED"
           ```
-    - Run the script, wait for it to finish, and checkout your outputs.
+    - Run the script and checkout your outputs when it finishes running.
+        - Notice that we have `InsetChart.json` as it is the default for all sims (if you did not include other reporters) and a new `state-03650.dtk` file. This state file is the "burnin" file that saves all of the information needed about this simulation (such as population, immunity, etc) at the point in time we requested, in this case day 3650 (the last day of a 10 year sim). *Tip: the name of the state file should change with different burnin lengths*
     - While waiting for your simulations to finish, we can adapt the `analyzer_w2.py` to better meet the needs of serialization. Copy this script and name it `analyzer_serialization.py`
         - Start by adding a section to the executable `if __name__ == "__main__":` section of the analyzer that defines the serialization duration and which step (burnin or pickup) you'd like to analyze, in this case the burnin.
         
@@ -510,14 +516,12 @@ This serialization exercise has three parts. In part 1 you will run and save a b
         - `pickup_years` to define your `Simulation_Duration` (i.e. # of years run post-burnin). This will replace the duration that you had previously in the script so make sure you update the `Simulation_Duration` accordingly!
         - `serialize_years` to define the year of the burnin that serves as the start of the pickup and should be equal to the value of `serialize_years` in the burnin.
         - `burnin_exp_id = '<exp_id>'` with the experiment_id from the burnin experiment you want to pick up from
-        - `num_seeds` to define the number of stochastic runs executed under each parameter set
 
           ```python
           from utils_slurm import build_burnin_df
 
           serialize_years=5
           pickup_years=5
-          num_seeds=5
           burnin_exp_id = '<exp_id>'
           ```
     - Update your serialization config params, mostly by switching them from "write" to "read" mode as we are now picking up where we left off in the burnin. The `Serialization_Time_Steps` should remain the same as we want to pick up at that serialized spot at the end of our burnin. Be sure to completely modify or remove any of the "writing"/burnin parameters in this script.
@@ -532,7 +536,7 @@ This serialization exercise has three parts. In part 1 you will run and save a b
           config.parameters.Serialization_Time_Steps = [serialize_years*365]
       ```
     - Next, add the simulation specific serialization parameter updates. This function helps us match burnin and pickup simulations by filenames and paths, as well as any parameters that we want to carry over. In this example, the only such parameter is `Run_Number` but this could be many other configuration or campaign type parameters. Parameters that may be important for sweeps need to be included in the returned output of the function, such as `Run_Number` is here, so we can reference them in later analysis.
-    
+       
       ```python
       def update_serialize_parameters(simulation, df, x: int):
 
@@ -556,15 +560,18 @@ This serialization exercise has three parts. In part 1 you will run and save a b
 
           builder.add_sweep_definition(partial(update_serialize_parameters, df=burnin_df), range(len(burnin_df.index)))
       ```
-    - Run the experiment, wait for it to finish, and checkout your outputs.
+    - *Note: Be sure that you aren't creating additional stochastic replicates in the pickup. Because we are matching the "Run_Number" in `update_serialize_parameters` there is no need to do this additional run number sweep.
+    - Run the experiment. Once it finishes running, checkout your outputs. Do you see what you expect? 
+        - *Hint: think about what reporters you added, or didn't.*
+        - Notice that there is no state file in the pickup. When we choose to read rather than the write with the serialization config parameters, it will only read the burnin's state file rather than writing a new one for the pickup. It is possible to do both steps during serialization if needed.
     - While waiting for it to finish, make any modifications to the analyzer that you need such as the `expt_name`, `exp_id`, `step`, and pickup `end_year`. Once the experiment finishes you can run `analyzer_serialization.py` 
     
 3. Compare pickup simulations across varying burnin durations
     - Run a longer burnin of 50 years using `run_example_burnin.py`
-    - When it finishes running (it may take a while), update the `burnin_exp_id` in `run_example_pickup.py`
+    - When it finishes running (it may take a while), update the `burnin_exp_id` in `run_example_pickup.py`. Check your outputs to make sure everything ran correctly.
     - Before running the experiment, update the `exp_name` (i.e. add 'burnin50'), to keep track of your simulation iterations. Do not change anything else in the pickup simulation, to allow for comparison across iterations picking up from different burnin durations.
-    - Run the experiment, wait for it to finish, and checkout your outputs.
-    - Using `analyzer_serialization.py`, run the `InsetChartAnalyzer` for both burnin and pickup. Make sure to modify your `serialization_years`. Feel free to change the `channels_inset_chart` to other ones depending on what differences you may be most interested in exploring.
+    - Run the pickup experiment, wait for it to finish, and checkout your outputs.
+    - Using `analyzer_serialization.py`, run the `InsetChartAnalyzer` for both burnin and pickup. Make sure to modify your `serialization_years` and the `step` you ar analyzing. Feel free to change the `channels_inset_chart` to other ones depending on what differences you may be most interested in exploring.
     - Try plotting your results to show both burnin and pickup on the same plot for your channels of interest over time. You may use R or python to do so - if you get stuck there is a sample python plotting script in `Solution_scripts/Week3` called `plot_example_serialization.py` but we strongly recommend trying to make your own version of a plot first.
         - *Note: these plots and analyzer scripts are just baselines for you to go off! You may want to make changes or include additional things, such as additional sweep variable, confidence intervals, or additional reports with new analyzers (and outputs), as you develop your project, especially as you add complexity to the pickup.*
     - Compare the plots between the experiments with 10 and 50 year burnins. Do you notice any differences?
@@ -633,6 +640,7 @@ As we start thinking about adding interventions to our simulations, we should al
   ```
 
 - As discussed in last week's exercise on adding parameter sweeps, we'll need to add a sweep to the builder in `general_sim()` for the campaign in addition to the config params. However, this time we will need to use `add_multiple_parameter_sweep_definition()` instead of `add_sweep_definition()` since we are updating both the coverage and start day. If you were to use `add_sweep_definition` directly with a partial of `build_camp()` for each parameter individually, the second time you call the partial would override the first so only one parameter would be updated. On the other hand, `add_multiple_parameter_sweep_definition()` allows us to sweep over the entire parameter space in a cross-product fashion. It takes our update function and we provide a dictionary of our parameters and their list of values we want to sweep over. We'll sweep over three coverage values (0, 50%, and 95%), and three intervention start dates (1, 100, and 365). For now these are relatively arbitrary values that are just meant to illustrate the functionality in EMOD. In this example we will get 3x3x5 = 45 total simulations (coverage levels x start days x run numbers) that model each unique parameter combination.
+
   ```python
   def general_sim()
       ## existing contents
@@ -649,8 +657,10 @@ As we start thinking about adding interventions to our simulations, we should al
 - Update the `ReportEventRecorder` event list to include `Received_Treatment` from our case management campaign (either in addition to the event list we've used previously or as the only event).
 - Update the experiment name to `example_sim_pickup_CM`.
 - Run the script. While you wait, update `analyzer_serialization.py` with your new experiment name, ID, and sweep variables.
-- When the simulations finish, run the analyzer.
-- Try plotting your results. You can build off of the scripts you made for the previous serialization example, but how might you consider the changes we've made this week? Should you make changes based on the added intervention? What about the sweeps?
+- When the simulations finish, check your outputs. They should largely look the same as before, but you should now see the `Received_Treatment` even in the `ReportEventRecorder`. Examine the `campaign.json` as well to see details about the campaign you've added to the simulations - each will look slightly different depending on which sweep parameters it received.
+    - Does your campaign file look how you expect? This is a good way to verify if your simulations are distributing interventions correctly or if something isn't set up correctly (such as if it is giving out 100x the case management expected).
+- If your outputs look good, run the analyzer.
+- Try plotting your results. You can build off of the scripts you made for the previous serialization example, but how might you consider the changes we've made this week?      - *Hint: Think about changes related to adding interventions and the additional parameter sweeps.
 - Check out some of the other [interventions](https://github.com/numalariamodeling/emodpy-malaria/tree/main/emodpy_malaria/interventions) in emodpy-malaria. [Drug campaigns](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/interventions/drug_campaign.py), [ITNs](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/interventions/bednet.py), and [IRS](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/interventions/irs.py) may be of particular interest. For an added challenge, try adding one (or more!) of these interventions to this simulation on your own or with the help of the How-Tos. An example script with multiple interventions is located in the solution scripts **IN PROGRESS**
 
 </p>
@@ -692,6 +702,8 @@ In this example, we'll continue building off of the serialization structure, add
         - *Note: in project work, you likely will not want to include monthly reporting in burnins as they can be quite space and time consuming, but they are helpful during the learning process.*
     - Update the experiment name and run your simulations
     - Update the experiment name and ID in the analyzer while you wait for it to finish running. You may also start part 2 while you wait.
+    - When the burnin finishes running, check your outputs including the event recorder and existence of the state file.
+        - How does the event recorder change with IPs?
     
 2. Pickup - Adding IPs to interventions
     - Copy the `run_example_pickup_CM.py` script to a blank python script and name it `run_example_pickup_CM_withIP.py`.
@@ -761,9 +773,11 @@ In this example, we'll continue building off of the serialization structure, add
                                filename_suffix='_highaccess',
                                pretty_format=True)
         ```
-    - Update the experiment name, run the script
-    - Update the experiment name and ID in the analyzer. Be sure to check if you need to update anything such as `sweep_variables` or analyzer years. Once the pickup finishes, run the analyzer.
+    - Update the experiment name, run the script.
+    - Update the experiment name and ID in the analyzer. Be sure to check if you need to update anything such as `sweep_variables` or analyzer years. 
+    - Once the pickup finishes, check your outputs to make sure everything was created. Do you have both high and low access summary reports? If everything looks good, run the analyzer.
     - Try plotting your results. Feel free to start with old scripts and adapt them to try to understand differences between the IP levels.
+        - *Tip: think about what type of indicators high and low access to case management may impact and how you might want to show comparisons between the groups. Make sure to include any grouping on parameter sweeps as they can impact the results!*
     
 </p>
 </details>
@@ -881,7 +895,7 @@ Now, referring to the scripts you wrote for previous examples, you should be abl
     - `np.logspace(0,1,10)` will use 10 evenly log-spaced values between 10<sup>0</sup> and 10<sup>1</sup> (1-10x)
 - No interventions  
 - 1 stochastic realization / random seed
-- **Hint: check `set_param_fn()` to make sure you added vectors, point to the corresponding demographics/climate files, and allow for serialization.** 
+- *Hint: check `set_param_fn()` to make sure you added vectors, point to the corresponding demographics/climate files, and allow for serialization.*
 
 *Pickup* 
 
@@ -920,8 +934,6 @@ Now, referring to the scripts you wrote for previous examples, you should be abl
         
 **Part 2. Analyze Spatial Simulations** 
 
-**FIX PATH PLACEHOLDERS**
-
 To analyze the `SpatialReportMalariaFiltered_.bin` files generated for each channel and simulation, use the script `analyzer_spatial.py`
 
 Edit **only** the following lines at the bottom of the script before running:
@@ -943,9 +955,9 @@ if __name__ == "__main__":
     ## Paths ##
     ###########
     # experiments folder
-    jdir =  '/projects/b1139/indie_emodpy/experiments'
+    jdir =  manifest.job_directory
     # output folder
-    wdir=os.path.join('/projects/b1139/indie_emodpy/simulation_output', 'baseline')
+    wdir=os.path.join(jdir,'simulation_output', 'baseline')
     if not os.path.exists(wdir):
         os.mkdir(wdir) 
     ## Analyzer Specifications ##
@@ -1045,7 +1057,7 @@ This will produce a file inside `working_dir/simulation_output/experiment_name/C
 2. Update the `root` in the first chunk with the path to folder containing the `SpatialReportMalariaFiltered.csv` and `CountedEvents.csv` generated above. This is also where the output plot will be saved. 
 3. Run the `spatial_plotter.rmd` file
 
-View the SpatialSummary.png that was created.
+View the `SpatialSummary.png` that was created.
 
 </p>
 </details>
