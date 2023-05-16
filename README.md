@@ -11,7 +11,9 @@ Example scripts for 2023 faculty enrichment program in applied malaria modeling 
 Exercises usually consist of a simulation and an analyzer of simulation outputs. In some weeks, additional scripts exist to prepare simulation inputs or generate additional outputs and plots, or for model calibration as described in the instructions for the respective weeks.
 
 **Supplied scripts & checking results:**
-A few primary scripts are provided at the main level of this repository including running examples and analyzers. Most of the work for this course will be done by you building your own scripts based on the instructions with the help of these scripts. For each week, suggested simulation scripts for comparison or help during the exercise are provided in the respective week's [solution scripts](https://github.com/numalariamodeling/FE-2023-examples/tree/main/solution_scripts) folder. There is also an analyzer collection file in the solutions scripts that includes many commonly used analyzers that you may want to explore in more depth for your project. **Note: if you use an analyzer from the collection, be sure to add the right reporters to create the necessary output files.**
+A few primary scripts are provided at the main level of this repository including running examples and analyzers. Most of the work for this course will be done by you building your own scripts based on the instructions with the help of these scripts. For each week, suggested simulation scripts for comparison or help during the exercise are provided in the respective week's [solution scripts](https://github.com/numalariamodeling/FE-2023-examples/tree/main/solution_scripts) folder. There is also an analyzer collection file in the solutions scripts that includes many commonly used analyzers that you may want to explore in more depth for your project. 
+
+*Note: if you use an analyzer from the collection, be sure to add the right reporters to create the necessary output files.*
 
 **Prerequisites:** 
 Before running the weekly example scripts, please ensure that the emodpy virtual environment has been successfully [installed](https://numalariamodeling.github.io/FE-2023-quarto-website/guides/install_guide.html) and that this [repository has been cloned](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) to your home directory on QUEST, ideally as _/home/<.username>/FE-2023-examples_. Running your scripts will require that the emodpy virtual environment is loaded and assumes files are run from a working directory set to where the script is located. On QUEST there is an existing virtual environment that can be loaded using `source activate /projects/b1139/environments/emodpy_alt` - this environment uses the idmtools platform `SLURM_LOCAL`. Before you start on an exercise, make sure that you have pulled or fetched the latest changes from the repository (see git-guides [git-pull](https://github.com/git-guides/git-pull)).
@@ -19,10 +21,10 @@ Before running the weekly example scripts, please ensure that the emodpy virtual
 You will also need to configure your `.bashrc` file (located in your home directory). We use this file to automatically load modules, such as python, that are needed to run EMOD. We can also include an alias for the virtual environment described above. The template, below, creates an alias command called `load_emodpy` that we can run in the terminal to activate the environment - it uses the same command listed above. You may use this same alias or create a different one for your personal virtual environment if desired.
 
 Click the arrow to expand:
-<details><summary><span><em>Template .bashrc file</em></span></summary>
+<details><summary><span><em>Template `.bashrc` file</em></span></summary>
 <p>
 
-This template can be copied directly into your .bashrc file on QUEST: 
+This template can be copied directly into your `.bashrc` file on QUEST: 
 
 ```bash
 # .bashrc
@@ -179,10 +181,10 @@ This exercise demonstrates how to create demographics and climate files and how 
         """
 
         demog = Demographics.from_template_node(lat=0.4479, lon=33.2026,
-            pop=1000, name="Example_Site")
-       demog.SetEquilibriumVitalDynamics()
+                                                pop=1000, name="Example_Site")
+        demog.SetEquilibriumVitalDynamics()
     
-       age_distribution = Distributions.AgeDistribution_SSAfrica
+        age_distribution = Distributions.AgeDistribution_SSAfrica
         demog.SetAgeDistribution(age_distribution)
 
         return demog
@@ -202,7 +204,7 @@ This exercise demonstrates how to create demographics and climate files and how 
     
         conf.add_species(config, manifest, ["gambiae", "arabiensis", "funestus"])
 
-       config.parameters.Simulation_Duration = sim_years*365
+        config.parameters.Simulation_Duration = sim_years*365
         config.parameters.Run_Number = 0
     ```
 
