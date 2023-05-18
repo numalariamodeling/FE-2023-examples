@@ -113,7 +113,28 @@ Click the arrow to expand:
 - Go to the job directory (see `experiments/<your username>` above) folder to find the generated experiment - it will be under a set of 16-digit alphanumeric strings. The structure of these strings is `Suite > Experiment > Simulations`. Due to current handling systems with SLURM you will not be able to see the experiment name given within the `run_example.py` script; however, this can be found in the experiment and simulation-level metadata.json files. You may also choose to sort your files based on time such that most recent experiments will appear first. 
 - Take a look through what was generated even in this simple run and get familiar with the file structure. You should always check your outputs after running simulations to make sure they did what you expected. 
     - *Note: be sure to go all the way into the folder structure to see your simulations & their outputs. For more information on what to expect, see [Week 1's "What to Expect"](https://github.com/numalariamodeling/FE-2023-examples#week-1-overview-of-emod)*
+    - You should see [`InsetChart.json`](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-inset-chart.html) in the simulation's output folder - this is EMOD's default report that will give you an idea of what's going on in your simulation. We'll do a basic, sample analysis of this data next.
+- Copy the experiment UID, located in the experiment-level `metadata.json`. Paste this towards the bottom of `analyzer_W1.py` and update the experiment name to match the one used above in the "expts" dictionary (line 70). 
+    - *Tip: If you're not sure which is the experiment metadata, check the "item_type" and "name" in the file - do they say "experiment" and what you expect your experiment name to be, respectively? If yes, then you're in the right metadata file and can find the UID at the bottom. If you're still stuck, revist [Week 1's "What to Expect"](https://github.com/numalariamodeling/FE-2023-examples#week-1-overview-of-emod) on file structure.*
+	
+```python
+    expts = {
+        '<experiment name>' : '<experiment UID>'
+    }
+```
+- Save and run the anlyzer using `python analyzer_W1.py` at the command line. We'll discuss in more depth next week how EMOD analyzers work and what you can do with them.
+- When the analyzer finishes running, navigate to the working directory where you saved your results (*Hint: check line 76 to start identifying where this might be*) and checkout the output of this analyzer - there should be a file called "All_Age_Inset_Chart.csv".
+- If the file was created succesfully, we can plot some basic data on the simulation. We'll use RStudio on the [QUEST Analytics Nodes](https://rstudio.questanalytics.northwestern.edu/) to run the plotter, but you can also choose to download your output file and run on RStudio locally.
+-In `plot_InsetChart.Rmd`, update the paths to match your output directory (`root`) and the experiment `subfolder` where the "All_Age_Inset_Chart.csv" is located.
 
+```r
+root <- "<output directory>"
+subfolder <- "<experiment name>"
+```
+-At the top right of each code chunk there is a small green triangle - this will run the respective chunk when clicked. Run the first chunck to load libraries (lines 8-12). If you get an error that the libraries are missing, use `install.packages("<library name>")` to install them and then retry loading. Once they are loaded, run the plotter code chunk (lines 14-85). Check the saved plots in your output directory.
+    - This plotter produces four groups of `InsetChart` channels generally relating to incidence, prevalence, climate/vectors, and the population/demogaphics. Explore each of the sets of plots and see what you can learn about this first simulation!
+    - *Note: these plots can be helpful diagnostics to see how your simulation is performing, such as monitoring population levels; however, they should not be used to present results as they are just an example visualization not meant to address specific questions.*
+	
 </p>
 </details>
 
@@ -208,7 +229,7 @@ This exercise demonstrates how to create demographics and climate files and how 
         config.parameters.Run_Number = 0
     ```
 
-4. Now that you've added these changes, try running your new script with `python3 run_example_inputs.py`. Once it has succeeded go check on what has run. Do you see the changes to your demographics.json and the climate folder in the experiment's `Assets` directory? How about to config.json or stdout.txt? You should also see [`InsetChart.json`](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-inset-chart.html) in the simulation's output folder - this is EMOD's default report that will give you an idea of what's going on in your simulation. We'll explore this more later in the Analysis section of Week 2.
+4. Now that you've added these changes, try running your new script with `python3 run_example_inputs.py`. Once it has succeeded go check on what has run. Do you see the changes to your demographics.json and the climate folder in the experiment's `Assets` directory? How about to config.json or stdout.txt? 
 
 </p>
 </details>
@@ -260,17 +281,16 @@ This exercise demonstrates how to add some of the malaria built-in reporters to 
 
 Now that you've learned the basics of how to run EMOD and add inputs/outputs you can start actually analyzing some data! We use analyzer scripts to extract the data we want from our simulations' reports to understand what the simulation is doing, how it is changing, and answer research questions. This week's analyzer script, `analyzer_W2.py` contains two different analyzers:
 
-1. `InsetChartAnalyzer` that extracts data from `Inset_Chart.json`. Notice the `channels_inset_chart` in line 164 - this tells defines which data channels we are interested in looking at. Six different channels are included currently but these can always be modified depending on what you want to explore. 
+1. `InsetChartAnalyzer` that extracts data from `Inset_Chart.json`. Notice the `channels_inset_chart` in line 164 - this tells defines which data channels we are interested in looking at. Six different channels are included currently but these can always be modified depending on what you want to explore. This is a modified version of the simple inset chart analyzer that pulls all channels in Week 1.
 2. `MonthlyPfPRAnalyzer` that extracts data from the monthly summary report. If you look at the guts of the analyzer (lines 63 - 140), you'll see that this will particularly focus on extracting PfPR, Clinical Incidence (per person per year), Severe Incidence (per person per year), and Population, all by time (month, year) and age bins.
 
-- There are start and/or end_years included in both analyzers to match simulation time to real time. You can provide any relevant values that will be helpful to your processing (such as 2000 - 2009 for a 10 year simulation).
+- There are start_years included in both analyzers to match simulation time to real time. You can provide any relevant values that will be helpful to your processing (such as 2000 - 2009 for a 10 year simulation).
 - You'll also notice `sweep_variables` being defined and going into both analyzers - we'll discuss this in more depth in Week 3, but for now you can think of this like a tag (or set of tags) for our simulation(s). These sweep variable tags are useful for grouping the simulations for aggregation and understanding differences between them. 
     - Because we are only using the "Run_Number" (random seed for stochastic realization) in this week's example, you may see a warning message : `FutureWarning: In a future version of pandas, a length 1 tuple will be returned when iterating over a groupby with a grouper equal to a list of length 1. Don't supply a list with a single grouper to avoid this warning.` This warning is just to say you should preferably provide more than one variable for grouping.
 
 - Before we can run the analyzer script, you need to make a few changes:
-    1. Set your `jdir` (short for job directory) to where your experiments are saved (*/projects/b1139/FE-2023-examples/experiments/<username>*), this can be done by referencing `manifest.job_directory`. Notice that this is used for the platform, and we also set `wdir` (working directory) for the analyzer where the analyzers will output any results you have requested
+    1. Set your `jdir` (short for job directory) to where your experiments are saved, this can be done by referencing `manifest.job_directory`. Notice that this is used for the platform, and we also set `wdir` (working directory) for the analyzer where the analyzers will output any results you have requested
     2. Define your experiment name and ID in the `expts` dictionary (line 149) - these should match the UID and name in the experiment level `metadata.json` for your experiment of interest, in this case the `f'{user}_FE_example_outputs'` experiment you just ran.
-        - *Tip: If you're not sure which is the experiment metadata, check the "item_type" and "name" in the file - do they say "experiment" and what you expect your experiment name to be, respectively? If yes, then you're in the right metadata file and can find the UID at the bottom. If you're still stuck, revist [Week 1's "What to Expect"](https://github.com/numalariamodeling/FE-2023-examples#week-1-overview-of-emod) on file structure.*
     
     ```python
     expts = {
@@ -281,14 +301,12 @@ Now that you've learned the basics of how to run EMOD and add inputs/outputs you
 - This week's analyzer script also includes a basic python plotter for the results from `InsetChartAnalyzer` that will help you visualize each of the `channels_inset_chart` throughout the simulation. Take a look through the code to see if you can tell what it is doing before running it.
 - Run the analyzer
 - Wait for the analyzer to succeed. Once it is finished check out your new outputs (see if you can find the `wdir` mentioned above without help). You should see two csvs, one from each analyzer, as well as a InsetChart.png. Make sure these files have been created and examine the data they contain.
-- As an additional exercise, try to make a data visualization in R or python based off of the MonthlyPfPRAnalyzer output (PfPR_Clinical_Incidence_monthly.csv), based on the `MalariaSummaryReport`. You'll need to take a look through the output file and decide what kind of figure may be interesting and inform you about your simulation. *Note: there is no solution script for this, it is an exercise of creativity and data visualization skills where everyone may have unique ideas. Check out the plotting resources, then discuss with your colleagues or the instructional staff if you get stuck.*
+    - *Note: this InsetChart.png is a similar plot to that of Week 1 but is written in python and included at the end of the analyzer script directly. This is meant to showcase the ability to create similar plots using R or python, to your comfort.*
+- As an additional exercise, try to make a data visualization in R or python based off of the MonthlyPfPRAnalyzer output (PfPR_Clinical_Incidence_monthly.csv), based on the `MalariaSummaryReport`. You'll need to take a look through the output file and decide what kind of figure may be interesting and inform you about your simulation. *Note: there is a solution script for this that is similar to the Week 1 InsetChart plotter, but it is highly recommended to try making your own version first as an exercise of creativity and data visualization skills where everyone may have unique ideas. Check out the plotting resources, then discuss with your colleagues or the instructional staff if you get stuck. If you use the solution script, remember that it is only meant as a sample plot and not a key way to show results as that will be dependent on specific research questions and model configurations.*
 - Once you've completed your data visualization exercise, feel free to try changing some other [config parameters](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-configuration.html) in your example script. Run additional simulations with different durations, population sizes, agebins, etc. - whatever you think would be interesting! This is a great time to look through the EMOD documentation and explore parameters so you get to know the EMOD ecosystem better. *(Tip: change your experiment name to keep track of your simulations in both the metadata and analyzer outputs)*
     - You should also run these sims through the analyzer script by updating the experiment name and ID, as above. Inspect the outputs as well as any changes compared to your first run. What do you see? 
         - How have the outcomes changed? 
         - What do you recognize about running time?
-    - You may also want to run the analyzer on your very first, simple EMOD run to see how adding our input files has changed the simulation
-        - *Tip: be sure to think about what outputs you have (or don't) before running*
-
 
 </p>
 </details>
