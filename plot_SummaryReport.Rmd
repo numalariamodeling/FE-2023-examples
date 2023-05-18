@@ -1,0 +1,38 @@
+---
+title: "plot_SummaryReport"
+author: "Anne Stahlfeld"
+date: "5/18/2023"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(data.table)
+```
+
+```{r}
+root <- "/projects/b1139/FE-2023-examples/experiments/aew2948/simulation_outputs"
+subfolder <- "week2_outputs"
+filename <- "PfPR_ClinicalIncidence_monthly.csv"
+df <- fread(paste(root,subfolder,filename,sep='/'))
+colnames(df) <- make.names(colnames(df))
+lineT = c("dotted","solid","dashed")
+
+df %>%
+  group_by(agebin,month,Year) %>%
+  summarise_all(mean) %>%
+  relocate(month, Year, agebin) %>%
+  pivot_longer(-c(month,Year, agebin), names_to = "variable", values_to = "value") %>%
+  ggplot(aes(x=month,y=value)) +
+  facet_wrap(~variable, scales="free_y", ncol=2) +
+  geom_path(aes(color=variable, linetype=as.factor(agebin))) +
+  scale_linetype_manual(name="Agebin", values = lineT) +
+  ylab("") + xlab("Month") +
+  theme_minimal(base_size=14) +
+  guides(color="none")
+
+ggsave('SummaryReport_sample_plots.png',path = paste(root,subfolder,sep='/'), height = 10)
+ggsave('SummaryReport_sample_plots.pdf',path = paste(root,subfolder,sep='/'), height = 10)
+
+```
