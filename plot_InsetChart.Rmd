@@ -1,0 +1,85 @@
+---
+title: "plot_InsetChart"
+author: "Tobias Holden"
+date: "5/17/2023"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(data.table)
+```
+
+```{r}
+root <- "/projects/b1139/FE-2023-examples/experiments/aew2948/simulation_outputs"
+subfolder <- "example_basic"
+filename <- "All_Age_InsetChart.csv"
+df <- fread(paste(root,subfolder,filename,sep='/'))
+colnames(df) <- make.names(colnames(df))
+
+df %>%
+  select(Time,  X30.day.Avg.Infection.Duration, Avg.Num.Infections, Disease.Deaths, Infected, New.Clinical.Cases, New.Infections, New.Severe.Cases, Newly.Symptomatic, Variant.Fraction.PfEMP1.Major)%>%
+  group_by(Time) %>%
+  summarise_all(mean) %>%
+  relocate(Time) %>%
+  gather(key="variable", value="value", -1) %>%
+  ggplot(aes(x=Time,y=value)) +
+  facet_wrap(~variable, scales="free_y", ncol=3) +
+  geom_path(aes(color=variable)) +
+  ylab("") + xlab("") +
+  theme_minimal(base_size=14) +
+  guides(color="none")
+
+ggsave('All_Age_InsetChart_infections.png',path = paste(root,subfolder,sep='/'), width = 10)
+ggsave('All_Age_InsetChart_infections.pdf',path = paste(root,subfolder,sep='/'), width = 10)
+
+df %>%
+  select(Time, Blood.Smear.Gametocyte.Prevalence, Blood.Smear.Parasite.Prevalence, Fever.Prevalence, Log.Prevalence, Mean.Parasitemia, PCR.Gametocyte.Prevalence, PCR.Parasite.Prevalence, PfHRP2.Prevalence, True.Prevalence)%>%
+  group_by(Time) %>%
+  summarise_all(mean) %>%
+  relocate(Time) %>%
+  gather(key="variable", value="value", -1) %>%
+  ggplot(aes(x=Time,y=value)) +
+  facet_wrap(~variable, scales="free_y", ncol=3) +
+  geom_path(aes(color=variable)) +
+  ylab("") + xlab("") +
+  theme_minimal(base_size=14) +
+  guides(color="none")
+
+ggsave('All_Age_InsetChart_prevalence.png',path = paste(root,subfolder,sep='/'), width = 11)
+ggsave('All_Age_InsetChart_prevalence.pdf',path = paste(root,subfolder,sep='/'), width = 11)
+
+df %>%
+  select(Time, Adult.Vectors, Daily.Bites.per.Human, Daily.EIR, Human.Infectious.Reservoir, Infectious.Vectors, Air.Temperature, Rainfall, Relative.Humidity) %>%
+  group_by(Time) %>%
+  summarise_all(mean) %>%
+  relocate(Time) %>%
+  gather(key="variable", value="value", -1) %>%
+  ggplot(aes(x=Time,y=value)) +
+  facet_wrap(~variable, scales="free_y", ncol=2) +
+  geom_path(aes(color=variable)) +
+  ylab("") + xlab("") +
+  theme_minimal(base_size=14) +
+  guides(color="none")
+
+ggsave('All_Age_InsetChart_climate_vectors.png',path = paste(root,subfolder,sep='/'), height = 9)
+ggsave('All_Age_InsetChart_climate_vectors.pdf',path = paste(root,subfolder,sep='/'), height = 9)
+
+df %>%
+  select(Time, Births, Campaign.Cost, Statistical.Population, Symptomatic.Population) %>%
+  group_by(Time) %>%
+  summarise_all(mean) %>%
+  relocate(Time) %>%
+  gather(key="variable", value="value", -1) %>%
+  ggplot(aes(x=Time,y=value)) +
+  facet_wrap(~variable, scales="free_y", ncol=2) +
+  geom_path(aes(color=variable)) +
+  ylab("") + xlab("") +
+  theme_minimal(base_size=14) +
+  guides(color="none")
+  
+ggsave('All_Age_InsetChart_population.png',path = paste(root,subfolder,sep='/'), width = 5, height = 4)
+ggsave('All_Age_InsetChart_population.pdf',path = paste(root,subfolder,sep='/'), width = 5, height = 4)
+
+```
