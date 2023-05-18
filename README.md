@@ -125,13 +125,13 @@ Click the arrow to expand:
 - Save and run the anlyzer using `python analyzer_W1.py` at the command line. We'll discuss in more depth next week how EMOD analyzers work and what you can do with them.
 - When the analyzer finishes running, navigate to the working directory where you saved your results (*Hint: check line 76 to start identifying where this might be*) and checkout the output of this analyzer - there should be a file called "All_Age_Inset_Chart.csv".
 - If the file was created succesfully, we can plot some basic data on the simulation. We'll use RStudio on the [QUEST Analytics Nodes](https://rstudio.questanalytics.northwestern.edu/) to run the plotter, but you can also choose to download your output file and run on RStudio locally.
--In `plot_InsetChart.Rmd`, update the paths to match your output directory (`root`) and the experiment `subfolder` where the "All_Age_Inset_Chart.csv" is located.
+- In `plot_InsetChart.Rmd`, update the paths to match your output directory (`root`) and the experiment `subfolder` where the "All_Age_Inset_Chart.csv" is located.
 
 ```r
 root <- "<output directory>"
 subfolder <- "<experiment name>"
 ```
--At the top right of each code chunk there is a small green triangle - this will run the respective chunk when clicked. Run the first chunck to load libraries (lines 8-12). If you get an error that the libraries are missing, use `install.packages("<library name>")` to install them and then retry loading. Once they are loaded, run the plotter code chunk (lines 14-85). Check the saved plots in your output directory.
+- At the top right of each code chunk there is a small green triangle - this will run the respective chunk when clicked. Run the first chunck to load libraries (lines 8-12). If you get an error that the libraries are missing, use `install.packages("<library name>")` to install them and then retry loading. Once they are loaded, run the plotter code chunk (lines 14-85). Check the saved plots in your output directory.
     - This plotter produces four groups of `InsetChart` channels generally relating to incidence, prevalence, climate/vectors, and the population/demogaphics. Explore each of the sets of plots and see what you can learn about this first simulation!
     - *Note: these plots can be helpful diagnostics to see how your simulation is performing, such as monitoring population levels; however, they should not be used to present results as they are just an example visualization not meant to address specific questions.*
 	
@@ -297,7 +297,6 @@ Now that you've learned the basics of how to run EMOD and add inputs/outputs you
             '<user>_FE_example_outputs' : '<experiment UID>'
         }
     ```
-
 - This week's analyzer script also includes a basic python plotter for the results from `InsetChartAnalyzer` that will help you visualize each of the `channels_inset_chart` throughout the simulation. Take a look through the code to see if you can tell what it is doing before running it.
 - Run the analyzer
 - Wait for the analyzer to succeed. Once it is finished check out your new outputs (see if you can find the `wdir` mentioned above without help). You should see two csvs, one from each analyzer, as well as a InsetChart.png. Make sure these files have been created and examine the data they contain.
