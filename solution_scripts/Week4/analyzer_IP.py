@@ -7,15 +7,16 @@ import re
 import random
 from idmtools.entities import IAnalyzer	
 from idmtools.entities.simulation import Simulation
+import manifest
 
-class MonthlyPfPRAnalyzerU5IP(IAnalyzer):
+class MonthlyPfPRAnalyzerIP(IAnalyzer):
 
     def __init__(self, expt_name, sweep_variables=None, working_dir='./', start_year=2020, end_year=2023,
-                 burnin=None, filter_exists=False, ipfilter=''):
+                 burnin=None, ipfilter=''):
 
-        super(MonthlyPfPRAnalyzerU5IP, self).__init__(working_dir=working_dir,
+        super(MonthlyPfPRAnalyzerIP, self).__init__(working_dir=working_dir,
                                                     filenames=[
-                                                        f"output/MalariaSummaryReport_Monthly_U5{ipfilter}_{x}.json"
+                                                        f"output/MalariaSummaryReport__Monthly_{ipfilter}_{x}.json"
                                                         for x in range(start_year, end_year)]
                                                     )
         self.sweep_variables = sweep_variables or ["Run_Number"]
@@ -23,15 +24,7 @@ class MonthlyPfPRAnalyzerU5IP(IAnalyzer):
         self.start_year = start_year
         self.end_year = end_year
         self.burnin = burnin
-        self.filter_exists = filter_exists
         self.ipfilter = ipfilter
-
-    def filter(self, simulation):
-        if self.filter_exists:
-            file = os.path.join(simulation.get_path(), self.filenames[0])
-            return os.path.exists(file)
-        else:
-            return True
 
     def map(self, data, simulation):
 
@@ -50,10 +43,10 @@ class MonthlyPfPRAnalyzerU5IP(IAnalyzer):
             d = data[fname]['DataByTime']['Annual EIR'][:12]
             annualeir = d
             simdata = pd.DataFrame({'month': range(1, 13),
-                                    'PfPR U5': pfpr,
-                                    'Cases U5': clinical_cases,
-                                    'Severe cases U5': severe_cases,
-                                    'Pop U5': pop,
+                                    'PfPR': pfpr,
+                                    'Cases': clinical_cases,
+                                    'Severe cases': severe_cases,
+                                    'Pop': pop,
                                     'PfPR_2to10': PfPR_2to10,
                                     'annualeir': annualeir})
             simdata['year'] = year
@@ -85,7 +78,7 @@ class MonthlyPfPRAnalyzerU5IP(IAnalyzer):
         adf = pd.concat(selected).reset_index(drop=True)
         if self.burnin is not None:
             adf = adf[adf['year'] > self.start_year + self.burnin]
-        adf.to_csv((os.path.join(self.working_dir, self.expt_name, f'U5{self.ipfilter}_PfPR_ClinicalIncidence.csv')), index=False)
+        adf.to_csv((os.path.join(self.working_dir, self.expt_name, f'{self.ipfilter}_PfPR_ClinicalIncidence.csv')), index=False)
         
 if __name__ == "__main__":
 
@@ -95,7 +88,7 @@ if __name__ == "__main__":
 
     
     expts = {
-        'week4_IP_CM' : '47ca8005-ab6f-4397-939b-2ffeacb2bab6'
+        'week4_IP_CM' : '43220559-e527-41e6-8460-f6ad88da9f73'
     }
     
 
@@ -111,18 +104,18 @@ if __name__ == "__main__":
 
         for expt_name, exp_id in expts.items():
           
-            analyzer = [MonthlyPfPRAnalyzerU5IP(expt_name=expt_name,
+            analyzer = [MonthlyPfPRAnalyzerIP(expt_name=expt_name,
                                       start_year=2010,
                                       end_year=2015,
                                       sweep_variables=sweep_variables,
                                       working_dir=wdir,
-                                      ipfilter='_highaccess'),
-                        MonthlyPfPRAnalyzerU5IP(expt_name=expt_name,
+                                      ipfilter='highaccess'),
+                        MonthlyPfPRAnalyzerIP(expt_name=expt_name,
                                       start_year=2010,
                                       end_year=2015,
                                       sweep_variables=sweep_variables,
                                       working_dir=wdir,
-                                      ipfilter='_lowaccess')]
+                                      ipfilter='lowaccess')]
             
             # Create AnalyzerManager with required parameters
             manager = AnalyzeManager(configuration={}, ids=[(exp_id, ItemType.EXPERIMENT)],

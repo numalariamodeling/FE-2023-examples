@@ -35,7 +35,7 @@ from utils_slurm import build_burnin_df
 
 serialize_years=50
 pickup_years=5
-burnin_exp_id = '03dc5f4d-e8b8-4bdf-a297-a26beddf3829'
+burnin_exp_id = '8696bce4-590f-493d-88dd-c82c73d6a337'
 
 def set_param_fn(config):
     """
@@ -126,7 +126,7 @@ def update_serialize_parameters(simulation, df, x: int):
     simulation.task.set_parameter("Serialized_Population_Filenames", df["Serialized_Population_Filenames"][x])
     simulation.task.set_parameter("Serialized_Population_Path", os.path.join(path, "output"))
     simulation.task.set_parameter("Run_Number", seed) #match pickup simulation run number to burnin simulation
-    simulation.task.set_parameter("x_Temporary_Larval_Habitat", float(df["x_Temporary_Larval_Habitat"][x])
+    #simulation.task.set_parameter("x_Temporary_Larval_Habitat", float(df["x_Temporary_Larval_Habitat"][x]))
 
     return {"Run_Number":seed}
 
@@ -207,20 +207,21 @@ def general_sim(selected_platform):
                        ips_to_record=['Access'])
                        
     # MalariaSummaryReport
+    sim_start_year = 2010
     for i in range(pickup_years):
-        add_malaria_summary_report(task, manifest, start_day=1,
+        add_malaria_summary_report(task, manifest, start_day=1+365*i,
                                    end_day=365 + i * 365, reporting_interval=30,
                                    age_bins=[0.25, 5, 115],
                                    max_number_reports=serialize_years,
                                    must_have_ip_key_value='Access:High',
-                                   filename_suffix='_highaccess',
+                                   filename_suffix=f'_Monthly_highaccess_{sim_start_year+i}',
                                    pretty_format=True)
-        add_malaria_summary_report(task, manifest, start_day=1,
+        add_malaria_summary_report(task, manifest, start_day=1+365*i,
                                    end_day=365 + i * 365, reporting_interval=30,
                                    age_bins=[0.25, 5, 115],
                                    max_number_reports=pickup_years*13,
                                    must_have_ip_key_value='Access:Low',
-                                   filename_suffix='_lowaccess',
+                                   filename_suffix=f'Monthly_lowaccess_{sim_start_year+i}',
                                    pretty_format=True)
 
     # create experiment from builder
