@@ -214,7 +214,7 @@ def general_sim(selected_platform):
                                    age_bins=[0.25, 5, 115],
                                    max_number_reports=serialize_years,
                                    must_have_ip_key_value='Access:High',
-                                   filename_suffix=f'_Monthly_highaccess_{sim_start_year+i}',
+                                   filename_suffix=f'Monthly_highaccess_{sim_start_year+i}',
                                    pretty_format=True)
         add_malaria_summary_report(task, manifest, start_day=1+365*i,
                                    end_day=365 + i * 365, reporting_interval=30,
