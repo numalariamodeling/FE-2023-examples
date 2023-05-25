@@ -784,13 +784,13 @@ In this example, we'll continue building off of the serialization structure, add
     
         ```python
         for i in range(pickup_years):
-            add_malaria_summary_report(task, manifest, start_day=1,
-                               end_day=365+i*365, reporting_interval=30,
-                               age_bins=[0.25, 5, 115],
-                               max_number_reports=serialize_years,
-                               must_have_ip_key_value='Access:High',
-                               filename_suffix='_highaccess',
-                               pretty_format=True)
+            add_malaria_summary_report(task, manifest, start_day=1+365*i,
+                                   end_day=365 + i * 365, reporting_interval=30,
+                                   age_bins=[0.25, 5, 115],
+                                   max_number_reports=serialize_years,
+                                   must_have_ip_key_value='Access:High',
+                                   filename_suffix=f'Monthly_highaccess_{sim_start_year+i}',
+                                   pretty_format=True)
         ```
     - Update the experiment name, run the script.
     - Update the experiment name and ID in the analyzer. Be sure to check if you need to update anything such as `sweep_variables` or analyzer years. 
