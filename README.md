@@ -424,6 +424,11 @@ Depending on our project and site there are a variety of different parameters yo
     - The `example_calibration_selection.py` script is a simple example of how we may select the best match parameter value for calibration. It calculates the average log-likelihood of each `x_Temporary_Larval_Habitat` based on simulation outputs and produces some plots to visualize the parameter selection.
     - Update the `expt_name` to match that of your calibration sweeps that you just ran.
     - Before you run the selection script, take a look through it and see if you can understand how it works and what it will produce. Keep this in mind and then run and compare to the results after it's finished.
+	- Note: you may need to install `idmtools-calibra` & `seaborn` if you are using your own virtual environment - the shared environment on QUEST should already have these. The `idmtools-calibra` package can be installed using the following and should also install the `seaborn` dependency:
+	
+	  ```python
+	  pip install idmtools-calibra --index-url=https://packages.idmod.org/api/pypi/pypi-production/simple
+	  ```
     - How does the parameter fit look? If you didn't get a good fit, what might you do to fix it? Feel free to make changes and try running part 1 again!
 </p>
 </details>
