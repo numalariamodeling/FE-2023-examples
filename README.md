@@ -16,9 +16,9 @@ A few primary scripts are provided at the main level of this repository includin
 *Note: if you use an analyzer from the collection, be sure to add the right reporters to create the necessary output files.*
 
 **Prerequisites:** 
-Before running the weekly example scripts, please ensure that the emodpy virtual environment has been successfully [installed](https://numalariamodeling.github.io/FE-2023-quarto-website/guides/install_guide.html) and that this [repository has been cloned](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) to your home directory on QUEST, ideally as _/projects/b1139/FE_<username>/FE-2023-examples_. Note: you will need to create your `FE_<username>` folder prior to cloning. Running your scripts will require that the emodpy virtual environment is loaded and assumes files are run from a working directory set to where the script is located. On QUEST there is an existing virtual environment that can be loaded using `source activate /projects/b1139/environments/emodpy_alt` - this environment uses the idmtools platform `SLURM_LOCAL`. Before you start on an exercise, make sure that you have pulled or fetched the latest changes from the repository (see git-guides [git-pull](https://github.com/git-guides/git-pull)).
+Running your scripts will require that the emodpy virtual environment is loaded and assumes files are run from a working directory set to where the script is located. On QUEST there is an existing virtual environment that can be loaded using `source activate /projects/b1139/environments/emodpy_alt` - this environment uses the idmtools platform `SLURM_LOCAL`. 
 
-You will also need to configure your `.bashrc` file (located in your home directory). We use this file to automatically load modules, such as python, that are needed to run EMOD. We can also include an alias for the virtual environment described above. The template, below, creates an alias command called `load_emodpy` that we can run in the terminal to activate the environment - it uses the same command listed above. You may use this same alias or create a different one for your personal virtual environment if desired.
+You will also need to configure your `.bashrc` file (located in your home directory). We use this file to automatically load modules, such as python, that are needed to run EMOD. We can include an alias for the virtual environment described above. The template, below, creates an alias command called `load_emodpy` that we can run in the terminal to activate the emodpy virtual environment - it uses the shared environment described above. You may use this same alias or create a different one for your personal virtual environment if desired using theses [installation instructions](https://numalariamodeling.github.io/FE-2023-quarto-website/guides/install_guide.html).
 
 Click the arrow to expand:
 <details><summary><span><em>Template `.bashrc` file</em></span></summary>
@@ -48,6 +48,13 @@ module load R/4.1.1
 
 </p>
 </details>
+
+Before running the weekly example scripts, please ensure that the emodpy virtual environment has been successfully loaded and that this [repository has been cloned](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) to the project directory on QUEST, ideally as */projects/b1139/FE_<username>/FE-2023-examples*.
+- Navigate to the project: `cd /projects/b1139`
+- Make your personal directory for the program: `mkdir FE_<username>` then navigate into it using `cd FE_<username>`
+- Clone this repository with your ssh address for the repo. Click the green "code" button above and copy the ssh address then run the following on QUEST: ` git clone <ssh address>`
+	
+Before you start on an exercise, make sure that you have pulled or fetched the latest changes from the repository (see git-guides [git-pull](https://github.com/git-guides/git-pull)).
 
 ## Week 1: Overview of EMOD
 This week we will be discussing EMOD's general structure and content as well as making sure you are ready to run the model on our linux-based HPC, QUEST. You will set up your own virtual environment to run EMOD via emodpy and idmtools and clone this github repository to your home directory on QUEST. Please familiarize yourself with the repo, website, and EMOD documentation before running the simple example at the end of this week.
@@ -104,9 +111,9 @@ Click the arrow to expand:
 <details><summary><span><em>Running a simple EMOD simulation</em></span></summary>
 <p>
 
-- Navigate to your local copy of this repository on QUEST: `cd ~/FE-2023-examples`  
-- Notice your job directory path in `manifest.py`: `/projects/b1139/FE-2023-examples/experiments/<username>`. This will help your track your simulations separately from other participants.
-    - *Note: any time you see items in between `< >`, they should be replaced ENTIRELY with whatever the item is labeled to be. For example, if your username was `abc123` then this job directory would be:* `/projects/b1139/FE-2023-examples/experiments/abc123`
+- Navigate to your local copy of this repository on QUEST: `cd /projects/b1139/FE_<username>/FE-2023-examples`  
+- Notice your job directory path in `manifest.py`: `/projects/b1139/FE_<username>/FE-2023-examples/experiments/`. This will help your track your simulations separately from other participants.
+    - *Note: any time you see items in between `< >`, they should be replaced ENTIRELY with whatever the item is labeled to be. For example, if your username was `abc123` then this job directory would be:* `/projects/b1139/FE_abc123/FE-2023-examples/experiments`
 - Load your emodpy `SLURM_LOCAL` virtual environment (see prerequisites)  
 - Run simulation via `python3 run_example.py`
 - Wait for simulation to finish (~2 minutes)  
