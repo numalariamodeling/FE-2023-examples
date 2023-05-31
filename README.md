@@ -117,11 +117,11 @@ Click the arrow to expand:
 - Load your emodpy `SLURM_LOCAL` virtual environment (see prerequisites)  
 - Run simulation via `python3 run_example.py`
 - Wait for simulation to finish (~2 minutes)  
-- Go to the job directory (see `experiments/<your username>` above) folder to find the generated experiment - it will be under a set of 16-digit alphanumeric strings. The structure of these strings is `Suite > Experiment > Simulations`. Due to current handling systems with SLURM you will not be able to see the experiment name given within the `run_example.py` script; however, this can be found in the experiment and simulation-level metadata.json files. You may also choose to sort your files based on time such that most recent experiments will appear first. 
+- Go to the job directory (see `experiments` above) folder to find the generated experiment - it will be under a set of 16-digit alphanumeric strings. The structure of these strings is `Suite > Experiment > Simulations`. Due to current handling systems with SLURM you will not be able to see the experiment name given within the `run_example.py` script; however, this can be found in the experiment and simulation-level metadata.json files. You may also choose to sort your files based on time such that most recent experiments will appear first. 
 - Take a look through what was generated even in this simple run and get familiar with the file structure. You should always check your outputs after running simulations to make sure they did what you expected. 
     - *Note: be sure to go all the way into the folder structure to see your simulations & their outputs. For more information on what to expect, see [Week 1's "What to Expect"](https://github.com/numalariamodeling/FE-2023-examples#week-1-overview-of-emod)*
     - You should see [`InsetChart.json`](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-inset-chart.html) in the simulation's output folder - this is EMOD's default report that will give you an idea of what's going on in your simulation. We'll do a basic, sample analysis of this data next.
-- Copy the experiment UID, located in the experiment-level `metadata.json`. Paste this towards the bottom of `analyzer_W1.py` and update the experiment name to match the one used above in the "expts" dictionary (line 70). 
+- Copy the experiment UID, located in the experiment-level `metadata.json`. Update the experiment name to match the one used above and paste the experiment UID in the "expts" dictionary (line 71) of `analyzer_W1.py` (located at the main level of the repository with the other provided scripts). It should look like the examples below and in the script. 
     - *Tip: If you're not sure which is the experiment metadata, check the "item_type" and "name" in the file - do they say "experiment" and what you expect your experiment name to be, respectively? If yes, then you're in the right metadata file and can find the UID at the bottom. If you're still stuck, revist [Week 1's "What to Expect"](https://github.com/numalariamodeling/FE-2023-examples#week-1-overview-of-emod) on file structure.*
 	
 ```python
@@ -131,14 +131,16 @@ Click the arrow to expand:
 ```
 - Save and run the anlyzer using `python analyzer_W1.py` at the command line. We'll discuss in more depth next week how EMOD analyzers work and what you can do with them.
 - When the analyzer finishes running, navigate to the working directory where you saved your results (*Hint: check line 76 to start identifying where this might be*) and checkout the output of this analyzer - there should be a file called "All_Age_Inset_Chart.csv".
-- If the file was created succesfully, we can plot some basic data on the simulation. We'll use RStudio on the [QUEST Analytics Nodes](https://rstudio.questanalytics.northwestern.edu/) to run the plotter, but you can also choose to download your output file and run on RStudio locally.
-- In `plot_InsetChart.Rmd`, update the paths to match your output directory (`root`) and the experiment `subfolder` where the "All_Age_Inset_Chart.csv" is located.
+- If the file was created succesfully, we can plot some basic data on the simulation. We'll use RStudio on the [QUEST Analytics Nodes](https://rstudio.questanalytics.northwestern.edu/) to run the plotter, but you can also choose to download your output file and run on RStudio locally. 
+    - Once logged into QUEST's RStudio you can navigate to this repository by clicking `Session` (in the toolbar) > `Set Working Directory` > `Choose Directory` > `...` > type  `/projects/b1139/FE_<username>/FE-2023-examples` > `Choose`
+- Open `plot_InsetChart.Rmd`, update the paths to match your output directory (`root`) and the experiment `subfolder` (should be the experiment name supplied to the analyzer) where the "All_Age_Inset_Chart.csv" is located.
 
 ```r
 root <- "<output directory>"
 subfolder <- "<experiment name>"
 ```
-- At the top right of each code chunk there is a small green triangle - this will run the respective chunk when clicked. Run the first chunck to load libraries (lines 8-12). If you get an error that the libraries are missing, use `install.packages("<library name>")` to install them and then retry loading. Once they are loaded, run the plotter code chunk (lines 14-85). Check the saved plots in your output directory.
+- At the top right of each code chunk there is a small green triangle - this will run the respective chunk when clicked. Run the first chunk to load libraries (lines 8-12). If you get an error that the libraries are missing, use `install.packages("<library name>")` to install them and then retry loading. Once they are loaded, run the plotter code chunk (lines 14-85). Check the saved plots in your ou
+	tput directory.
     - This plotter produces four groups of `InsetChart` channels generally relating to incidence, prevalence, climate/vectors, and the population/demogaphics. Explore each of the sets of plots and see what you can learn about this first simulation!
     - *Note: these plots can be helpful diagnostics to see how your simulation is performing, such as monitoring population levels; however, they should not be used to present results as they are just an example visualization not meant to address specific questions.*
 	
