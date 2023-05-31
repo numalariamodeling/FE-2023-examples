@@ -179,9 +179,8 @@ if __name__ == "__main__":
     ## Paths ##
     ###########
     # experiments folder
-    jdir =  '/projects/b1139/indie_emodpy/experiments'
-    # output folder
-    wdir=os.path.join('/projects/b1139/indie_emodpy/simulation_output', 'baseline')
+    jdir = manifest.job_directory
+    wdir=os.path.join(jdir, 'simulation_outputs', 'baseline')
     if not os.path.exists(wdir):
         os.mkdir(wdir)
     ## Analyzer Specifications ##

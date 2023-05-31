@@ -138,8 +138,8 @@ if __name__ == "__main__":
     
     expts = {'FE_spatial_example': 'b7f46748-ed21-48b5-8eb3-6e0fee6d1487'}
     
-    jdir =  '/projects/b1139/indie_emodpy/experiments'
-    wdir=os.path.join('/projects/b1139/indie_emodpy/simulation_output', 'FE_Example')
+    jdir = manifest.job_directory
+    wdir=os.path.join(jdir, 'simulation_outputs')
     out_path = wdir
     if not os.path.exists(out_path):
         os.mkdir(out_path)

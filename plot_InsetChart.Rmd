@@ -12,7 +12,7 @@ library(data.table)
 ```
 
 ```{r}
-root <- "/projects/b1139/FE-2023-examples/experiments/aew2948/simulation_outputs"
+root <- "/projects/b1139/FE_<user>/FE-2023-examples/experiments/simulation_outputs"
 subfolder <- "example_basic"
 filename <- "All_Age_InsetChart.csv"
 df <- fread(paste(root,subfolder,filename,sep='/'))
