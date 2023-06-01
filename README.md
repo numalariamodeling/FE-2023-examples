@@ -16,9 +16,9 @@ A few primary scripts are provided at the main level of this repository includin
 *Note: if you use an analyzer from the collection, be sure to add the right reporters to create the necessary output files.*
 
 **Prerequisites:** 
-Running your scripts will require that the emodpy virtual environment is loaded and assumes files are run from a working directory set to where the script is located. On QUEST there is an existing virtual environment that can be loaded using `source activate /projects/b1139/environments/emodpy_alt` - this environment uses the idmtools platform `SLURM_LOCAL`. 
+Running your scripts will require that the emodpy virtual environment is loaded and assumes files are run from a working directory set to where the script is located. Create this environment using these [installation instructions](https://numalariamodeling.github.io/FE-2023-quarto-website/guides/install_guide.html). We recommend creating an "environments" folder in your home directory and creating the environment there. 
 
-You will also need to configure your `.bashrc` file (located in your home directory). We use this file to automatically load modules, such as python, that are needed to run EMOD. We can include an alias for the virtual environment described above. The template, below, creates an alias command called `load_emodpy` that we can run in the terminal to activate the emodpy virtual environment - it uses the shared environment described above. You may use this same alias or create a different one for your personal virtual environment if desired using theses [installation instructions](https://numalariamodeling.github.io/FE-2023-quarto-website/guides/install_guide.html).
+You will also need to configure your `.bashrc` file (located in your home directory). We use this file to automatically load modules, such as python, that are needed to run EMOD. We can include an alias for the virtual environment described above. The template, below, creates an alias command called `load_emodpy` that we can run in the terminal to activate the emodpy virtual environment - update the activation command to reflect the environment you created in the previous step. 
 
 Click the arrow to expand:
 <details><summary><span><em>Template `.bashrc` file</em></span></summary>
@@ -38,7 +38,7 @@ fi
 # export SYSTEMD_PAGER=
 
 # User specific aliases and functions
-alias load_emodpy='source activate /projects/b1139/environments/emodpy_alt'
+alias load_emodpy='source /home/<user>/environments/<emodpy-venv>/bin/activate'
 module purge all
 module load singularity/3.8.1
 module load git/2.8.2
@@ -114,7 +114,7 @@ Click the arrow to expand:
 - Navigate to your local copy of this repository on QUEST: `cd /projects/b1139/FE_<username>/FE-2023-examples`  
 - Notice your job directory path in `manifest.py`: `/projects/b1139/FE_<username>/FE-2023-examples/experiments/`. This will help your track your simulations separately from other participants.
     - *Note: any time you see items in between `< >`, they should be replaced ENTIRELY with whatever the item is labeled to be. For example, if your username was `abc123` then this job directory would be:* `/projects/b1139/FE_abc123/FE-2023-examples/experiments`
-- Load your emodpy `SLURM_LOCAL` virtual environment (see prerequisites)  
+- Load your emodpy virtual environment (see prerequisites)  
 - Run simulation via `python3 run_example.py`
 - Wait for simulation to finish (~2 minutes)  
 - Go to the job directory (see `experiments` above) folder to find the generated experiment - it will be under a set of 16-digit alphanumeric strings. The structure of these strings is `Suite > Experiment > Simulations`. Due to current handling systems with SLURM you will not be able to see the experiment name given within the `run_example.py` script; however, this can be found in the experiment and simulation-level metadata.json files. You may also choose to sort your files based on time such that most recent experiments will appear first. 
