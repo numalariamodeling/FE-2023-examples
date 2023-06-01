@@ -91,7 +91,7 @@ if __name__ == "__main__":
     expt_name_burnin = f'{user}_example_sim_burnin10'
     expt_name_pickup = f'{user}_example_sim_pickup'
     
-    working_dir=os.path.join(manifest.job_directory, 'simulation_outputs')
+    working_dir=os.path.join(manifest.job_directory, 'my_outputs')
 
     """Set sweep_variables and event_list as required depending on experiment"""
     sweep_variables = ['Run_Number']

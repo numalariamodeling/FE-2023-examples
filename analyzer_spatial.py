@@ -180,7 +180,7 @@ if __name__ == "__main__":
     ###########
     # experiments folder
     jdir = manifest.job_directory
-    wdir=os.path.join(jdir, 'simulation_outputs', 'baseline')
+    wdir = os.path.join(jdir, 'my_outputs', 'baseline')
     if not os.path.exists(wdir):
         os.mkdir(wdir)
     ## Analyzer Specifications ##

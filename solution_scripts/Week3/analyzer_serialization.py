@@ -151,7 +151,7 @@ if __name__ == "__main__":
     }
     
     jdir = manifest.job_directory
-    wdir=os.path.join(jdir, 'simulation_outputs')
+    wdir=os.path.join(jdir, 'my_outputs')
     
     serialize_years = 10  # Same as in example_run_burnin.py
     step = 'burnin'

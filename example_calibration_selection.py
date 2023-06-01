@@ -13,7 +13,7 @@ user = os.getlogin()  # user initials
 expt_name = 'week3_calib'
 
 jdir = manifest.job_directory
-output_dir=os.path.join(jdir, 'simulation_outputs')
+output_dir=os.path.join(jdir, 'my_outputs')
 
 input_dir = os.path.join(manifest.input_dir)
 data_dir = os.path.join('data')

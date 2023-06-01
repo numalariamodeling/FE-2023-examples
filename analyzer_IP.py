@@ -93,7 +93,7 @@ if __name__ == "__main__":
     
 
     jdir = manifest.job_directory
-    wdir=os.path.join(jdir, 'simulation_outputs')
+    wdir=os.path.join(jdir, 'my_outputs')
     
     if not os.path.exists(wdir):
         os.mkdir(wdir)

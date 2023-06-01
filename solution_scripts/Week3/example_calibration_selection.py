@@ -13,9 +13,9 @@ user = os.getlogin()  # user initials
 expt_name = 'week3_calib'
 
 jdir = manifest.job_directory
-output_dir=os.path.join(jdir, 'simulation_outputs')
+output_dir=os.path.join(jdir, 'my_outputs')
 
-input_dir = os.path.join('~','FE-2023-examples/inputs')
+input_dir = manifest.input_dir
 data_dir = os.path.join('data')
 
 sim_pfpr_df = pd.read_csv(os.path.join(output_dir, expt_name, 'U5_PfPR_ClinicalIncidence.csv'))

@@ -52,7 +52,7 @@ module load R/4.1.1
 Before running the weekly example scripts, please ensure that the emodpy virtual environment has been successfully loaded and that this [repository has been cloned](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) to the project directory on QUEST, ideally as */projects/b1139/FE_<username>/FE-2023-examples*.
 - Navigate to the project: `cd /projects/b1139`
 - Make your personal directory for the program: `mkdir FE_<username>` then navigate into it using `cd FE_<username>`
-- Clone this repository with your ssh address for the repo. Click the green "code" button above and copy the ssh address then run the following on QUEST: ` git clone <ssh address>`
+- Clone this repository with your ssh address for the repo. Click the green "code" button above and copy the ssh address then run the following on QUEST: `git clone <ssh address>`
 	
 Before you start on an exercise, make sure that you have pulled or fetched the latest changes from the repository (see git-guides [git-pull](https://github.com/git-guides/git-pull)).
 
@@ -118,7 +118,7 @@ Click the arrow to expand:
 - Run simulation via `python3 run_example.py`
 - Wait for simulation to finish (~2 minutes)  
 - Go to the job directory (see `experiments` above) folder to find the generated experiment - it will be under a set of 16-digit alphanumeric strings. The structure of these strings is `Suite > Experiment > Simulations`. Due to current handling systems with SLURM you will not be able to see the experiment name given within the `run_example.py` script; however, this can be found in the experiment and simulation-level metadata.json files. You may also choose to sort your files based on time such that most recent experiments will appear first. 
-- Take a look through what was generated even in this simple run and get familiar with the file structure. You should always check your outputs after running simulations to make sure they did what you expected. 
+- Take a look through what was generated even in this simple run and get familiar with the file structure. You should always check your simulation-level outputs after running simulations to make sure they did what you expected. 
     - *Note: be sure to go all the way into the folder structure to see your simulations & their outputs. For more information on what to expect, see [Week 1's "What to Expect"](https://github.com/numalariamodeling/FE-2023-examples#week-1-overview-of-emod)*
     - You should see [`InsetChart.json`](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-inset-chart.html) in the simulation's output folder - this is EMOD's default report that will give you an idea of what's going on in your simulation. We'll do a basic, sample analysis of this data next.
 - Copy the experiment UID, located in the experiment-level `metadata.json`. Update the experiment name to match the one used above and paste the experiment UID in the "expts" dictionary (line 71) of `analyzer_W1.py` (located at the main level of the repository with the other provided scripts). It should look like the examples below and in the script. 
@@ -308,7 +308,7 @@ Now that you've learned the basics of how to run EMOD and add inputs/outputs you
     ```
 - This week's analyzer script also includes a basic python plotter for the results from `InsetChartAnalyzer` that will help you visualize each of the `channels_inset_chart` throughout the simulation. Take a look through the code to see if you can tell what it is doing before running it.
 - Run the analyzer
-- Wait for the analyzer to succeed. Once it is finished check out your new outputs (see if you can find the `wdir` mentioned above without help). You should see two csvs, one from each analyzer, as well as a InsetChart.png. Make sure these files have been created and examine the data they contain.
+- Wait for the analyzer to succeed. Once it is finished check out your new processed outputs (see if you can find the `wdir` mentioned above without help). You should see two csvs, one from each analyzer, as well as a InsetChart.png. Make sure these files have been created and examine the data they contain.
     - *Note: this InsetChart.png is a similar plot to that of Week 1 but is written in python and included at the end of the analyzer script directly. This is meant to showcase the ability to create similar plots using R or python, to your comfort.*
 - As an additional exercise, try to make a data visualization in R or python based off of the MonthlyPfPRAnalyzer output (PfPR_Clinical_Incidence_monthly.csv), based on the `MalariaSummaryReport`. You'll need to take a look through the output file and decide what kind of figure may be interesting and inform you about your simulation. *Note: there is a [solution script](https://github.com/numalariamodeling/FE-2023-examples/blob/main/solution_scripts/Week2/plot_SummaryReport.Rmd) for this that is similar to the Week 1 InsetChart plotter, but it is highly recommended to try making your own version first as an exercise of creativity and data visualization skills where everyone may have unique ideas. Check out the [plotting resources](https://numalariamodeling.github.io/FE-2023-quarto-website/resources/coding_resources.html), then discuss with your colleagues or the instructional staff if you get stuck. If you use the solution script, remember that it is only meant as a sample plot and not a key way to show results as that will be dependent on specific research questions and model configurations.*
 - Once you've completed your data visualization exercise, feel free to try changing some other [config parameters](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-configuration.html) in your example script. Run additional simulations with different durations, population sizes, agebins, etc. - whatever you think would be interesting! This is a great time to look through the EMOD documentation and explore parameters so you get to know the EMOD ecosystem better. *(Tip: change your experiment name to keep track of your simulations in both the metadata and analyzer outputs)*
@@ -384,10 +384,10 @@ There are additional more complicated sweeping methods, particularly with creati
          experiment = Experiment.from_builder(builder, task, name="example_sim_sweep")
       ```
 
-- Run the script, wait for it to finish, and checkout your outputs.
+- Run the script, wait for it to finish, and checkout your simulation outputs.
     - Do your outputs look like you expect? 
     - *Hint: there should be five simulations as we created five stochastic realizations*
-- Update the experiment name and ID in `analyzer_W2.py`. You'll notice that the `sweep_variable` parameter is already set to `Run_Number` so the analyzer will pull out this tag for each simulation. This list can take more parameters/tags as necessary when you start adding more complex sweeps. Run the analyzer & check the csv/png outputs.
+- Update the experiment name and ID in `analyzer_W2.py`. You'll notice that the `sweep_variable` parameter is already set to `Run_Number` so the analyzer will pull out this tag for each simulation. This list can take more parameters/tags as necessary when you start adding more complex sweeps. Run the analyzer & check the csv/png processed outputs.
     - Checkout the `InsetChart` plot generated by the analyzer - how does it look different now that we've swept over the run number?
 - Try adding the output of the sweep to your MonthlyPfPRAnalyzer visualization script from last time. How might you account for adding this to your plot?
 
@@ -990,7 +990,7 @@ if __name__ == "__main__":
     # experiments folder
     jdir =  manifest.job_directory
     # output folder
-    wdir=os.path.join(jdir,'simulation_output', 'baseline')
+    wdir=os.path.join(jdir,'my_outputs', 'baseline')
     if not os.path.exists(wdir):
         os.mkdir(wdir) 
     ## Analyzer Specifications ##
@@ -1021,7 +1021,7 @@ if __name__ == "__main__":
             manager.analyze()
 ```
 
-This will produce a file inside `working_dir/simulation_output/experiment_name/SpatialReportMalariaFiltered.csv` with columns:  
+This will produce a file inside `working_dir/my_outputs/experiment_name/SpatialReportMalariaFiltered.csv` with columns:  
 * Time
 * Node
 * Run_Number
@@ -1046,9 +1046,9 @@ if __name__ == "__main__":
     
     expts = {'experiment_name': '######-exp-id-#####'}
     # input directory
-    jdir =  '/projects/b1139/indie_emodpy/experiments' 
+    jdir =  manifest.job_directory
     # output directory
-    wdir=os.path.join('/projects/b1139/indie_emodpy/simulation_output', 'eventReports')
+    wdir=os.path.join(jdir,'my_outputs', 'eventReports')
     if not os.path.exists(wdir):
         os.mkdir(wdir)
     # Grouping variables (besides time and node)
@@ -1075,7 +1075,7 @@ if __name__ == "__main__":
 
 ```
 
-This will produce a file inside `working_dir/simulation_output/experiment_name/CountedEvents.csv' with columns:  
+This will produce a file inside `working_dir/my_outputs/experiment_name/CountedEvents.csv' with columns:  
 * Time  
 * Node  
 * Run_Number  
