@@ -97,18 +97,11 @@ def add_outbreak_individual(campaign,
                    )
 ```
 
-Additional targeting of the outbreak can be added with:
-- `ind_property_restrictions`: target specific IP {key:value} pairs
-- `target_age_min`: minimum age (years)
-- `target_age_max`: maximum age (years)
-- `target_gender`: gender targets ("All", "Female", "Male")
-- `ignore_immunity`: force infection despite immunity when "True"
-- `antigen`: antigenic base strain ID of the outbreak infection
-- `genome`: genetic substrain ID of the outbreak infection
+Additional targeting of the outbreak can be added with parameters described [here](https://docs.idmod.org/projects/emodpy-malaria/en/latest/emodpy_malaria.interventions.outbreak.html#emodpy_malaria.interventions.outbreak.add_outbreak_individual)
 
 ### 2. Forced EIR
 
-For simulations without mosquitoes, a forced EIR campaign can be used to impose infectious bites. EIR timeseries data are typically recreated from previous literature sources that provide monthly EIR levels, input here as a monthly_site_EIR_annualized list. The [`add_scheduled_input_eir`](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/interventions/inputeir.py) function is called and given the calculated monthly EIR (the annual values divided by 12) to apply to the simulations. You may also choose to use daily values if you interpolate from monthly using the `daily_eir` argument instead of `monthly_eir`. The EIR can be scaled up or down using a `scaling_factor` to apply the same change to all EIR timepoints, in this example we scale the EIR to be 75% of the input values. Additionally, EIR can be setup to be age-dependent with `age_dependence` set to "OFF", "LINEAR", or "SURFACE_AREA_DEPENDENT".
+For simulations without mosquitoes, a forced EIR campaign can be used to impose infectious bites. EIR timeseries data are typically recreated from previous literature sources that provide monthly EIR levels, input here as a monthly_site_EIR_annualized list. The [`add_scheduled_input_eir()`](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/interventions/inputeir.py) function is called and given the calculated monthly EIR (the annual values divided by 12) to apply to the simulations. You may also choose to use daily values if you interpolate from monthly using the `daily_eir` argument instead of `monthly_eir`. The EIR can be scaled up or down using a `scaling_factor` to apply the same change to all EIR timepoints, in this example we scale the EIR to be 75% of the input values. Additionally, EIR can be setup to be age-dependent with `age_dependence` set to "OFF", "LINEAR", or "SURFACE_AREA_DEPENDENT".
 
 ```{python,eval=F}
 from emodpy_malaria.interventions.inputeir import add_scheduled_input_eir
@@ -121,6 +114,8 @@ add_scheduled_input_eir(campaign=campaign, start_day=1, monthly_eir=monthly_EIR,
                             age_dependence="SURFACE_AREA_DEPENDENT",
                             scaling_factor=EIR_scale_factor)
 ```
+
+Additional information on this "intervention" is available in the related [emodpy_malaria documentation](https://docs.idmod.org/projects/emodpy-malaria/en/latest/emodpy_malaria.interventions.inputeir.html).
 
 ### 3. Setting initial prevalence
 
