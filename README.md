@@ -55,9 +55,11 @@ Before running the weekly example scripts, please ensure that the emodpy virtual
 - Clone this repository with your ssh address for the repo. Click the green "code" button above and copy the ssh address then run the following on QUEST: `git clone <ssh address>`
 	
 Before you start on an exercise, make sure that you have pulled or fetched the latest changes from the repository (see git-guides [git-pull](https://github.com/git-guides/git-pull)).
+	
+For additional help on using SLURM on QUEST, checkout the [resources](https://numalariamodeling.github.io/FE-2023-quarto-website/resources/coding_resources/quest_resources.html) on the program website.
 
 ## Week 1: Overview of EMOD
-This week we will be discussing EMOD's general structure and content as well as making sure you are ready to run the model on our linux-based HPC, QUEST. You will set up your own virtual environment to run EMOD via emodpy and idmtools and clone this github repository to your home directory on QUEST. Please familiarize yourself with the repo, website, and EMOD documentation before running the simple example at the end of this week.
+This week we will be discussing EMOD's general structure and content as well as making sure you are ready to run the model on our linux-based HPC, QUEST. You will set up your own virtual environment to run EMOD via emodpy and idmtools and clone this github repository to your FE directory on our QUEST project allocation, b1139. Please familiarize yourself with the repo, website, and EMOD documentation before running the simple example at the end of this week.
 
 **What to Expect**
 
@@ -412,17 +414,17 @@ Depending on our project and site there are a variety of different parameters yo
     
       ```python
         for year in range(sim_years):
-        start_day = 0 + 365 * year
-        sim_year = sim_start_year + year
-        add_malaria_summary_report(task, manifest, start_day=start_day, 
-                               end_day=365+year*365, reporting_interval=30,
-                               age_bins=[0.25, 5, 115],
-                               max_number_reports=13,
-                               pretty_format=True, 
-                               filename_suffix=f'Monthly_U5_{sim_year}')
+        	start_day = 0 + 365 * year
+        	sim_year = sim_start_year + year
+        	add_malaria_summary_report(task, manifest, start_day=start_day,
+                               		   end_day=365+year*365, reporting_interval=30,
+                               		   age_bins=[0.25, 5, 115],
+                               		   max_number_reports=13,
+                               		   pretty_format=True, 
+                               		   filename_suffix=f'Monthly_U5_{sim_year}')
       ```
     - In the `general_sim()`, find the command `experiment.run(wait_until_done=True, platform=platform)` (line 148 in the solution script). This is the command that submits and runs our simulations. Notice that it has an argument to "wait until done" - this is what gives us the progress bar for the completion of our simulations after submission. Now that we are running longer simulations, set that to `False` to free up your terminal.
-        -*Tip: You should also remove the print messages following this line about whether or not the experiment has succeeded as we are no longer waiting for it to finish before getting to them*
+        - *Tip: You should also remove the print messages following this line about whether or not the experiment has succeeded as we are no longer waiting for it to finish before continuing through the script. This will cause you to get the "experiment failed" warning message as the simulations will still be running (and thus not succeeded) when the submission script (`run_example_calibration.py`) runs this line. Instead, use `squeue -A b1139` to check the status of your running jobs on QUEST and then use stderr.txt and stdout.txt to determine if your simulations succeeded or failed when they finish running.*
     - Update the `expt_name` and run your simulations.
             - These simulations may take longer due to the longer simulation duration. You can check the progress of your jobs and what else is running on the same allocation using `squeue -A b1139` or just the progress of your jobs with `squeue -u <username>`.
             - Once the simulations finish running, check your outputs. Is everything there? Do all your reports look like you expect?
@@ -498,7 +500,7 @@ This serialization exercise has three parts. In part 1 you will run and save a b
           if step == 'pickup':
               sweep_variables = ['Run_Number'] # for times when you add additional items to the pickup, you can add more sweep variables here
           ```
-        - It is also recommended to remove some of the `MalariaSummaryReport` channels from the `MonthlyPfPRAnalyzer` as they will be less commonly used in projects and we don't need to extract data that is not needed for the questions at hand. Most of the time, we only need the PfPR, Annual Clinical Incidence, Annual Severe Incidence, and Average Population (all by Age Bin) channels.
+        - It is also recommended to remove some of the `MalariaSummaryReport` channels from the `map` function in the `MonthlyPfPRAnalyzer` as they will be less commonly used in projects and we don't need to extract data that is not needed for the questions at hand. Most of the time, we only need the PfPR, Annual Clinical Incidence, Annual Severe Incidence, and Average Population (all by Age Bin) channels. Recall from last week's exercise that all of these are [`MalariaSummaryReport` output channels](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-malaria-summary.html#databytimeandagebins) and that this analyzer is only processing data from this report (as seen in the "super init" filename list at the start of the analyzer - the filenames here are the only one the analyzer will open). 
 	- To use the "step" system we will want to also modify our analyzers run statement. Assuming you included only the default report, `InsetChart`, in your burnin then you will want to run only that analyzer for the burnin step. For the pickup you will likely also want to include a version of the summary report we've been using so we'll include that in the pickup step in the analyzer. Be sure to update the `start_year` for the analyzer such that our burnin will end in 2023 (and should start the number of `serialize_years` prior) and the pickup will start where the burnin leaves off in 2023. The simulations themselves have no linkage to real time; rather, they track simulation timesteps. Applying the the year in the analyzer in this way is simply meant to turn those simulation timesteps into a more understandable framework for our work. We then run the analyzer based on the step we set above. We can keep the basic plotter after this just to get an idea of what is going on in our simulations. 
             - **Note: In certain cases, such as monitoring PfPR across all simulation time, you will also want to include a summary report (or another report) in the burnin. Be thoughtful about the questions you are trying to address and what reports you'll need at each step, there is no one right way!**
         
