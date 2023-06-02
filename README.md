@@ -412,14 +412,14 @@ Depending on our project and site there are a variety of different parameters yo
     
       ```python
         for year in range(sim_years):
-        start_day = 0 + 365 * year
-        sim_year = sim_start_year + year
-        add_malaria_summary_report(task, manifest, start_day=start_day, 
-                               end_day=365+year*365, reporting_interval=30,
-                               age_bins=[0.25, 5, 115],
-                               max_number_reports=13,
-                               pretty_format=True, 
-                               filename_suffix=f'Monthly_U5_{sim_year}')
+        	start_day = 0 + 365 * year
+        	sim_year = sim_start_year + year
+        	add_malaria_summary_report(task, manifest, start_day=start_day,
+                               		   end_day=365+year*365, reporting_interval=30,
+                               		   age_bins=[0.25, 5, 115],
+                               		   max_number_reports=13,
+                               		   pretty_format=True, 
+                               		   filename_suffix=f'Monthly_U5_{sim_year}')
       ```
     - In the `general_sim()`, find the command `experiment.run(wait_until_done=True, platform=platform)` (line 148 in the solution script). This is the command that submits and runs our simulations. Notice that it has an argument to "wait until done" - this is what gives us the progress bar for the completion of our simulations after submission. Now that we are running longer simulations, set that to `False` to free up your terminal.
         -*Tip: You should also remove the print messages following this line about whether or not the experiment has succeeded as we are no longer waiting for it to finish before getting to them*
