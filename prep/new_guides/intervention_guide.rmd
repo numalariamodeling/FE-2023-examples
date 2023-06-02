@@ -15,7 +15,7 @@ In this example, treatment is triggered by a new clinical case and codes for dif
 
 You can also specify which drugs are used for case management. The default is Artemether-Lumefantrine with age-based dosing. 
 
-Additional parameters can be added to restrict case management to certain nodes, node properties, or individual properties. See [here](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/interventions/treatment_seeking.py) for more information.
+Additional parameters can be added to restrict case management to certain nodes, node properties, or individual properties. See [here](https://docs.idmod.org/projects/emodpy-malaria/en/latest/emodpy_malaria.interventions.treatment_seeking.html) for more information.
 
 
 ```{python,eval=F}
@@ -57,10 +57,11 @@ drug_campaign.add_drug_campaign(campaign,
                                 receiving_drugs_event_name="Received_SMC")                       
 ```
 
+For more details on all of the campaign types and other options, checkout the [emodpy-malaria documentation](https://docs.idmod.org/projects/emodpy-malaria/en/latest/emodpy_malaria.interventions.drug_campaign.html#emodpy_malaria.interventions.drug_campaign.add_drug_campaign)
 
 ### Change Drug Adherence
 
-Adherence to drugs can be modified using [`adherent_drug`](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/interventions/adherentdrug.py). This allows you to detail doses (and drugs given), intervals between doses, actual adherence values, and more. More documentation on how to configure adherent drugs is [here](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-campaign-individual-adherentdrug.html).
+Adherence to drugs can be modified using [`adherent_drug`](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/interventions/adherentdrug.py). This allows you to detail doses (and drugs given), intervals between doses, actual adherence values, and more. More documentation on how to configure adherent drugs is [here](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-campaign-individual-adherentdrug.html) and the specifics of the function [here](https://docs.idmod.org/projects/emodpy-malaria/en/latest/emodpy_malaria.interventions.adherentdrug.html).
 
 Configuring adherence is not required. In the absence of specific configuration, adherence to the full treatment course is assumed to be 100%.
 
@@ -85,7 +86,7 @@ adherent_drug = ad.adherent_drug(campaign=campaign,
 
 ## Diagnostic Surveys
 
-Diagnostic surveys are useful interventions for triggering events based on an individual's diagnosis. Testing can be performed at regular intervals (`tsteps_between_repetitions`) for a set number of `repetitions` based on `target` groups and `coverage`. Testing can also be triggered by other events, such as receiving a particular dose of PMC in this example.
+[Diagnostic surveys](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/interventions/diag_survey.py) are useful interventions for triggering events based on an individual's diagnosis. Testing can be performed at regular intervals (`tsteps_between_repetitions`) for a set number of `repetitions` based on `target` groups and `coverage`. Testing can also be triggered by other events, such as receiving a particular dose of PMC in this example.
 
 Different methods of diagnostic testing may also be utilized, including *TRUE_PARASITE_DENSITY*, *BLOOD_SMEAR*, *PCR*, *PF_HRP2*, *TRUE_INFECTION_STATUS*, and *HAS_FEVER*. Diagnostic threshold, sensitivity, and specificity can all be parameterized. Once a positive or negative result is obtained in the simulation, the relative configs parameter dictates what will happen to that individual. In this example, either diagnosis broadcasts an event for that individual that they were positive or negative on the day that they received their first dose of PMC.
 
@@ -104,6 +105,8 @@ diagnostic_survey.add_diagnostic_survey(campaign=campaign, start_day=0,
                                         positive_diagnosis_configs=[parasites_detected],
                                         negative_diagnosis_configs=[no_parasites_detectedc])
 ```
+
+Additional targeting and configuration parameters are described [here](https://docs.idmod.org/projects/emodpy-malaria/en/latest/emodpy_malaria.interventions.diag_survey.html)
 
 ## Vaccination
 

@@ -13,7 +13,7 @@ Once we have generated a demographics file describing the nodes for a simulation
 | ------------- | ------- | ------- | --------- |
 |  example_site |   1.00  |   1.00  |     1     |
 
-This csv is passed as the `site_file` to `emodpy-malaria's` [`generate_weather()`](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/weather/__init__.py) function along with the `node_column` that provides the name of our node ID column in the csv and `local_dir` which specifies that output directory. From there we can also specify:
+This csv is passed as the `site_file` to `emodpy-malaria's` [`generate_weather()`](https://docs.idmod.org/projects/emodpy-malaria/en/latest/emodpy_malaria.weather.html#emodpy_malaria.weather.generate_weather) function along with the `node_column` that provides the name of our node ID column in the csv and `local_dir` which specifies that output directory. From there we can also specify things like:
     - `platform`: where the request work item will run (Calculon if associated with IDM)
     - `start_date` and `end_dates`: identify the period of time we are interested in requesting weather for
     - `id_reference`: specify the IDReference attribute for the weather metadata
@@ -51,4 +51,4 @@ def set_param_fn(config):
     return config
 ```
 
-## Edit Weather Files
+Additional "getting started" instructions are available in the [emodpy-malaria repository](https://github.com/InstituteforDiseaseModeling/emodpy-malaria/blob/main/emodpy_malaria/weather/README.md), including information on converting weather files to a csv for modification (such as increasing te,perature) and then back to a weather file.

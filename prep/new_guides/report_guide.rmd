@@ -9,7 +9,7 @@ output: html_document
 
 The [MalariaSummaryReport](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-malaria-summary.html) is a useful output that reports infection data (prevalence, clinical incidence, parasitemia, infectivity) by age group and aggregated over a user-defined time interval such as years or months. 
 
-In this example, simulation data is reported starting at day 365 and ending at day 1825 (the end of a sim with a duration of 5 years), with a monthly aggregation, in 3 age bins (0 - 0.25, 0.25 - 5, and 5 - 115 years), as called by [`add_malaria_summary_report()`](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/reporters/builtin.py). The report name will also include a suffix of "monthly_report" to keep separate multiple summary reports with different outputs, such as monthly vs annual or including different IPs.
+In this example, simulation data is reported starting at day 365 and ending at day 1825 (the end of a sim with a duration of 5 years), with a monthly aggregation, in 3 age bins (0 - 0.25, 0.25 - 5, and 5 - 115 years), as called by [`add_malaria_summary_report()`](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/reporters/builtin.py). The report name will also include a suffix of "monthly_report" to keep separate multiple summary reports with different outputs, such as monthly vs annual or including different IPs. Check out the [documentation](https://docs.idmod.org/projects/emodpy-malaria/en/latest/emodpy_malaria.reporters.builtin.html#emodpy_malaria.reporters.builtin.add_malaria_summary_report) for more information on parameters that can be changed to customize this report, such as infectiousness bins.
 
 ```{python,eval=F}
 from emodpy_malaria.reporters.builtin import *
@@ -26,11 +26,11 @@ add_malaria_summary_report(task, manifest, start_day=365, end_day=sim_years*365,
 
 ## Event reporting
 
-EMOD is capable of tracking a variety of [built-in events](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-campaign-event-list.html) as well as custom campaign events. Custom events can be particularly useful for explicitly tracking and counting the number of interventions distributed. For example, in the simple SMC intervention (see [Add drug campaigns](https://faculty-enrich-2022.netlify.app/modules/emod-how-to/emod-how-to/#add-drug-campaigns)) we defined an event called `'Received_SMC'` to describe children who actually received SMC drugs in the simulation. The [`add_treatment_seeking`](https://faculty-enrich-2022.netlify.app/modules/emod-how-to/emod-how-to/#add-case-management) function automatically generates a `'Received_Treatment'` event for each individual receiving treatment for symptomatic malaria. Adding custom events to the config parameter `'Custom_Individual_Events'` is automatically handled by `emodpy` during campaign creation.
+EMOD is capable of tracking a variety of [built-in events](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-campaign-event-list.html) as well as custom campaign events. Custom events can be particularly useful for explicitly tracking and counting the number of interventions distributed. For example, in the simple SMC intervention (see [add drug campaigns how to](https://docs.idmod.org/projects/emodpy-malaria/en/latest/emodpy_malaria.interventions.drug_campaign.html)) we defined an event called `'Received_SMC'` to describe children who actually received SMC drugs in the simulation. The [`add_treatment_seeking`](https://docs.idmod.org/projects/emodpy-malaria/en/latest/emodpy_malaria.interventions.treatment_seeking.html) function automatically generates a `'Received_Treatment'` event for each individual receiving treatment for symptomatic malaria. Adding custom events to the config parameter `'Custom_Individual_Events'` is automatically handled by `emodpy` during campaign creation.
 
 ### Aggregate Events
 
-To track how many events are occurring each day, request [`ReportEventCounter`](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-event-counter.html) with [`add_report_event_counter()`](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/reporters/builtin.py) and specify the list of events you would like to track, in this case receiving either of the two above drug-based interventions:
+To track how many events are occurring each day, request [`ReportEventCounter`](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-event-counter.html) with [`add_report_event_counter()`](https://docs.idmod.org/projects/emodpy-malaria/en/latest/emodpy_malaria.reporters.builtin.html#emodpy_malaria.reporters.builtin.add_report_event_counter) and specify the list of events you would like to track, in this case receiving either of the two above drug-based interventions:
 
 ```{python, eval=F}
 from emodpy_malaria.reporters.builtin import *
@@ -78,3 +78,5 @@ Individual Details (who did it happen to?):
 - **HasClinicalSymptoms**
 
 Plus an additional column for the value of any IPs requested through `ips_to_record`.
+
+You can include additional customization following the [documentation](https://docs.idmod.org/projects/emodpy-malaria/en/latest/emodpy_malaria.reporters.builtin.html#emodpy_malaria.reporters.builtin.add_event_recorder)

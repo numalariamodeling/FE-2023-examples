@@ -24,14 +24,13 @@ Other modules such as `datetime` may also be helpful, depending on the type of o
 
 ## Basic structure of an Analyzer
 
-The Analyzer Class should be defined using a meaningful name, i.e. `InsetChartAnalyzer` for an analyzer that processes   `InsetChart.json` outputs. A [class](https://docs.python.org/3/tutorial/classes.html) in Python allows constructing custom objects with associated attributes and functions. Each class starts with a definition of custom parameters and objects attributes via  `__init__` and `self`. This requires a few edits across simulation experiments but tends to stay relatively unchanged within the same experiment setup.
+The Analyzer Class should be defined using a meaningful name, i.e. `InsetChartAnalyzer` for an analyzer that processes `InsetChart.json` outputs. A [class](https://docs.python.org/3/tutorial/classes.html) in Python allows constructing custom objects with associated attributes and functions. Each class starts with a definition of custom parameters and objects attributes via  `__init__` and `self`. This requires a few edits across simulation experiments but tends to stay relatively unchanged within the same experiment setup.
 
 The `filter` function is optional. It allows the analyzer to only analyze a subset of simulations in an experiment by filtering based on simulation tags. For example, the user can request the analyzer only analyze simulations where the tag `SMC_Coverage` has the value 1 (if this is a tag the user specified when building their experiment), or simulations that succeeded. This functionality can be useful when debugging large experiments. If the `filter` function is not specified, then all simulations are targeted for analysis.
 
-The `map` is a custom function applied to extract data from the EMOD output file and needs to be
-modified the most across different EMOD output file types and according to the user's needs.
+The `map` is a custom function applied to extract data from the EMOD output file and needs to be modified the most across different EMOD output file types and according to the user's needs.
 
-Finally, the `reduce`` checks the extracted data, aggregates data from multiple simulations in the same experiment, and then saves or plots the data. The checking of the simulation stays mostly the same across simulations while the part of processing the simulation data is highly variable across projects and depends on the desired results.
+Finally, the `reduce` checks the extracted data, aggregates data from multiple simulations in the same experiment, and then saves or plots the data. The checking of the simulation stays mostly the same across simulations while the part of processing the simulation data is highly variable across projects and depends on the desired results.
 
 
 ```{python, eval=F}
@@ -49,6 +48,7 @@ class InsetChartAnalyzer(IAnalyzer): ...
         ...
 ```
 
+More information on the general structure and functioning of analyzers that work with EMOD output sis available in the [idmtools documentation](https://docs.idmod.org/projects/idmtools/en/latest/analyzers/analyzers.html)
 
 ### Analyze InsetChart
 
@@ -80,7 +80,7 @@ class MonthlyInsetChartAnalyzer(IAnalyzer):
 
 #### Map simulation data
 
-The `map` is a custom function that will change the most when adapting an analyzer to different EMOD outputs. Do not change the function definition (the line beginning `def map()`.
+The `map` is a custom function that will change the most when adapting an analyzer to different EMOD outputs. Do not change the function definition (the line beginning `def map()`).
 
 EMOD output from the requested output file(s) is stored in `data`. The first activity of `map()` is therefore to extract the desired data out of `data`. `data` is a dictionary where the keys are the filenames stored in `self.filenames` and the values are the content of each file.
 
@@ -223,4 +223,3 @@ class ReceivedCampaignAnalyzer(IAnalyzer):
 ```
 
 
-### ### Analyze ReportEventRecorder (and other csv analyzers)

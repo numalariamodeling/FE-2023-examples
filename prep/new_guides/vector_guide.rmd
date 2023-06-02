@@ -27,7 +27,7 @@ We can also include a mix of vector species, adding multiple vector populations 
 
 ```{python, eval=F}
 import emodpy_malaria.malaria_config as conf
-conf.add_species(config, manifest, ["gambiae", "arabiensis"])
+conf.add_species(config, manifest, species_to_select=["gambiae", "arabiensis"])
 ```
 
 For each species listed in Vector_Species_Params, a “VectorPopulation” object will be added to the simulation at each node. Each species will be defined by parameters in the simulation configuration file for the vector ecology and behavior of the species. This allows for a mechanistic description of vector abundances and behavior through the effects of climate and weather on different preferred larval habitats.
@@ -82,10 +82,6 @@ This parameter will scale all habitat parameters for the entire simulation durat
 config.parameters.x_Temporary_Larval_Habitat = 0.1  
 ```
 
-#### Node-Specific Habitat Scaling in Demographics
-
-
-
 #### Dynamic Habitat Scaling during Simulation
 
 The [`ScaleLarvalHabitat`](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-campaign-node-scalelarvalhabitat.html) intervention allows the user to scale habitats by type and species at a specified time during the simulation. The `emodpy-malaria` function [`add_scale_larval_habitats()`](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/interventions/scale_larval_habitats.py) takes a dataframe argument to construct the campaign events for habitat scaling:
@@ -95,7 +91,7 @@ from emodpy_malaria.interventions.scale_larval_habitat import add_scale_larval_h
 add_scale_larval_habitats(campaign, df=habitat_df, start_day=0)
 ```
 
-The `habitat_df` argument requires column name(s) for each habitat type being scaled, with column values being the scale factor(s). Many configuration options are available, including by species, by node, and by date.
+The `habitat_df` argument requires column name(s) for each habitat type being scaled, with column values being the scale factor(s). Many configuration options are available, including by species, by node, and by date with additional details in the [documentation](https://docs.idmod.org/projects/emodpy-malaria/en/latest/emodpy_malaria.interventions.scale_larval_habitats.html).
 
 ### Set up vector genetics
 
@@ -118,7 +114,9 @@ vector_config.add_mutation(config, manifest, "gambiae",
                                     mutate_from="a", mutate_to="c", probability=0.03)
 ```
 
-Reporting on vector genetics (abundance of alleles and/or genotypes) is requested like so:
+Additional details on setting up vector genetics are included in the [documentaiton](https://docs.idmod.org/projects/emodpy-malaria/en/latest/emodpy_malaria.vector_config.html#emodpy_malaria.vector_config.add_genes_and_alleles).
+
+Reporting on vector genetics (abundance of alleles and/or genotypes) is requested like so, with additional [parameters availabe](https://docs.idmod.org/projects/emodpy-malaria/en/latest/emodpy_malaria.reporters.builtin.html#emodpy_malaria.reporters.builtin.add_report_vector_genetics):
 
 ```{python,eval=F}
 from emodpy_malaria.reporters.builtin import *
@@ -130,12 +128,12 @@ add_report_vector_genetics(task, manifest, species = 'gambiae',
 
 #### Relate genotype to phenotype
 
-The `Insecticides` config param is a list of dictionaries, one per insecticide. For each insecticide, genotype-specific modifications of killing, blocking, repelling, and larval killing can be set. In this example, all *A. gambiae* vectors with an allele combination of "bb" will be completely resistant to pyrethroid.
+The `Insecticides` config param is a list of dictionaries, one per insecticide. For each insecticide, genotype-specific modifications of killing, blocking, repelling, and larval killing can be set and resistance can be added using [`add_insecticide_resistance()`](https://docs.idmod.org/projects/emodpy-malaria/en/latest/emodpy_malaria.vector_config.html#emodpy_malaria.vector_config.add_insecticide_resistance). In this example, all *A. gambiae* vectors with an allele combination of "bb" will be completely resistant to pyrethroid.
 
 ```{python,eval=F}
 from emodpy_malaria import vector_config as vector_config
 vector_config.add_insecticide_resistance(config, manifest, "pyrethroid", "gambiae", 
-                                          [["b", "b"]],
+                                          allele_combo=[["b", "b"]],
                                           blocking=0.0, 
                                           killing=0.0,
                                           repelling=0.0,

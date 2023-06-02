@@ -53,8 +53,7 @@ Individual properties can also be used in reporting to limit the report to only 
 
 ### Malaria Summary Report
 
-For the [`MalariaSummaryReport`](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-malaria-summary.html), aggregation can be restricted by IP using the `ipfilter` argument. For example, the following function will report, on
-aggregate, every 30 days on new infections and other infection updates in the Placebo group across the three age bins.
+For the [`MalariaSummaryReport`](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-malaria-summary.html), aggregation can be restricted by IP using the `ipfilter` argument. For example, the following function will report, on aggregate, every 30 days on new infections and other infection updates in the Placebo group across the three age bins.
 
 ```{python,eval=F}
 from emodpy_malaria.reporters.builtin import *

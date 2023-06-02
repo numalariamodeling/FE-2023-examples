@@ -13,7 +13,7 @@ initial prevalence, and more. Full documentation on the [demographics file](http
 
 ## Single-node simulations
 
-The [emod-api](https://docs.idmod.org/projects/emod-api/en/latest/emod_api.demographics.html) package contains most of the major functionality to create a demographics file. It is supported by `emodpy-malaria` to add parameters that are more specific to the malaria workflow, imported as [`Demographics`](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/demographics/MalariaDemographics.py) in the code chunk below. For single node, non-spatial simulations the `from_template_node` command is most commonly used; however, you may also choose to read in pre-made json files for these types of simulations. We include this command in our demographics builder with it's basic parameters:
+The [emod-api](https://docs.idmod.org/projects/emod-api/en/latest/emod_api.demographics.html) package contains most of the major functionality to create a demographics file. It is supported by `emodpy-malaria` to add parameters that are more specific to the malaria workflow, imported as [`Demographics`](https://docs.idmod.org/projects/emodpy-malaria/en/latest/emodpy_malaria.demographics.MalariaDemographics.html/github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/demographics/MalariaDemographics.py) in the code chunk below. For single node, non-spatial simulations the [`from_template_node`](https://docs.idmod.org/projects/emodpy-malaria/en/latest/emodpy_malaria.demographics.MalariaDemographics.html#emodpy_malaria.demographics.MalariaDemographics.from_template_node) command is most commonly used; however, you may also choose to read in pre-made json files for these types of simulations. We include this command in our demographics builder with it's basic parameters:
     - latitude
     - longitude
     - population size
@@ -61,7 +61,7 @@ Ex. "my_nodes.csv"
 -   Node IDs must be positive whole numbers, but do not have to be sequential  
 -   lat/lon values should represent real places with climates suitable for malaria transmission (if weather files are generated from demographics)
 
-Then, you can generate demographics for each node in every simulation, by adding this code to `build_demog()`
+Then, you can generate demographics `from_csv`](https://docs.idmod.org/projects/emodpy-malaria/en/latest/emodpy_malaria.demographics.MalariaDemographics.html#emodpy_malaria.demographics.MalariaDemographics.from_csv) for each node in every simulation, by adding this code to `build_demog()`
 
 ```{python,eval=F}
 def build_demog():
@@ -86,43 +86,4 @@ def build_demog():
     return demog
 ```
 
-## Set Node-Specific Parameters
 
-Sometimes we want to vary properties between nodes based on prior knowledge. For any `NodeAttribute` parameters, these can be created simply by specifying them in the `my_nodes.csv` as columns and setting `load_other_columns_as_attributes=True` in the call to `DemographicsGenerator()`.
-
-To set `IndividualAttributes` or `IndividualProperties`, see the following example. Imagine we know the proportion of "high-risk" individuals in each node and want to use this designation to target them for an intervention.
-
-First, we would add a column to our input file representing the high-risk proportion in each node.
-
-Ex. "my_nodes.csv"
-
-| nodeid | lat   | lon   | population | high_risk |
-|--------|-------|-------|------------|-----------|
-| 1      | 12.11 | -1.47 | 1000       | 0.05      |
-| 2      | 12.03 | -1.44 | 1000       | 0.10      |
-| 3      | 12.13 | -1.59 | 1000       | 0.15      |
-| 17     | 12.06 | -1.48 | 1000       | 0.50      |
-
-Then, when we can assign the "high_risk" property to individuals in each node with the probability listed in the table, by adding the following code to the end of the generate_demographics() function definition, before writing the .json file.
-
-**Coming Soon**
-
-## Add migration between nodes
-
-Multi-node simulations allow for the possibility that humans or vectors will move between nodes. EMOD allows 6 migration types for humans (Local, Regional, Sea, Air, Family, and campaign) and two for vectors (Local and Regional). Other than the campaign type, all other migration types are set via input files and scaling factors in config.json, and these migration rates will remain the same throughout the simulation: we will call these "ongoing migration" to distinguish from the "forced migration" that is set via campaigns.
-
-Multiple migration modes can be used for each agent type (human or vector) simultaneously. For example, we can set up a simulation using Local, Sea, and campaign migration for humans and Local and Regional migration for vectors.
-
-### Ongoing Migration
-
-#### Human Migration Example
-
-#### Vector Migration Example
-
-### Forced Migration
-
-#### A Single Migration Event
-
-#### Periodic Migration
-
-#### Permanent Moves
