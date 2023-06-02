@@ -555,7 +555,7 @@ This serialization exercise has three parts. In part 1 you will run and save a b
           ```python
           from utils_slurm import build_burnin_df
 
-          serialize_years=5
+          serialize_years= 10
           pickup_years=5
           burnin_exp_id = '<exp_id>'
           ```
@@ -599,7 +599,7 @@ This serialization exercise has three parts. In part 1 you will run and save a b
     - Run the experiment. Once it finishes running, checkout your outputs. Do you see what you expect? 
         - *Hint: think about what reporters you added, or didn't.*
         - Notice that there is no state file in the pickup. When we choose to read rather than the write with the serialization config parameters, it will only read the burnin's state file rather than writing a new one for the pickup. It is possible to do both steps during serialization if needed.
-    - While waiting for it to finish, make any modifications to the analyzer that you need such as the `expt_name`, `exp_id`, `step`, and pickup `end_year`. Once the experiment finishes you can run `analyzer_serialization.py` & check its outputs.
+    - While waiting for it to finish, make any modifications to the analyzer that you need such as the `expt_name`, `exp_id`, `step`, and pickup `start_year`. Once the experiment finishes you can run `analyzer_serialization.py` & check its outputs.
     
 3. Compare pickup simulations across varying burnin durations
     - Run a longer burnin of 50 years using `run_example_burnin.py`
