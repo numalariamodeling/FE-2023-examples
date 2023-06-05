@@ -4,6 +4,11 @@ Example scripts for 2023 faculty enrichment program in applied malaria modeling 
 [![en](https://img.shields.io/badge/lang-en-blue.svg)](https://github.com/numalariamodeling/FE-2023-examples/blob/main/README.md)
 [![fr](https://img.shields.io/badge/lang-fr-red.svg)](https://github.com/numalariamodeling/FE-2023-examples/blob/main/README.fr.md)
 
+⚠️ - Tips
+
+❓ - Self-Check Questions
+
+➕ - Bonus Exercises
 
 ### Technical track (EMOD)
 
@@ -638,7 +643,17 @@ As we start thinking about adding interventions to our simulations, we should al
 - Once you have the case management functions imported, you can add them to your `build_camp()` function. We'll use `add_treatment_seeking()`, specifically - this function passes all of the important parameters for case management to our broader campaign file. There is a small set of parameters that we commonly use, below, but to see all of the available controls you can explore the [source code](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/interventions/treatment_seeking.py).
     - `start_day`: indicates when the intervention should begin relative to the beginning of the simulation. This is particularly useful when you want interventions to start at different times in the simulations.
     - `drug`: indicates which drugs are to be used for case management. Artemether and Lumefantrine are the default, but all available drugs are defined in emodpy-malaria's [`malaria_drug_params`](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/malaria_drug_params.csv)
-    - `targets`: controls the target populations and triggers for case management. You'll notice that we use typically use the events `NewClinicalCase` and `NewSevereCase` to trigger case management. We can further add coverage levels and minimum/maximum age targets. In this example, we assume we know case management for children under 5 years old (U5) and that coverage for everyone over 5 years of age will be 75% of the U5 coverage. We also assume that coverage for severe cases (all ages) is 115% of U5 coverage, up to 100% coverage. This means that we'll want to add multiple target dictionaries to our target parameter to capture both groups. Finally, the target dictionary also includes `seek` (the delay rate, in 1/days, to seeking care) and `rate` (the delay rate, in days, from time to seeking care to receiving care, typically 0.3 for uncomplicated cases meaning that there is a three day delay on average).
+    - `targets`: controls the target populations and triggers for case management. You'll notice that we use typically use the events `NewClinicalCase` and `NewSevereCase` to trigger case management. We can further add coverage levels and minimum/maximum age targets. In this example, we assume we a certain case management level for children under 5 years old (U5) and reduce coverage for everyone over 5 years of age to 75% of the U5 coverage. We also assume that coverage for severe cases (all ages) is 115% of U5 coverage, up to a maximum of 100% coverage. This means that we'll want to add multiple target dictionaries to our target parameter to capture both groups. Finally, the target dictionary also includes seek (the delay rate, in 1/days, to seeking care) and rate (the delay rate, in days, from time to seeking care to receiving care, typically 0.3 for uncomplicated cases meaning that there is a three day delay on average).  
+    
+	    | Under_5 (cm_cov_u5)| Over_5    | Severe   |
+	    |:-------:|:------:|:-----:|
+	    | 80%       |60%  | 92% |
+	    | ... | ... | ... |
+    
+		❓ Based on this example, **what would the corresponding Over_5 and Severe case management coverage levels be for Under_5 coverage of 100%?**   
+		
+		❓ **What about 0%?**
+		
     - `broadcast_event_name`: indicates the name of the event to be broadcast at each event for reporting purposes. This is particularly helpful if you have multiple or changing versions of the same intervention, such as with using different case management drugs, in a single simulation.
 - Add case management to your `build_camp()` function using the script below. Notice that we include `cm.` before `add_treatment_seeking()` - this is because we imported this function as `cm` so it is helpful to reference to make sure we are using the function we think we are. You'll also notice that we are adding `cm_cov_U5=0.80` and `cm_start=1` to the arguments that `build_camp()` takes - we do this so we can pass it values from a sweep over coverage and the start date for case management later in the script. The values included are defaults that you can adjust as needed but are available so you don't have to provide a sweep value if unnecessary.
 
@@ -664,11 +679,7 @@ As we start thinking about adding interventions to our simulations, we should al
       return camp
   ```
 
-    | Under_5 (cm_cov_u5)| Over_5    | Severe   |
-    |:-------:|:------:|:-----:|
-    | 80%       |60%  | 92% |
-    | ... | ... | ... |
-    | 100% | 75% | 100% |
+
 	
 - To help sweep over multiple campaign parameters at once, we will also add a function to update these values together after `build_camp()`. In this update function, we include a partial of `build_camp()` that takes values for both of the variables we defined in the last step. It then creates the campaign for a particular simulation from a callback of the partial. Finally, this function returns a dictionary of the parameters and values that we are updating here to add a tag for each to the simulation metadata.
   ```python
@@ -682,6 +693,7 @@ As we start thinking about adding interventions to our simulations, we should al
 
 - As discussed in last week's exercise on adding parameter sweeps, we'll need to add a sweep to the builder in `general_sim()` for the campaign in addition to the config params. However, this time we will need to use `add_multiple_parameter_sweep_definition()` instead of `add_sweep_definition()` since we are updating both the coverage and start day. If you were to use `add_sweep_definition` directly with a partial of `build_camp()` for each parameter individually, the second time you call the partial would override the first so only one parameter would be updated. On the other hand, `add_multiple_parameter_sweep_definition()` allows us to sweep over the entire parameter space in a cross-product fashion. It takes our update function and we provide a dictionary of our parameters and their list of values we want to sweep over. We'll sweep over three coverage values (0, 50%, and 95%), and three intervention start dates (1, 100, and 365). For now these are relatively arbitrary values that are just meant to illustrate the functionality in EMOD. In this example we will get 3x3x5 = 45 total simulations (coverage levels x start days x run numbers) that model each unique parameter combination.
 
+    ℹ️ 
     | Under_5 (cm_cov_u5)| Over_5    | Severe   |
     |:-------:|:------:|:-----:|
     | 0%       |0%  | 0% |
