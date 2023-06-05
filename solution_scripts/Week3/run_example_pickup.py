@@ -56,7 +56,10 @@ def set_param_fn(config):
     config.parameters.Serialized_Population_Reading_Type = "READ"
     config.parameters.Serialization_Mask_Node_Read = 0
     config.parameters.Serialization_Time_Steps = [serialize_years*365]
-
+    
+    #Add calibrated larval habitat
+    config.parameters.x_Temporary_Larval_Habitat = 0.8 #sample value - not through calibration
+    
     return config
     
 def set_param(simulation, param, value):
@@ -89,7 +92,6 @@ def update_serialize_parameters(simulation, df, x: int):
     simulation.task.set_parameter("Serialized_Population_Filenames", df["Serialized_Population_Filenames"][x])
     simulation.task.set_parameter("Serialized_Population_Path", os.path.join(path, "output"))
     simulation.task.set_parameter("Run_Number", seed) #match pickup simulation run number to burnin simulation
-    simulation.task.set_parameter("x_Temporary_Larval_Habitat", float(df["x_Temporary_Larval_Habitat"][x])
 
     return {"Run_Number":seed}
 
