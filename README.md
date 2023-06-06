@@ -796,7 +796,7 @@ In this example, we'll continue building off of the serialization structure, add
       </details>
       
     - Once the high and low coverage levels are defined we can modify the case management intervention to reflect the variation between the groups. 
-        - Adjust the each of the coverage levels to use `cm_cov_U5_low` from your coverage adjustment
+        - Adjust each of the coverage levels to use `cm_cov_U5_low` from your coverage adjustment
         - After the targets, add `ind_property_restrictions=[{'Access': 'Low'}]` - this will restrict the intervention to only those in the low access group. Multiple IPs can be used here if desired.
           <details><summary><span><em>Check your case management intervention</em></span></summary>
           <p>
