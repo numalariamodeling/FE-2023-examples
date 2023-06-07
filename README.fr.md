@@ -10,15 +10,15 @@ Exemples de scripts pour le programme d'enrichissement de la faculté de 2023 su
 
 ➕ - Exercices bonus
 
-### Voie technique (EMOD)
+### Volet technique (EMOD)
 
 **Vue d'ensemble:**
-Les exercices consistent généralement en une simulation et un analyseur des résultats de la simulation. Dans certaines semaines, des scripts supplémentaires existent pour préparer les entrées de simulation ou générer des sorties et des tracés supplémentaires, ou pour la calibration du modèle, comme décrit dans les instructions pour les semaines respectives.
+Les exercices consistent généralement aux objects de simulation et analyzer des résultats de la simulation. Dans les semaines à venir, des scripts supplémentaires existent pour préparer les entrées de simulation ou générer des sorties et des tracés supplémentaires, ou pour la calibration du modèle, comme décrit dans les instructions pour les semaines respectives.
 
 **Scripts fournis et vérification des résultats:**.
-Quelques scripts principaux sont fournis au niveau principal de ce référentiel, y compris des exemples d'exécution et des analyseurs. La plus grande partie du travail pour ce cours sera effectuée par vous en construisant vos propres scripts basés sur les instructions avec l'aide de ces scripts. Pour chaque semaine, des scripts de simulation suggérés à des fins de comparaison ou d'aide pendant l'exercice sont fournis dans le dossier [scripts de solution](https://github.com/numalariamodeling/FE-2023-examples/tree/main/solution_scripts) de la semaine concernée. Les scripts de solution contiennent également un fichier de collection d'analyseurs qui comprend de nombreux analyseurs couramment utilisés et que vous pourriez vouloir explorer plus en profondeur dans le cadre de votre projet. 
+Quelques scripts principaux sont fournis au niveau principal de ce référentiel, y compris des exemples d'exécution et de l'objet analyzer. La plus grande partie du travail pour ce cours sera effectuée par vous en construisant vos propres scripts basés sur les instructions avec l'aide de ces scripts. Pour chaque semaine, des scripts de simulation suggérés à des fins de comparaison ou d'aide pendant l'exercice sont fournis dans le dossier [scripts de solution](https://github.com/numalariamodeling/FE-2023-examples/tree/main/solution_scripts) de la semaine concernée. Les scripts de solution contiennent également un fichier de collection de l'objet analyzer qui comprend de nombreux objets analyzers couramment utilisés et que vous pourriez vouloir explorer plus en profondeur dans le cadre de votre projet. 
 
-*Remarque: si vous utilisez un analyseur de la collection, assurez-vous d'ajouter les rapporteurs appropriés pour créer les fichiers de sortie nécessaires.*
+*Remarque: si vous utilisez un objet analyzer de la collection, assurez-vous d'ajouter les rapporteurs appropriés pour créer les fichiers de sortie nécessaires.*
 
 **Prérequis:** 
 L'exécution de vos scripts nécessite que l'environnement virtuel emodpy soit chargé et suppose que les fichiers soient exécutés à partir d'un répertoire de travail situé à l'endroit où se trouve le script. Créez cet environnement à l'aide des [instructions d'installation](https://numalariamodeling.github.io/FE-2023-quarto-website/guides/install_guide.html). Nous vous recommandons de créer un dossier "environments" dans votre répertoire personnel et d'y créer l'environnement. 
@@ -54,20 +54,20 @@ module load R/4.1.1
 </p>
 </details>
 
-Avant d'exécuter les scripts d'exemple hebdomadaires, veuillez vous assurer que l'environnement virtuel emodpy a été chargé avec succès et que ce [dépôt a été cloné](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) dans le répertoire du projet sur QUEST, idéalement sous la forme */projects/b1139/FE_<username>/FE-2023-examples*.
+Avant d'exécuter les scripts d'exemple hebdomadaires, veuillez vous assurer que l'environnement virtuel emodpy a été chargé avec succès et que ce [répertoire a été cloné](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) dans le répertoire du projet sur QUEST, idéalement sous la forme */projects/b1139/FE_<username>/FE-2023-examples*.
 
 - Naviguez vers le projet: `cd /projects/b1139`
 - Créez votre répertoire personnel pour le programme: `mkdir FE_<nom d'utilisateur>` puis naviguez-y en utilisant `cd FE_<nom d'utilisateur>`.
-- Clonez ce dépôt avec votre adresse ssh pour le dépôt. Cliquez sur le bouton vert "code" ci-dessus et copiez l'adresse ssh puis exécutez ce qui suit sur QUEST: `git clone <adresse ssh>`
+- Clonez ce répertoire avec votre adresse ssh pour le dépôt. Cliquez sur le bouton vert "code" ci-dessus et copiez l'adresse ssh puis exécutez ce qui suit sur QUEST: `git clone <adresse ssh>`
 	
-Avant de commencer un exercice, assurez-vous d'avoir récupéré les dernières modifications du dépôt (voir git-guides [git-pull](https://github.com/git-guides/git-pull)).
+Avant de commencer un exercice, assurez-vous d'avoir récupéré les dernières modifications du répertoire (voir git-guides [git-pull](https://github.com/git-guides/git-pull)).
 	
 Pour plus d'aide sur l'utilisation de SLURM sur QUEST, consultez [ressources ](https://numalariamodeling.github.io/FE-2023-quarto-website/resources/coding_resources/quest_resources.html) sur le site web du programme.
 
 ## Semaine 1: Vue d'ensemble d'EMOD
-Cette semaine, nous discuterons de la structure générale et du contenu d'EMOD et nous nous assurerons que vous êtes prêts à exécuter le modèle sur notre HPC linux, QUEST. Vous allez mettre en place votre propre environnement virtuel pour exécuter EMOD via emodpy et idmtools et cloner ce dépôt github dans votre répertoire FE sur notre allocation de projet QUEST, b1139. Veuillez vous familiariser avec le dépôt, le site web et la documentation EMOD avant d'exécuter l'exemple simple à la fin de cette semaine.
+Cette semaine, nous discuterons de la structure générale et du contenu d'EMOD et nous nous assurerons que vous êtes prêts à exécuter le modèle sur notre HPC linux, QUEST. Vous allez mettre en place votre propre environnement virtuel pour exécuter EMOD via emodpy et idmtools et cloner ce répertoire github dans votre répertoire FE sur notre allocation de projet QUEST, b1139. Veuillez vous familiariser avec le répertoire, le site web et la documentation EMOD avant d'exécuter l'exemple simple à la fin de cette semaine.
 
-**Ce à quoi on peut s'attendre**
+**Objectifs à atteindre**
 
 Cliquez sur la flèche pour agrandir:
 <details><summary><span><em>Exécuter EMOD à partir du terminal</em></span></summary>
@@ -119,7 +119,7 @@ Cliquez sur la flèche pour agrandir:
 <details><summary><span><em>Exécuter une simulation EMOD simple</em></span></summary>
 <p>
 
-- Naviguez vers votre copie locale de ce dépôt sur QUEST: `cd /projects/b1139/FE_<username>/FE-2023-examples`  
+- Naviguez vers votre copie locale de ce répertoire sur QUEST: `cd /projects/b1139/FE_<username>/FE-2023-examples`  
 - Notez le chemin de votre répertoire de travail dans `manifest.py`: `/projects/b1139/FE_<username>/FE-2023-examples/experiments/`. Cela vous aidera à suivre vos simulations séparément des autres participants.
     - *Note: chaque fois que vous voyez des éléments entre `< >`, ils doivent être remplacés ENTIÈREMENT par ce qui est étiqueté comme étant l'élément en question. Par exemple, si votre nom d'utilisateur est `abc123`, ce répertoire de travail sera:* `/projects/b1139/FE_abc123/FE-2023-examples/experiments`
 - Chargez votre environnement virtuel emodpy (voir les prérequis)  
@@ -137,17 +137,17 @@ Cliquez sur la flèche pour agrandir:
         '<nom de l'expérience>' : '<ID de l'expérience>'
     }
 ```
-- Sauvegardez et lancez l'analyseur en utilisant `python3 analyzer_W1.py` sur la ligne de commande. Nous verrons plus en détail la semaine prochaine comment fonctionnent les analyseurs EMOD et ce que vous pouvez faire avec eux.
-- Lorsque l'analyseur a fini de fonctionner, naviguez jusqu'au répertoire de travail dans lequel vous avez sauvegardé vos résultats (*Ressort: vérifiez la ligne 76 pour commencer à identifier où cela pourrait être*) et vérifiez la sortie de cet analyseur - il devrait y avoir un fichier appelé "All_Age_Inset_Chart.csv".
+- Sauvegardez et lancez l'analyzer en utilisant `python3 analyzer_W1.py` sur la ligne de commande. Nous verrons plus en détail la semaine prochaine comment fonctionnent les objets analyzers EMOD et ce que vous pouvez faire avec eux.
+- Lorsque l'analyzer a fini de fonctionner, naviguez jusqu'au répertoire de travail dans lequel vous avez sauvegardé vos résultats (*Ressort: vérifiez la ligne 76 pour commencer à identifier où cela pourrait être*) et vérifiez la sortie de cet analyzer - il devrait y avoir un fichier appelé "All_Age_Inset_Chart.csv".
 - Si le fichier a été créé avec succès, nous pouvons tracer quelques données de base sur la simulation. Nous utiliserons RStudio sur les [QUEST Analytics Nodes](https://rstudio.questanalytics.northwestern.edu/) pour exécuter le traceur, mais vous pouvez également choisir de télécharger votre fichier de sortie et d'exécuter RStudio localement. 
     - Une fois connecté à RStudio de QUEST, vous pouvez naviguer vers ce dépôt en cliquant sur `Session` (dans la barre d'outils) > `Set Working Directory` > `Choose Directory` > `...` > tapez `/projects/b1139/FE_<username>/FE-2023-examples` > `Choose`
-- Ouvrez `plot_InsetChart.Rmd`, mettez à jour les chemins pour qu'ils correspondent à votre répertoire de sortie (`root`) et au `sous-dossier` de l'expérience (qui devrait être le nom de l'expérience fourni à l'analyseur) où se trouve le fichier "All_Age_Inset_Chart.csv".
+- Ouvrez `plot_InsetChart.Rmd`, mettez à jour les chemins pour qu'ils correspondent à votre répertoire de sortie (`root`) et au `sous-dossier` de l'expérience (qui devrait être le nom de l'expérience fourni à l'analyzer) où se trouve le fichier "All_Age_Inset_Chart.csv".
 
 ```r
 root <- "<répertoire de sortie>"
 sous-dossier <- "<nom de l'expérience>"
 ```
-- En haut à droite de chaque morceau de code, il y a un petit triangle vert - qui lancera le morceau correspondant lorsqu'il sera cliqué. Exécutez le premier morceau pour charger les bibliothèques (lignes 8-12). Si vous obtenez une erreur indiquant que les bibliothèques sont manquantes, utilisez `install.packages("<nom de la bibliothèque>")` pour les installer et réessayer de les charger. Une fois qu'elles sont chargées, exécutez le morceau de code du traceur (lignes 14-85). Vérifiez les tracés sauvegardés dans votre répertoire output.
+- En haut à droite de chaque bout de code, il y a un petit triangle vert - qui lancera le bout correspondant lorsqu'il sera cliqué. Exécutez le premier bout pour charger les bibliothèques (lignes 8-12). Si vous obtenez une erreur indiquant que les bibliothèques sont manquantes, utilisez `install.packages("<nom de la bibliothèque>")` pour les installer et réessayer de les charger. Une fois qu'elles sont chargées, exécutez le bout de code du traceur (lignes 14-85). Vérifiez les tracés sauvegardés dans votre répertoire output.
     - Ce traceur produit quatre groupes de canaux `InsetChart` se rapportant généralement à l'incidence, la prévalence, le climat/les vecteurs, et la population/la démogaphie. Explorez chacun des ensembles de graphiques et voyez ce que vous pouvez apprendre sur cette première simulation!
     - *Remarque: ces graphiques peuvent être utiles pour diagnostiquer les performances de votre simulation, par exemple pour surveiller les niveaux de population ; cependant, ils ne doivent pas être utilisés pour présenter des résultats, car il s'agit simplement d'un exemple de visualisation qui n'est pas destiné à répondre à des questions spécifiques.*
 	
