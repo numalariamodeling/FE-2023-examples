@@ -4,11 +4,11 @@ Exemples de scripts pour le programme d'enrichissement de la faculté de 2023 su
 [![en](https://img.shields.io/badge/lang-en-blue.svg)](https://github.com/numalariamodeling/FE-2023-examples/blob/main/README.md)
 [![fr](https://img.shields.io/badge/lang-fr-red.svg)](https://github.com/numalariamodeling/FE-2023-examples/blob/main/README.fr.md)
 
-â ï¸ - Conseils
+⚠️ - Conseils
 
-â - Questions d'autocontrôle
+❓ - Questions d'autocontrôle
 
-â - Exercices bonus
+➕ - Exercices bonus
 
 ### Voie technique (EMOD)
 
