@@ -136,7 +136,7 @@ Click the arrow to expand:
         '<experiment name>' : '<experiment UID>'
     }
 ```
-- Save and run the anlyzer using `python analyzer_W1.py` at the command line. We'll discuss in more depth next week how EMOD analyzers work and what you can do with them.
+- Save and run the anlyzer using `python3 analyzer_W1.py` at the command line. We'll discuss in more depth next week how EMOD analyzers work and what you can do with them.
 - When the analyzer finishes running, navigate to the working directory where you saved your results (*Hint: check line 76 to start identifying where this might be*) and checkout the output of this analyzer - there should be a file called "All_Age_Inset_Chart.csv".
 - If the file was created succesfully, we can plot some basic data on the simulation. We'll use RStudio on the [QUEST Analytics Nodes](https://rstudio.questanalytics.northwestern.edu/) to run the plotter, but you can also choose to download your output file and run on RStudio locally. 
     - Once logged into QUEST's RStudio you can navigate to this repository by clicking `Session` (in the toolbar) > `Set Working Directory` > `Choose Directory` > `...` > type  `/projects/b1139/FE_<username>/FE-2023-examples` > `Choose`
@@ -146,8 +146,7 @@ Click the arrow to expand:
 root <- "<output directory>"
 subfolder <- "<experiment name>"
 ```
-- At the top right of each code chunk there is a small green triangle - this will run the respective chunk when clicked. Run the first chunk to load libraries (lines 8-12). If you get an error that the libraries are missing, use `install.packages("<library name>")` to install them and then retry loading. Once they are loaded, run the plotter code chunk (lines 14-85). Check the saved plots in your ou
-	tput directory.
+- At the top right of each code chunk there is a small green triangle - this will run the respective chunk when clicked. Run the first chunk to load libraries (lines 8-12). If you get an error that the libraries are missing, use `install.packages("<library name>")` to install them and then retry loading. Once they are loaded, run the plotter code chunk (lines 14-85). Check the saved plots in your output directory.
     - This plotter produces four groups of `InsetChart` channels generally relating to incidence, prevalence, climate/vectors, and the population/demogaphics. Explore each of the sets of plots and see what you can learn about this first simulation!
     - *Note: these plots can be helpful diagnostics to see how your simulation is performing, such as monitoring population levels; however, they should not be used to present results as they are just an example visualization not meant to address specific questions.*
 	
@@ -259,6 +258,7 @@ This exercise demonstrates how to add some of the malaria built-in reporters to 
 - Copy your `run_example_inputs.py` script and name it `run_example_outputs.py`. Change the experiment name to `f'{user}_FE_example_outputs'`.
 - We need to import the malaria reporters from emodpy_malaria. You'll need to add this line to the rest of your emodpy_malaria importers `from emodpy_malaria.reporters.builtin import *` at the top of your script. Notice the "*" at the end, this means we are importing all of the reporters from the builtin reporter script by their names.
 - [Report Event Recorder](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-event-recorder.html) allows us to look at various events happening to each individual in our sim, as well as some basic demographic and health status information about the individual. This report is especially useful for monitoring different interventions, such as receiving treatment, but for now we'll only look at simple events such as births or existing individuals' birthdays. We can control the time period we want to report on, from `start_day` to `end_day` as well as things like target age group and nodes while we add the reporter. For now, let's add the report for the entire simulation and targeting ages 0-100 years, so likely the whole population. It can be added to our `general_sim()` with `add_event_recorder()` after the task has been defined, around line 110:
+    
     ```python
     def general_sim()
         ## existing contents
@@ -270,6 +270,7 @@ This exercise demonstrates how to add some of the malaria built-in reporters to 
     ```
 
 - [Malaria Summary Report](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-malaria-summary.html) provides a population-level summary of malaria data grouped into different bins such as age, parasitemia, and infectiousness. This report will give us information such as PfPR, clinical incidence, and population stratified by time (as well as age bins, parasitemia, and infectiousness if desired). We can specify what time period of aggregation we are interested in, typically weekly, monthly, or annually through the reporting interval. The linked documentation will show you many other things we can specify as well, but for now we'll keep it simple and set our report to run monthly for the duration of the simulation with simple age groups: 0-0.25, 0.25-5, and 5-115 years. We'll also tell the report that we want a maximum of 20 intervals so we can make sure we get all our monthly reports for 1 year and use `pretty_format` to make the outputted report more readable to us. You should also add a filename suffix, in this case we'll use "monthly" to give some additional description to the report. This should be added directly after the Report Event Recorder, also in `general_sim()` with `add_malaria_summary_report()`:
+    
     ```python
     def general_sim()
         ## existing contents
@@ -409,7 +410,7 @@ Depending on our project and site there are a variety of different parameters yo
 
 1. Running calibration sweeps
     - Copy `run_example_sweeps.py` to a new script named `run_example_calibration.py`
-    - Update `sim_years` to run for at least 20 years with `sim_start_year=2000`. This start year is just meant to help us place our simulatinos in time, as with the analyzer, rather than actually change any of the time steps in the simulation.
+    - Update `sim_years` to run for at least 20 years with `sim_start_year=2000`. This start year is just meant to help us place our simulations in time, as with the analyzer, rather than actually change any of the time steps in the simulation.
     - Beneath the sweep we added last time, add another one for `x_Temporary_Larval_Habitat` (default = 1). This parameter multiplies the default larval habitat value, so we'll want to start over a relatively small range of values. One nice way of doing this is to use a numpy command, `logspace`, that will divide the range evenly in logspace - we'll try -0.5 to 1 in logspace (0.316 to 10 in terms of actual parameter value) for 10 separate values. Logspace is particularly useful for this parameter as the actual larval habitat values can be quite large so we tend to want to explore the lower values in our range more closely. Be sure to also `import numpy as np` with the rest of your import statements.
     
       ```python
@@ -506,7 +507,7 @@ This serialization exercise has three parts. In part 1 you will run and save a b
               sweep_variables = ['Run_Number'] # for times when you add additional items to the pickup, you can add more sweep variables here
           ```
         - It is also recommended to remove some of the `MalariaSummaryReport` channels from the `map` function in the `MonthlyPfPRAnalyzer` as they will be less commonly used in projects and we don't need to extract data that is not needed for the questions at hand. Most of the time, we only need the PfPR, Annual Clinical Incidence, Annual Severe Incidence, and Average Population (all by Age Bin) channels. Recall from last week's exercise that all of these are [`MalariaSummaryReport` output channels](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-malaria-summary.html#databytimeandagebins) and that this analyzer is only processing data from this report (as seen in the "super init" filename list at the start of the analyzer - the filenames here are the only one the analyzer will open). 
-	- To use the "step" system we will want to also modify our analyzers run statement. Assuming you included only the default report, `InsetChart`, in your burnin then you will want to run only that analyzer for the burnin step. For the pickup you will likely also want to include a version of the summary report we've been using so we'll include that in the pickup step in the analyzer. Be sure to update the `start_year` for the analyzer such that our burnin will end in 2023 (and should start the number of `serialize_years` prior) and the pickup will start where the burnin leaves off in 2023. The simulations themselves have no linkage to real time; rather, they track simulation timesteps. Applying the the year in the analyzer in this way is simply meant to turn those simulation timesteps into a more understandable framework for our work. We then run the analyzer based on the step we set above. We can keep the basic plotter after this just to get an idea of what is going on in our simulations. 
+	      - To use the "step" system we will want to also modify our analyzers run statement. Assuming you included only the default report, `InsetChart`, in your burnin then you will want to run only that analyzer for the burnin step. For the pickup you will likely also want to include a version of the summary report we've been using so we'll include that in the pickup step in the analyzer. Be sure to update the `start_year` for the analyzer such that our burnin will end in 2023 (and should start the number of `serialize_years` prior) and the pickup will start where the burnin leaves off in 2023. The simulations themselves have no linkage to real time; rather, they track simulation timesteps. Applying the the year in the analyzer in this way is simply meant to turn those simulation timesteps into a more understandable framework for our work. We then run the analyzer based on the step we set above. We can keep the basic plotter after this just to get an idea of what is going on in our simulations. 
             - **Note: In certain cases, such as monitoring PfPR across all simulation time, you will also want to include a summary report (or another report) in the burnin. Be thoughtful about the questions you are trying to address and what reports you'll need at each step, there is no one right way!**
         
           ```python
@@ -564,7 +565,8 @@ This serialization exercise has three parts. In part 1 you will run and save a b
           pickup_years=5
           burnin_exp_id = '<exp_id>'
           ```
-    - Update your serialization config params, mostly by switching them from "write" to "read" mode as we are now picking up where we left off in the burnin. The `Serialization_Time_Steps` should remain the same as we want to pick up at that serialized spot at the end of our burnin. Be sure to completely modify or remove any of the "writing"/burnin parameters in this script.
+    - Update your serialization config params, mostly by switching them from "write" to "read" mode as we are now picking up where we left off in the burnin. The `Serialization_Time_Steps` should remain the same as we want to pick up at that serialized spot at the end of our burnin. Be sure to completely modify or remove any of the "writing"/burnin parameters in this script. 
+        - Note that you may also need to carry through config parameters, such as `x_Temporary_Larval_Habitat`, from the burnin as the `config = conf.set_team_defaults(config, manifest)` that happens at the beginning of `set_param_fn` will reset these to the team defaults.
 
       ```python
       def set_param_fn():
@@ -574,6 +576,9 @@ This serialization exercise has three parts. In part 1 you will run and save a b
           config.parameters.Serialized_Population_Reading_Type = "READ"
           config.parameters.Serialization_Mask_Node_Read = 0
           config.parameters.Serialization_Time_Steps = [serialize_years*365]
+          
+          #Add calibrated larval habitat
+          config.parameters.x_Temporary_Larval_Habitat = <calib_value>
       ```
     - Next, add the simulation specific serialization parameter updates. This function helps us match burnin and pickup simulations by filenames and paths, as well as any parameters that we want to carry over. In this example, the only such parameter is `Run_Number` but this could be many other configuration or campaign type parameters. Parameters that may be important for sweeps need to be included in the returned output of the function, such as `Run_Number` is here, so we can reference them in later analysis.
        
@@ -600,7 +605,7 @@ This serialization exercise has three parts. In part 1 you will run and save a b
 
           builder.add_sweep_definition(partial(update_serialize_parameters, df=burnin_df), range(len(burnin_df.index)))
       ```
-    - *Note: Be sure that you aren't creating additional stochastic replicates in the pickup. Because we are matching the "Run_Number" in `update_serialize_parameters` there is no need to do this additional run number sweep.
+    - *Note: Be sure that you aren't creating additional stochastic replicates in the pickup. Because we are matching the "Run_Number" in `update_serialize_parameters` there is no need to do this additional run number sweep.*
     - Run the experiment. Once it finishes running, checkout your outputs. Do you see what you expect? 
         - *Hint: think about what reporters you added, or didn't.*
         - Notice that there is no state file in the pickup. When we choose to read rather than the write with the serialization config parameters, it will only read the burnin's state file rather than writing a new one for the pickup. It is possible to do both steps during serialization if needed.
@@ -694,6 +699,7 @@ As we start thinking about adding interventions to our simulations, we should al
 - As discussed in last week's exercise on adding parameter sweeps, we'll need to add a sweep to the builder in `general_sim()` for the campaign in addition to the config params. However, this time we will need to use `add_multiple_parameter_sweep_definition()` instead of `add_sweep_definition()` since we are updating both the coverage and start day. If you were to use `add_sweep_definition` directly with a partial of `build_camp()` for each parameter individually, the second time you call the partial would override the first so only one parameter would be updated. On the other hand, `add_multiple_parameter_sweep_definition()` allows us to sweep over the entire parameter space in a cross-product fashion. It takes our update function and we provide a dictionary of our parameters and their list of values we want to sweep over. We'll sweep over three coverage values (0, 50%, and 95%), and three intervention start dates (1, 100, and 365). For now these are relatively arbitrary values that are just meant to illustrate the functionality in EMOD. In this example we will get 3x3x5 = 45 total simulations (coverage levels x start days x run numbers) that model each unique parameter combination.
 
     ℹ️ 
+    
     | Under_5 (cm_cov_u5)| Over_5    | Severe   |
     |:-------:|:------:|:-----:|
     | 0%       |0%  | 0% |
