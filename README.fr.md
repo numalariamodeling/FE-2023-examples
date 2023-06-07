@@ -610,6 +610,7 @@ Cet exercice de sérialisation comporte trois parties. Dans la première partie,
     - Lancez l'expérience. Une fois l'expérience terminée, vérifiez vos résultats. Voyez-vous ce que vous attendez? 
         - *Astuce: pensez aux rapporteurs que vous avez ajoutés, ou pas.*
         - Remarquez qu'il n'y a pas de fichier d'état dans la collecte. Lorsque nous choisissons de lire plutôt que d'écrire avec les paramètres de configuration de la sérialisation, cela ne fera que lire le fichier d'état du burnin plutôt que d'en écrire un nouveau pour le pickup. Il est possible de faire les deux étapes pendant la sérialisation si nécessaire.
+        - Rappelez-vous que vous devez vérifier toutes vos sorties, y compris des choses comme `config.json` et `campaign.json` pour vous assurer qu'elles font ce que vous attendez. Dans cet exemple, il est particulièrement pertinent de s'assurer que tous les paramètres, comme `x_Temporary_Larval_Habitat`, qui devraient être les mêmes dans le burnin et le pickup le sont réellement. Vous pouvez les comparer côte à côte ou les copier-coller dans un logiciel comme [diffchecker](https://www.diffchecker.com/) pour vous assurer que tout se passe comme prévu.        
     - En attendant que la sérialisation se termine, faites toutes les modifications nécessaires à l'analyseur comme `expt_name`, `exp_id`, `step`, et pickup `start_year`. Une fois l'expérience terminée, vous pouvez lancer `analyzer_serialization.py` et vérifier ses résultats.
     
 3. Comparer les simulations de ramassage sur différentes durées de burnin

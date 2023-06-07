@@ -609,6 +609,7 @@ This serialization exercise has three parts. In part 1 you will run and save a b
     - Run the experiment. Once it finishes running, checkout your outputs. Do you see what you expect? 
         - *Hint: think about what reporters you added, or didn't.*
         - Notice that there is no state file in the pickup. When we choose to read rather than the write with the serialization config parameters, it will only read the burnin's state file rather than writing a new one for the pickup. It is possible to do both steps during serialization if needed.
+        - Remember that you should check all of your outputs, including things like `config.json` and `campaign.json` to make sure they are doing what you expect. In this example, it is especially pertinent to make sure that any parameters, such as `x_Temporary_Larval_Habitat`, that should be the same in both the burnin and the pickup actually are. You can compare them side by side or copy and paste into some like [diffchecker](https://www.diffchecker.com/) to ensure everything looks how it is supposed to.
     - While waiting for it to finish, make any modifications to the analyzer that you need such as the `expt_name`, `exp_id`, `step`, and pickup `start_year`. Once the experiment finishes you can run `analyzer_serialization.py` & check its outputs.
     
 3. Compare pickup simulations across varying burnin durations
