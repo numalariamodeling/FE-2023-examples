@@ -130,11 +130,11 @@ Cliquez sur la flèche pour agrandir:
     - *Remarque: assurez-vous d'aller jusqu'au bout de la structure des dossiers pour voir vos simulations et leurs résultats. Pour plus d'informations sur ce à quoi il faut s'attendre, voir [Semaine 1 "Ce à quoi on peut s'attendre"](https://github.com/numalariamodeling/FE-2023-examples/blob/main/README.fr.md#semaine-1-vue-densemble-demod)*.
     - Vous devriez voir [`InsetChart.json`](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-inset-chart.html) dans le dossier de sortie de la simulation - c'est le rapport par défaut d'EMOD qui vous donnera une idée de ce qui se passe dans votre simulation. Nous allons maintenant faire une analyse basique de ces données.
 - Copiez l'UID de l'expérience, situé dans le fichier `metadata.json` au niveau de l'expérience. Mettez à jour le nom de l'expérience pour qu'il corresponde à celui utilisé ci-dessus et collez l'UID de l'expérience dans le dictionnaire "expts" (ligne 71) de `analyzer_W1.py` (situé au niveau principal du référentiel avec les autres scripts fournis). Cela devrait ressembler aux exemples ci-dessous et dans le script. 
-    - *Astuce: Si vous n'êtes pas sûr de savoir quelles sont les métadonnées de l'expérience, vérifiez le "item_type" et le "name" dans le fichier - disent-ils "experiment" et le nom que vous attendez de votre expérience, respectivement? Si c'est le cas, vous êtes dans le bon fichier de métadonnées et vous pouvez trouver l'UID en bas. Si vous êtes toujours bloqué, relisez [la semaine 1 "Ce à quoi on peut s'attendre"](https://github.com/numalariamodeling/FE-2023-examples/blob/main/README.fr.md#semaine-1-vue-densemble-demod) sur la structure des fichiers.
+    - ⚠️️️*Si vous n'êtes pas sûr de savoir quelles sont les métadonnées de l'expérience, vérifiez le "item_type" et le "name" dans le fichier - disent-ils "experiment" et le nom que vous attendez de votre expérience, respectivement? Si c'est le cas, vous êtes dans le bon fichier de métadonnées et vous pouvez trouver l'UID en bas. Si vous êtes toujours bloqué, relisez [la semaine 1 "Ce à quoi on peut s'attendre"](https://github.com/numalariamodeling/FE-2023-examples/blob/main/README.fr.md#semaine-1-vue-densemble-demod) sur la structure des fichiers.*
 	
 ```python
     expts = {
-        '<nom de l'expérience>' : '<ID de l'expérience>'
+        "<nom de l'expérience>" : "<ID de l'expérience>"
     }
 ```
 - Sauvegardez et lancez l'analyzer en utilisant `python3 analyzer_W1.py` sur la ligne de commande. Nous verrons plus en détail la semaine prochaine comment fonctionnent les objets analyzers EMOD et ce que vous pouvez faire avec eux.
@@ -280,7 +280,7 @@ Cet exercice montre comment ajouter à nos simulations certains des rapports int
     
         add_malaria_summary_report(task, manifest, start_day=1, 
                                    end_day=sim_years*365, 
-                                   intervalle_de_rapport=30,
+                                   reporting_interval=30,
                                    age_bins=[0.25, 5, 115],
                                    max_number_reports=20,
                                    filename_suffix='monthly',
@@ -288,7 +288,7 @@ Cet exercice montre comment ajouter à nos simulations certains des rapports int
     ```
    
 - Essayez d'exécuter votre nouveau script comme vous l'avez appris dans les deux derniers exemples et attendez qu'il se termine avant de naviguer dans votre répertoire d'expérimentation. Une fois l'exécution terminée, vérifiez les résultats de la simulation et votre nouveau rapport. Vérifiez que les fichiers ont bien été créés et regardez ce qu'ils contiennent. Que remarquez-vous?
-    - *Conseil: il est particulièrement important de vérifier tous vos résultats lorsque vous apportez des modifications importantes à votre script. Si vous ne les examinez pas, vous risquez de passer à côté de problèmes qui ne sont pas à l'origine de l'échec de vos simulations (mais qui font quelque chose que vous ne voulez pas qu'ils fassent).*
+    - ⚠️ *Il est particulièrement important de vérifier tous vos résultats lorsque vous apportez des modifications importantes à votre script. Si vous ne les examinez pas, vous risquez de passer à côté de problèmes qui ne sont pas à l'origine de l'échec de vos simulations (mais qui font quelque chose que vous ne voulez pas qu'ils fassent).*
 
 </p>
 </details>
@@ -319,11 +319,12 @@ Maintenant que vous avez appris les bases de l'exécution d'EMOD et de l'ajout d
 - Lancer l'analyseur
 - Attendez que l'analyseur réussisse. Une fois qu'il est terminé, regardez vos nouvelles sorties traitées (voyez si vous pouvez trouver le `wdir` mentionné ci-dessus sans aide). Vous devriez voir deux csvs, un de chaque analyseur, ainsi qu'un InsetChart.png. Assurez-vous que ces fichiers ont bien été créés et examinez les données qu'ils contiennent.
     - *Note: ce InsetChart.png est un graphique similaire à celui de la semaine 1, mais il est écrit en python et inclus directement à la fin du script de l'analyseur. Il s'agit de montrer la possibilité de créer des graphiques similaires à l'aide de R ou de Python, à votre convenance*.
-- Comme exercice supplémentaire, essayez de faire une visualisation de données en R ou python basée sur la sortie de l'analyseur MonthlyPfPRAnalyzer (PfPR_Clinical_Incidence_monthly.csv), basée sur le "MalariaSummaryReport". Vous devrez jeter un coup d'œil au fichier de sortie et décider quel type de chiffre peut être intéressant et vous informer sur votre simulation. *Remarque: il existe un [script de solution](https://github.com/numalariamodeling/FE-2023-examples/blob/main/solution_scripts/Week2/plot_SummaryReport.Rmd) similaire au traceur InsetChart de la Semaine 1, mais il est fortement recommandé d'essayer de créer votre propre version d'abord comme un exercice de créativité et de visualisation de données où tout le monde peut avoir des idées uniques. Consultez les [ressources de traçage](https://numalariamodeling.github.io/FE-2023-quarto-website/resources/coding_resources.html), puis discutez avec vos collègues ou le personnel enseignant si vous êtes bloqué. Si vous utilisez le script de solution, n'oubliez pas qu'il ne s'agit que d'un exemple de tracé et non d'un moyen essentiel de montrer les résultats, car cela dépendra des questions de recherche et des configurations de modèle spécifiques*.
-- Une fois que vous avez terminé votre exercice de visualisation des données, n'hésitez pas à modifier d'autres [paramètres de configuration](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-configuration.html) dans votre script d'exemple. Effectuez des simulations supplémentaires avec différentes durées, tailles de population, tranches d'âge, etc. - tout ce qui vous semble intéressant! C'est le moment idéal pour consulter la documentation EMOD et explorer les paramètres afin de mieux connaître l'écosystème EMOD. *(Astuce: changez le nom de votre expérience pour garder une trace de vos simulations à la fois dans les métadonnées et les sorties de l'analyseur)*
+- ➕ Comme exercice supplémentaire, essayez de faire une visualisation de données en R ou python basée sur la sortie de l'analyseur MonthlyPfPRAnalyzer (PfPR_Clinical_Incidence_monthly.csv), basée sur le "MalariaSummaryReport". Vous devrez jeter un coup d'œil au fichier de sortie et décider quel type de chiffre peut être intéressant et vous informer sur votre simulation. *Remarque: il existe un [script de solution](https://github.com/numalariamodeling/FE-2023-examples/blob/main/solution_scripts/Week2/plot_SummaryReport.Rmd) similaire au traceur InsetChart de la Semaine 1, mais il est fortement recommandé d'essayer de créer votre propre version d'abord comme un exercice de créativité et de visualisation de données où tout le monde peut avoir des idées uniques. Consultez les [ressources de traçage](https://numalariamodeling.github.io/FE-2023-quarto-website/resources/coding_resources.html), puis discutez avec vos collègues ou le personnel enseignant si vous êtes bloqué. Si vous utilisez le script de solution, n'oubliez pas qu'il ne s'agit que d'un exemple de tracé et non d'un moyen essentiel de montrer les résultats, car cela dépendra des questions de recherche et des configurations de modèle spécifiques*.
+- ➕ Une fois que vous avez terminé votre exercice de visualisation des données, n'hésitez pas à modifier d'autres [paramètres de configuration](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-configuration.html) dans votre script d'exemple. Effectuez des simulations supplémentaires avec différentes durées, tailles de population, tranches d'âge, etc. - tout ce qui vous semble intéressant! C'est le moment idéal pour consulter la documentation EMOD et explorer les paramètres afin de mieux connaître l'écosystème EMOD.
+    - ⚠️ *Changez le nom de votre expérience pour garder une trace de vos simulations à la fois dans les métadonnées et les sorties de l'analyseur*
     - Vous devez également exécuter ces simulations à travers le script de l'analyseur en mettant à jour le nom et l'ID de l'expérience, comme indiqué ci-dessus. Inspectez les sorties ainsi que les changements par rapport à votre première exécution. Que constatez-vous? 
-        - Comment les résultats ont-ils changé? 
-        - Que constatez-vous en ce qui concerne la durée d'exécution?
+        - ❓ Comment les résultats ont-ils changé? 
+        - ❓ Que constatez-vous en ce qui concerne la durée d'exécution?
 
 </p>
 </details>
@@ -394,10 +395,11 @@ Il existe d'autres méthodes de balayage plus compliquées, en particulier pour 
       ```
 
 - Exécutez le script, attendez qu'il se termine et vérifiez les résultats de votre simulation.
-    - Vos résultats ressemblent-ils à ce que vous attendiez? 
+    - ❓ Vos résultats ressemblent-ils à ce que vous attendiez? 
     - *Indice: il devrait y avoir cinq simulations puisque nous avons créé cinq réalisations stochastiques.*
 - Mettez à jour le nom et l'ID de l'expérience dans `analyzer_W2.py`. Vous remarquerez que le paramètre `sweep_variable` est déjà positionné à `Run_Number` donc l'analyseur va extraire ce tag pour chaque simulation. Cette liste peut recevoir plus de paramètres/tags si nécessaire lorsque vous commencez à ajouter des sweeps plus complexes. Lancez l'analyseur et vérifiez les sorties traitées au format csv/png.
-    - Vérifiez le tracé `InsetChart` généré par l'analyseur - en quoi est-il différent maintenant que nous avons balayé le numéro de série?
+    - Vérifiez le tracé `InsetChart` généré par l'analyseur
+        - ❓ En quoi est-il différent maintenant que nous avons balayé le numéro de série?
 - Essayez d'ajouter la sortie du balayage à votre script de visualisation MonthlyPfPRAnalyzer de la dernière fois. Comment pourriez-vous tenir compte de cet ajout dans votre graphique?
 
 </p>
@@ -431,7 +433,7 @@ En fonction de notre projet et de notre site, il existe une variété de paramè
                                		   filename_suffix=f'Monthly_U5_{sim_year}')
       ```
     - Dans le `general_sim()`, trouvez la commande `experiment.run(wait_until_done=True, platform=platform)` (ligne 148 dans le script de la solution). C'est la commande qui soumet et exécute nos simulations. Notez qu'elle a un argument "wait until done" - c'est ce qui nous donne la barre de progression pour l'achèvement de nos simulations après la soumission. Maintenant que nous exécutons des simulations plus longues, mettez-le à `False` pour libérer votre terminal.
-        - *Astuce: Vous devriez également supprimer les messages d'impression qui suivent cette ligne et qui indiquent si l'expérience a réussi ou non, car nous n'attendons plus qu'elle se termine avant de poursuivre le script. Cela vous fera obtenir le message d'avertissement "experiment failed" car les simulations seront toujours en cours (et n'auront donc pas abouti) lorsque le script de soumission (`run_example_calibration.py`) exécutera cette ligne. A la place, utilisez `squeue -A b1139` pour vérifier le statut de vos jobs en cours sur QUEST et utilisez ensuite stderr.txt et stdout.txt pour déterminer si vos simulations ont réussi ou échoué lorsqu'elles ont fini de s'exécuter.*
+        - ⚠️ *Vous devriez également supprimer les messages d'impression qui suivent cette ligne et qui indiquent si l'expérience a réussi ou non, car nous n'attendons plus qu'elle se termine avant de poursuivre le script. Cela vous fera obtenir le message d'avertissement "experiment failed" car les simulations seront toujours en cours (et n'auront donc pas abouti) lorsque le script de soumission (`run_example_calibration.py`) exécutera cette ligne. A la place, utilisez `squeue -A b1139` pour vérifier le statut de vos jobs en cours sur QUEST et utilisez ensuite stderr.txt et stdout.txt pour déterminer si vos simulations ont réussi ou échoué lorsqu'elles ont fini de s'exécuter.*
     - Mettez à jour le `nom_expt` et lancez vos simulations.
             - Ces simulations peuvent prendre plus de temps en raison de la durée plus longue de la simulation. Vous pouvez vérifier la progression de vos travaux et ce qui est en cours d'exécution sur la même allocation en utilisant `squeue -A b1139` ou seulement la progression de vos travaux avec `squeue -u <nom d'utilisateur>`.
             - Une fois les simulations terminées, vérifiez vos résultats. Est-ce que tout est là? Est-ce que tous vos rapports ressemblent à ce que vous attendiez?
@@ -447,7 +449,7 @@ En fonction de notre projet et de notre site, il existe une variété de paramè
 	  ```python
 	  pip install idmtools-calibra --index-url=https://packages.idmod.org/api/pypi/pypi-production/simple
 	  ```
-    - Comment se présente l'ajustement des paramètres? Si vous n'avez pas obtenu un bon ajustement, que pourriez-vous faire pour y remédier? N'hésitez pas à apporter des modifications et à réessayer d'exécuter la partie 1!
+    - ❓ Comment se présente l'ajustement des paramètres? Si vous n'avez pas obtenu un bon ajustement, que pourriez-vous faire pour y remédier? N'hésitez pas à apporter des modifications et à réessayer d'exécuter la partie 1!
 </p>
 </details>
 
@@ -527,7 +529,7 @@ Cet exercice de sérialisation comporte trois parties. Dans la première partie,
                                            start_year=2023,
                                            sweep_variables=sweep_variables,
                                            working_dir=wdir),
-                                      MonthlyPfPRAnalyzer( expt_name=expt_name,
+                                      MonthlyPfPRAnalyzer(expt_name=expt_name,
                                            start_year=2023,
                                            sweep_variables=sweep_variables,
                                            working_dir=wdir)
@@ -591,7 +593,7 @@ Cet exercice de sérialisation comporte trois parties. Dans la première partie,
     
          simulation.task.set_parameter("Serialized_Population_Filenames", df["Serialized_Population_Filenames"][x])
          simulation.task.set_parameter("Serialized_Population_Path", os.path.join(path, "output"))
-         simulation.task.set_parameter("Run_Number", seed) #match pickup simulation run number to burnin simulation
+         simulation.task.set_parameter("Run_Number", seed) #faire correspondre le numéro de course de la simulation de ramassage à celui de la simulation "burnin"
 
          return {"Run_Number":seed}
       ```
@@ -621,7 +623,7 @@ Cet exercice de sérialisation comporte trois parties. Dans la première partie,
     - En utilisant `analyzer_serialization.py`, lancez `InsetChartAnalyzer` pour les deux expériences burnin et pickup. Assurez-vous de modifier votre `serialization_years` et le `step` que vous analysez. N'hésitez pas à changer les `channels_inset_chart` pour d'autres en fonction des différences que vous souhaitez explorer. Vérifiez les résultats.
     - Essayez de tracer vos résultats pour montrer à la fois le burnin et le pickup sur le même graphique pour vos canaux d'intérêt au fil du temps. Vous pouvez utiliser R ou python pour le faire - si vous êtes bloqué, il y a un exemple de script de tracé python dans `Solution_scripts/Week3` appelé `plot_example_serialization.py` mais nous recommandons fortement d'essayer de faire votre propre version d'un tracé d'abord.
         - *Note: ces tracés et ces scripts d'analyse ne sont que des bases de travail pour vous! Il se peut que vous souhaitiez apporter des modifications ou inclure des éléments supplémentaires, tels qu'une variable de balayage supplémentaire, des intervalles de confiance ou des rapports supplémentaires avec de nouveaux analyseurs (et sorties), au fur et à mesure que vous développez votre projet, en particulier lorsque vous ajoutez de la complexité au ramassage*.
-    - Comparez les tracés entre les expériences avec des burnins de 10 et 50 ans. Remarquez-vous des différences?
+    - ❓ Comparez les tracés entre les expériences avec des burnins de 10 et 50 ans. Remarquez-vous des différences?
     
 </p>
 </details>
