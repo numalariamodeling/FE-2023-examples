@@ -129,7 +129,7 @@ Click the arrow to expand:
     - *Note: be sure to go all the way into the folder structure to see your simulations & their outputs. For more information on what to expect, see [Week 1's "What to Expect"](https://github.com/numalariamodeling/FE-2023-examples#week-1-overview-of-emod)*
     - You should see [`InsetChart.json`](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-inset-chart.html) in the simulation's output folder - this is EMOD's default report that will give you an idea of what's going on in your simulation. We'll do a basic, sample analysis of this data next.
 - Copy the experiment UID, located in the experiment-level `metadata.json`. Update the experiment name to match the one used above and paste the experiment UID in the "expts" dictionary (line 71) of `analyzer_W1.py` (located at the main level of the repository with the other provided scripts). It should look like the examples below and in the script. 
-    - *Tip: If you're not sure which is the experiment metadata, check the "item_type" and "name" in the file - do they say "experiment" and what you expect your experiment name to be, respectively? If yes, then you're in the right metadata file and can find the UID at the bottom. If you're still stuck, revist [Week 1's "What to Expect"](https://github.com/numalariamodeling/FE-2023-examples#week-1-overview-of-emod) on file structure.*
+    - ⚠️ *If you're not sure which is the experiment metadata, check the "item_type" and "name" in the file - do they say "experiment" and what you expect your experiment name to be, respectively? If yes, then you're in the right metadata file and can find the UID at the bottom. If you're still stuck, revist [Week 1's "What to Expect"](https://github.com/numalariamodeling/FE-2023-examples#week-1-overview-of-emod) on file structure.*
 	
 ```python
     expts = {
@@ -287,7 +287,7 @@ This exercise demonstrates how to add some of the malaria built-in reporters to 
     ```
 
 - Try running your new script as you learned in the past two examples and wait for it to finish before navigating to your experiment directory. When it's done running, check out the simulation outputs and your new report. You should both verify that the files were created and look at what they contain. What do you notice?
-    - *Tip: it's especially important to check all of your outputs when you are making big changes to your script. If you don't examine them, you may miss problems that aren't actually causing your simulations to fail (but are doing something you don't want them to).*
+    - ⚠️ *It's especially important to check all of your outputs when you are making big changes to your script. If you don't examine them, you may miss problems that aren't actually causing your simulations to fail (but are doing something you don't want them to).*
 
 </p>
 </details>
@@ -318,11 +318,11 @@ Now that you've learned the basics of how to run EMOD and add inputs/outputs you
 - Run the analyzer
 - Wait for the analyzer to succeed. Once it is finished check out your new processed outputs (see if you can find the `wdir` mentioned above without help). You should see two csvs, one from each analyzer, as well as a InsetChart.png. Make sure these files have been created and examine the data they contain.
     - *Note: this InsetChart.png is a similar plot to that of Week 1 but is written in python and included at the end of the analyzer script directly. This is meant to showcase the ability to create similar plots using R or python, to your comfort.*
-- As an additional exercise, try to make a data visualization in R or python based off of the MonthlyPfPRAnalyzer output (PfPR_Clinical_Incidence_monthly.csv), based on the `MalariaSummaryReport`. You'll need to take a look through the output file and decide what kind of figure may be interesting and inform you about your simulation. *Note: there is a [solution script](https://github.com/numalariamodeling/FE-2023-examples/blob/main/solution_scripts/Week2/plot_SummaryReport.Rmd) for this that is similar to the Week 1 InsetChart plotter, but it is highly recommended to try making your own version first as an exercise of creativity and data visualization skills where everyone may have unique ideas. Check out the [plotting resources](https://numalariamodeling.github.io/FE-2023-quarto-website/resources/coding_resources.html), then discuss with your colleagues or the instructional staff if you get stuck. If you use the solution script, remember that it is only meant as a sample plot and not a key way to show results as that will be dependent on specific research questions and model configurations.*
-- Once you've completed your data visualization exercise, feel free to try changing some other [config parameters](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-configuration.html) in your example script. Run additional simulations with different durations, population sizes, agebins, etc. - whatever you think would be interesting! This is a great time to look through the EMOD documentation and explore parameters so you get to know the EMOD ecosystem better. *(Tip: change your experiment name to keep track of your simulations in both the metadata and analyzer outputs)*
+- ➕ As an additional exercise, try to make a data visualization in R or python based off of the MonthlyPfPRAnalyzer output (PfPR_Clinical_Incidence_monthly.csv), based on the `MalariaSummaryReport`. You'll need to take a look through the output file and decide what kind of figure may be interesting and inform you about your simulation. *Note: there is a [solution script](https://github.com/numalariamodeling/FE-2023-examples/blob/main/solution_scripts/Week2/plot_SummaryReport.Rmd) for this that is similar to the Week 1 InsetChart plotter, but it is highly recommended to try making your own version first as an exercise of creativity and data visualization skills where everyone may have unique ideas. Check out the [plotting resources](https://numalariamodeling.github.io/FE-2023-quarto-website/resources/coding_resources.html), then discuss with your colleagues or the instructional staff if you get stuck. If you use the solution script, remember that it is only meant as a sample plot and not a key way to show results as that will be dependent on specific research questions and model configurations.*
+- ➕ Once you've completed your data visualization exercise, feel free to try changing some other [config parameters](https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-configuration.html) in your example script. Run additional simulations with different durations, population sizes, agebins, etc. - whatever you think would be interesting! This is a great time to look through the EMOD documentation and explore parameters so you get to know the EMOD ecosystem better. *(*⚠️ *Change your experiment name to keep track of your simulations in both the metadata and analyzer outputs)*
     - You should also run these sims through the analyzer script by updating the experiment name and ID, as above. Inspect the outputs as well as any changes compared to your first run. What do you see? 
-        - How have the outcomes changed? 
-        - What do you recognize about running time?
+        - ❓ How have the outcomes changed? 
+        - ❓ What do you recognize about running time?
 
 </p>
 </details>
@@ -393,10 +393,11 @@ There are additional more complicated sweeping methods, particularly with creati
       ```
 
 - Run the script, wait for it to finish, and checkout your simulation outputs.
-    - Do your outputs look like you expect? 
+    - ❓ Do your outputs look like you expect? 
     - *Hint: there should be five simulations as we created five stochastic realizations*
 - Update the experiment name and ID in `analyzer_W2.py`. You'll notice that the `sweep_variable` parameter is already set to `Run_Number` so the analyzer will pull out this tag for each simulation. This list can take more parameters/tags as necessary when you start adding more complex sweeps. Run the analyzer & check the csv/png processed outputs.
-    - Checkout the `InsetChart` plot generated by the analyzer - how does it look different now that we've swept over the run number?
+    - Checkout the `InsetChart` plot generated by the analyzer 
+        - ❓ How does it look different now that we've swept over the run number?
 - Try adding the output of the sweep to your MonthlyPfPRAnalyzer visualization script from last time. How might you account for adding this to your plot?
 
 </p>
@@ -430,7 +431,7 @@ Depending on our project and site there are a variety of different parameters yo
                                		   filename_suffix=f'Monthly_U5_{sim_year}')
       ```
     - In the `general_sim()`, find the command `experiment.run(wait_until_done=True, platform=platform)` (line 148 in the solution script). This is the command that submits and runs our simulations. Notice that it has an argument to "wait until done" - this is what gives us the progress bar for the completion of our simulations after submission. Now that we are running longer simulations, set that to `False` to free up your terminal.
-        - *Tip: You should also remove the print messages following this line about whether or not the experiment has succeeded as we are no longer waiting for it to finish before continuing through the script. This will cause you to get the "experiment failed" warning message as the simulations will still be running (and thus not succeeded) when the submission script (`run_example_calibration.py`) runs this line. Instead, use `squeue -A b1139` to check the status of your running jobs on QUEST and then use stderr.txt and stdout.txt to determine if your simulations succeeded or failed when they finish running.*
+        - ⚠️ *You should also remove the print messages following this line about whether or not the experiment has succeeded as we are no longer waiting for it to finish before continuing through the script. This will cause you to get the "experiment failed" warning message as the simulations will still be running (and thus not succeeded) when the submission script (`run_example_calibration.py`) runs this line. Instead, use `squeue -A b1139` to check the status of your running jobs on QUEST and then use stderr.txt and stdout.txt to determine if your simulations succeeded or failed when they finish running.*
     - Update the `expt_name` and run your simulations.
             - These simulations may take longer due to the longer simulation duration. You can check the progress of your jobs and what else is running on the same allocation using `squeue -A b1139` or just the progress of your jobs with `squeue -u <username>`.
             - Once the simulations finish running, check your outputs. Is everything there? Do all your reports look like you expect?
@@ -446,7 +447,7 @@ Depending on our project and site there are a variety of different parameters yo
 	  ```python
 	  pip install idmtools-calibra --index-url=https://packages.idmod.org/api/pypi/pypi-production/simple
 	  ```
-    - How does the parameter fit look? If you didn't get a good fit, what might you do to fix it? Feel free to make changes and try running part 1 again!
+    - ❓ How does the parameter fit look? If you didn't get a good fit, what might you do to fix it? Feel free to make changes and try running part 1 again!
 </p>
 </details>
 
@@ -486,7 +487,8 @@ This serialization exercise has three parts. In part 1 you will run and save a b
               config.parameters.Serialization_Precision = "REDUCED"
           ```
     - Run the script and checkout your outputs when it finishes running.
-        - Notice that we have `InsetChart.json` as it is the default for all sims (if you did not include other reporters) and a new `state-03650.dtk` file. This state file is the "burnin" file that saves all of the information needed about this simulation (such as population, immunity, etc) at the point in time we requested, in this case day 3650 (the last day of a 10 year sim). *Tip: the name of the state file should change with different burnin lengths*
+        - Notice that we have `InsetChart.json` as it is the default for all sims (if you did not include other reporters) and a new `state-03650.dtk` file. This state file is the "burnin" file that saves all of the information needed about this simulation (such as population, immunity, etc) at the point in time we requested, in this case day 3650 (the last day of a 10 year sim). 
+            -️ ⚠️ *The name of the state file should change with different burnin lengths*
     - While waiting for your simulations to finish, we can adapt the `analyzer_w2.py` to better meet the needs of serialization. Copy this script and name it `analyzer_serialization.py`
         - Start by adding a section to the executable `if __name__ == "__main__":` section of the analyzer that defines the serialization duration and which step (burnin or pickup) you'd like to analyze, in this case the burnin.
         
@@ -620,7 +622,7 @@ This serialization exercise has three parts. In part 1 you will run and save a b
     - Using `analyzer_serialization.py`, run the `InsetChartAnalyzer` for both burnin and pickup. Make sure to modify your `serialization_years` and the `step` you are analyzing. Feel free to change the `channels_inset_chart` to other ones depending on what differences you may be most interested in exploring. Check the outputs.
     - Try plotting your results to show both burnin and pickup on the same plot for your channels of interest over time. You may use R or python to do so - if you get stuck there is a sample python plotting script in `Solution_scripts/Week3` called `plot_example_serialization.py` but we strongly recommend trying to make your own version of a plot first.
         - *Note: these plots and analyzer scripts are just baselines for you to go off! You may want to make changes or include additional things, such as additional sweep variable, confidence intervals, or additional reports with new analyzers (and outputs), as you develop your project, especially as you add complexity to the pickup.*
-    - Compare the plots between the experiments with 10 and 50 year burnins. Do you notice any differences?
+    - ❓ Compare the plots between the experiments with 10 and 50 year burnins. Do you notice any differences?
     
 </p>
 </details>
@@ -727,8 +729,10 @@ As we start thinking about adding interventions to our simulations, we should al
 - When the simulations finish, check your outputs. They should largely look the same as before, but you should now see the `Received_Treatment` even in the `ReportEventRecorder`. Examine the `campaign.json` as well to see details about the campaign you've added to the simulations - each will look slightly different depending on which sweep parameters it received.
     - Does your campaign file look how you expect? This is a good way to verify if your simulations are distributing interventions correctly or if something isn't set up correctly (such as if it is giving out 100x the case management expected).
 - If your outputs look good, run the analyzer & check its outputs.
-- Try plotting your results. You can build off of the scripts you made for the previous serialization example, but how might you consider the changes we've made this week?      - *Hint: Think about changes related to adding interventions and the additional parameter sweeps.
-- Check out some of the other [interventions](https://github.com/numalariamodeling/emodpy-malaria/tree/main/emodpy_malaria/interventions) in emodpy-malaria. [Drug campaigns](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/interventions/drug_campaign.py), [ITNs](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/interventions/bednet.py), and [IRS](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/interventions/irs.py) may be of particular interest. For an added challenge, try adding one (or more!) of these interventions to this simulation on your own or with the help of the How-Tos. An example script with multiple interventions is located in the solution scripts **IN PROGRESS**
+- Try plotting your results. You can build off of the scripts you made for the previous serialization example, but how might you consider the changes we've made this week?      
+    - *Hint: Think about changes related to adding interventions and the additional parameter sweeps.*
+- Check out some of the other [interventions](https://github.com/numalariamodeling/emodpy-malaria/tree/main/emodpy_malaria/interventions) in emodpy-malaria. [Drug campaigns](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/interventions/drug_campaign.py), [ITNs](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/interventions/bednet.py), and [IRS](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/interventions/irs.py) may be of particular interest. 
+    - ➕ For an added challenge, try adding one (or more!) of these interventions to this simulation on your own or with the help of the How-Tos. An example script with multiple interventions is located in the solution scripts **IN PROGRESS**
 
 </p>
 </details>
@@ -765,12 +769,10 @@ In this example, we'll continue building off of the serialization structure, add
       ```
     - We can also add individual properties to our reporters. The methods for doing this between the event recorder and summary report are slightly different. For the burnin, we'll only add the event recorder but will see the changes to summary report in the pickup.
         - In event recorder we can simply add `ips_to_record=['<property>']` which tells the report that we also want it to tell us what access level the individual experiencing the event belongs to. You are able to add multiple IPs to this list if needed.
-    - Add these changes to your burnin, including another summary report for the low access group. If we were to plot these summary reports once the burnin is finished, how do you think the low and high access groups would compare?
-        - *Note: in project work, you likely will not want to include monthly reporting in burnins as they can be quite space and time consuming, but they are helpful during the learning process.*
     - Update the experiment name and run your simulations
-    - Update the experiment name and ID in `analyzer_IP.py` while you wait for it to finish running. You may also start part 2 while you wait.
     - When the burnin finishes running, check your outputs including the event recorder and existence of the state file.
-        - How does the event recorder change with IPs?
+        - ❓ How does the event recorder change with IPs?
+        - *Note: we typically don't run analyzers on burnins once we know that they are working correctly unless there are specific questions of interest for this portion of the experiment, so we will skip that step in this example.*
     
 2. Pickup - Adding IPs to interventions
     - Copy the `run_example_pickup_CM.py` script to a blank python script and name it `run_example_pickup_CM_withIP.py`.
@@ -841,10 +843,12 @@ In this example, we'll continue building off of the serialization structure, add
                                    pretty_format=True)
         ```
     - Update the experiment name, run the script.
-    - Update the experiment name and ID in the analyzer. Be sure to check if you need to update anything such as `sweep_variables` or analyzer years. 
+    - Update the experiment name and ID in `analyzer_IP.py`. Be sure to check if you need to update anything such as `sweep_variables` or analyzer years. 
     - Once the pickup finishes, check your outputs to make sure everything was created. Do you have both high and low access summary reports? If everything looks good, run the analyzer & check its outputs.
     - Try plotting your results. Feel free to start with old scripts and adapt them to try to understand differences between the IP levels.
-        - *Tip: think about what type of indicators high and low access to case management may impact and how you might want to show comparisons between the groups. Make sure to include any grouping on parameter sweeps as they can impact the results!*
+        - ⚠️*Think about what type of indicators high and low access to case management may impact and how you might want to show comparisons between the groups. Make sure to include any grouping on parameter sweeps as they can impact the results!*
+        - ❓ If you had included the summary report in the burnin, would you expect these results to look different? If so, how and why?
+            - ⚠️*Think especially about the different IP levels and what has changed between the burnin and pickup scenarios.*
     
 </p>
 </details>
