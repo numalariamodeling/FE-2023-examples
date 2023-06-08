@@ -768,7 +768,7 @@ In this example, we'll continue building off of the serialization structure, add
     - Add these changes to your burnin, including another summary report for the low access group. If we were to plot these summary reports once the burnin is finished, how do you think the low and high access groups would compare?
         - *Note: in project work, you likely will not want to include monthly reporting in burnins as they can be quite space and time consuming, but they are helpful during the learning process.*
     - Update the experiment name and run your simulations
-    - Update the experiment name and ID in 'analyzer_IP.py' while you wait for it to finish running. You may also start part 2 while you wait.
+    - Update the experiment name and ID in `analyzer_IP.py` while you wait for it to finish running. You may also start part 2 while you wait.
     - When the burnin finishes running, check your outputs including the event recorder and existence of the state file.
         - How does the event recorder change with IPs?
     
