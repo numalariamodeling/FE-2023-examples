@@ -863,23 +863,23 @@ We will cover advanced applications of spatial modeling in another exercise. Thi
 
 **Part 1. Run Spatial Simulations**
 
-1. Create a spreadsheet **nodes.csv** with the columns *node*, *lat*, *lon*, and *pop*. EMODpy will be expecting these column names! <br>
+1. Create a spreadsheet **nodes.csv** with the columns *node_id*, *lat*, *lon*, and *pop*. EMODpy will be expecting these column names! <br>
         - This spreadsheet will be used to generate the climate and demographics files later  
         - save the file inside your `project directory/simulation_inputs/demographics`
 2. Fill in the spreadsheet with the information for 4 nodes
 
     Example:
 
-    | node | lat    | lon   | pop  |
+    | node_id | lat    | lon   | pop  |
     |:-------:|:------:|:-----:|:----:|
     | 1       | 12.11 | -1.47 | 1000 |
     | 2 | 12.0342 | -1.44 | 1000 | 
     | 3 | 12.13 | -1.59 | 1000 | 
     | 17 | 12.06 | -1.48 | 1000 |
         
-   - Note: *node* must be positive numbers, but do not have to be sequential.  
-   - Note: lat/lon values should represent real places with climates suitable for malaria transmission (for step 3).  
-   - Note: the column name for population is expected to be "pop" by default  
+   - ⚠️ **node_id** must be positive numbers, but do not have to be sequential.  
+   - ℹ️ lat/lon values should represent real places with climates suitable for malaria transmission (for step 3).  
+   - ⚠️ the column names for are expected to be "node_id", "lat", "lon", and "pop" by default 
 3. Using a separate script, `get_climate.py`, request and save climate files based on **nodes.csv**  <br>
    *For simplicity: use a single-year series from 2019, using the function definition and call to `get_climate()` below* <br>
         - Just update the `"tag"` and `"demo_fname"` arguments appropriately
@@ -912,7 +912,7 @@ def get_climate(tag = "default", start_year="2015", start_day="001", end_year="2
         wa = WeatherArgs(site_file= demo,
                          start_date=int(start),
                          end_date=int(end),
-                         node_column="node",
+                         node_column="node_id",
                          id_reference=tag)
         
         wr: WeatherRequest = WeatherRequest(platform="Calculon")
