@@ -941,7 +941,7 @@ Now, referring to the scripts you wrote for previous examples, you should be abl
 8. Sweep campaign parameters (optional for this exercise)  
 9. Serialize burnin & pickup  
 10. **Build demographics**   
-    a. inside `build_demog()` use  this code to generate demographics from your "nodes.csv" file (you may need to edit the path to input_file inside manifest.py)
+    a. inside `build_demog()` use  this code to generate demographics from your "nodes.csv" file (you may need to edit the path to input_dir inside manifest.py)
     ```python
     demog = Demographics.from_csv(input_file = os.path.join(manifest.input_dir,"demographics","nodes.csv"), 
                                                             id_ref="EXAMPLE", 
