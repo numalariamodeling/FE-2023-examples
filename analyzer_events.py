@@ -2,7 +2,7 @@ import os
 import re
 import pandas as pd
 import numpy as np
-
+import manifest
 from idmtools.analysis.csv_analyzer import CSVAnalyzer, IAnalyzer
 from idmtools.entities.simulation import Simulation
 
@@ -15,12 +15,9 @@ class EventCounterAnalyzer(IAnalyzer):
         self.nodes = nodes 
         self.sweep_variables = sweep_variables
         self.events = events 
-        self.output_fname = os.path.join(self.working_dir,exp_id,'CountedEvents.csv')
+        self.output_fname = os.path.join(self.working_dir,'CountedEvents.csv')
         self.start_day = start_day
-        
-         # make sure output folder exists
-        if not os.path.exists(os.path.join(self.working_dir,exp_id)):
-            os.makedirs(os.path.join(self.working_dir,exp_id))
+    
     
     def map(self, data, simulation: Simulation):
         node_id = re.findall(r'\d+', self.filenames[0])[0]
@@ -90,7 +87,7 @@ class EventRecorderAnalyzer(CSVAnalyzer):
         self.output_fname = os.path.join(self.working_dir, f"RecordedEvents.csv")
 
         # make sure output folder exists
-        os.makedirs(os.path.join(self.working_dir, 'events'), exist_ok=True)
+        #os.makedirs(os.path.join(self.working_dir, 'events'), exist_ok=True)
 
     def map(self, data, simulation: Simulation):
         # we have to parse our data first since it will be a raw set of binary data
@@ -136,13 +133,12 @@ if __name__ == "__main__":
     from idmtools.core import ItemType
     from idmtools.core.platform_factory import Platform
     
-    expts = {'FE_spatial_example': 'b7f46748-ed21-48b5-8eb3-6e0fee6d1487'}
+    expts = {'FE_Example': '4a8d05e9-64de-4d30-bda3-2e4ae46a3c5c'}
     
     jdir = manifest.job_directory
-    wdir=os.path.join(jdir, 'my_outputs')
-    out_path = wdir
-    if not os.path.exists(out_path):
-        os.mkdir(out_path)
+    wdir=os.path.join(jdir, 'my_outputs','spatial')
+    if not os.path.exists(wdir):
+        os.makedirs(wdir)
     sweep_variables = ['Run_Number','xTLH']
     events = ['Received_ITN', 'Received_Treatment']
     
@@ -154,7 +150,7 @@ if __name__ == "__main__":
                                              sweep_variables = sweep_variables, 
                                              nodes = ["1","2","3","17"], 
                                              events = events,
-                                             working_dir = out_path,
+                                             working_dir = wdir,
                                              start_day = (10-3)*365)]
             
             # Create AnalyzerManager with required parameters
