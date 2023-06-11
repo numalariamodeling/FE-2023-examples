@@ -15,12 +15,11 @@ library(data.table)
 
 ```{r}
 # Input path (yours may differ)
-exp_id <- 'b7f46748-ed21-48b5-8eb3-6e0fee6d1487'
-root <- paste('simulation_output','FE_Example',exp_id,sep='/')
+root <- paste('experiments','my_outputs','spatial',sep='/')
 
 ### Load Files
 events <- fread(paste(root,"CountedEvents.csv", sep='/'))
-malaria_channels <- fread(paste(root,"SpatialReportMalariaFiltered.csv",sep='/'))
+malaria_channels <- fread(paste(root,"SpatialReportMalariaFiltered_all_ages.csv",sep='/'))
 
 ### Align Column Names
 colnames(events) <- tolower(colnames(events))
@@ -47,4 +46,3 @@ df %>%
 ### Save plot
 ggsave(paste(root,'SpatialSummary.png',sep = '/'))
 ```
-
