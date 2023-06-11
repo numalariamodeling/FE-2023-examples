@@ -49,7 +49,7 @@ from utils_slurm import build_burnin_df
 user = os.getlogin()                                 # username for paths & naming files
 tag = 'spatial_sim'                     # label for experiment
 phase = 'pickup'                                     # burnin or pickup?
-burnin_id = 'f961b8a6-8bf1-4a2c-97c9-49c91a05ff18'   # experiment id containing serialized population (required for pickup)
+burnin_id = 'e71c708c-8a95-43e0-8753-cec161585669'   # experiment id containing serialized population (required for pickup)
 
 burnin_years = 30        
 pickup_years = 10      
@@ -78,7 +78,7 @@ def set_param_fn(config):
     # Vectors
     conf.add_species(config, manifest, ["gambiae"])
     # Climate
-    climate_root = os.path.join('climate','FE_example', '2019001-2019365')
+    climate_root = os.path.join('climate','FE_EXAMPLE', '2019001-2019365')
     config.parameters.Air_Temperature_Filename = os.path.join(climate_root,'dtk_15arcmin_air_temperature_daily.bin')
     config.parameters.Land_Temperature_Filename = os.path.join(climate_root, 'dtk_15arcmin_air_temperature_daily.bin')
     config.parameters.Rainfall_Filename = os.path.join(climate_root, 'dtk_15arcmin_rainfall_daily.bin')
@@ -201,7 +201,7 @@ def build_demog():
     This function builds a demographics input file for the DTK using emod_api.
     """
     # From input file csv #
-    demog = Demographics.from_csv(input_file = os.path.join(manifest.input_dir,"demographics","FE_example_nodes.csv"), id_ref="FE_example", init_prev = 0.01, include_biting_heterogeneity = True)
+    demog = Demographics.from_csv(input_file = os.path.join(manifest.input_dir,"demographics","FE_example_nodes.csv"), id_ref="FE_EXAMPLE", init_prev = 0.01, include_biting_heterogeneity = True)
     demog.SetEquilibriumVitalDynamics()
     age_distribution = Distributions.AgeDistribution_SSAfrica
     demog.SetAgeDistribution(age_distribution)
@@ -276,12 +276,18 @@ def general_sim(selected_platform):
       # Report over last 3 years
       start_report = (pickup_years-3)*365
       end_report = pickup_years*365
-      # add report event recorder #
-      add_event_recorder(task, event_list=["Received_ITN", "Received_Treatment"],
-                       start_day=start_report, 
-                       end_day=end_report, 
-                       min_age_years=0.25,
-                       max_age_years=100)            
+      demo_df = pd.read_csv(os.path.join(manifest.input_dir, "demographics", "FE_example_nodes.csv"))
+      # Event Counter Reports
+      for node in demo_df['node_id']:
+          add_report_event_counter(task, manifest,
+                                   start_day = start_report,
+                                   end_day = end_report,
+                                   node_ids = [node],
+                                   min_age_years = 0,
+                                   max_age_years = 100,
+                                   event_trigger_list = ["Received_ITN", "Received_Treatment"],
+                                   filename_suffix = "_".join(("node",str(node))))
+           
       # filtered spatial malaria report
       add_spatial_report_malaria_filtered(task, manifest, 
                                           start_day = start_report, end_day = end_report, 
