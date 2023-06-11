@@ -1,5 +1,6 @@
 import struct
 import numpy as np
+import manifest
 
 # Defines SpatialOutput Class #
 ###############################
@@ -111,17 +112,17 @@ class SpatialAnalyzer(IAnalyzer):
         self.parse = False
         self.sweep_variables = sweep_variables or ['Run_Number', 'x_Temporary_Larval_Habitat']
         self.spatial_channels = spatial_channels
-        self.output_fname = os.path.join(self.working_dir, 'spatial_output',self.dir_name, f"{self.f_base}_{self.f_suffix}.csv")
+        self.output_fname = os.path.join(self.working_dir, f"{self.f_base}_{self.f_suffix}.csv")
         self.snapshot = snapshot
         
 
         # make sure output folder exists
-        os.makedirs(os.path.join(self.working_dir, 'spatial_output', self.dir_name), exist_ok=True)
+        #os.makedirs(os.path.join(self.working_dir, 'spatial_output', self.dir_name), exist_ok=True)
 
     def map(self, data, simulation: Simulation):
         # we have to parse our data first since it will be a raw set of binary data
         for ch in self.spatial_channels:
-            fn = f'output/{self.f_base}{self.f_suffix}_{ch}.bin'
+            fn = f'output/{self.f_base}_{self.f_suffix}_{ch}.bin'
             data[fn] = SpatialOutput.from_bytes(data[fn], 'Filtered' in fn).to_dict()
         simdata = construct_spatial_output_df(data[f'output/{self.f_base}_{self.f_suffix}_{self.spatial_channels[0]}.bin'], self.spatial_channels[0])
         if len(self.spatial_channels) > 1:
@@ -175,14 +176,14 @@ if __name__ == "__main__":
     ## Experiments Dictionary ##
     ############################
     # {'experiment label' : 'exp_id'}
-    expts = {'FE_example' : '9729c597-1161-4631-a222-ac1be450887c'}
+    expts = {'FE_example' : '4a8d05e9-64de-4d30-bda3-2e4ae46a3c5c'}
     ## Paths ##
     ###########
     # experiments folder
     jdir = manifest.job_directory
-    wdir = os.path.join(jdir, 'my_outputs', 'baseline')
+    wdir = os.path.join(jdir, 'my_outputs', 'spatial')
     if not os.path.exists(wdir):
-        os.mkdir(wdir)
+        os.makedirs(wdir)
     ## Analyzer Specifications ##
     #############################
     # Grouping variables (for each node & timestep)
