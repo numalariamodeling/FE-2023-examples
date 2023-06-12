@@ -224,14 +224,9 @@ def general_sim(selected_platform):
     # Platform #
     ############
     # Set platform and associated values, such as the maximum number of jobs to run at one time
-    if(phase=="burnin"):
-      # Use b1139 for longer simulations (do not exveed 100 max_running_jobs)
-      platform = Platform(selected_platform, job_directory=manifest.job_directory, partition='b1139', time='6:00:00',
-                            account='b1139', modules=['singularity'], max_running_jobs=100)
-    if(phase=="pickup"):
-      # Use p30781 for a high # of relatively short simulations
-      platform = Platform(selected_platform, job_directory=manifest.job_directory, partition='short', time='4:00:00',
-                            account='p30781', modules=['singularity'], max_running_jobs=1000)
+    # Use b1139 for longer simulations (do not exveed 100 max_running_jobs)
+    platform = Platform(selected_platform, job_directory=manifest.job_directory, partition='b1139', time='6:00:00',
+                        account='b1139', modules=['singularity'], max_running_jobs=100)
     # Task #
     ########
     # create EMODTask #
