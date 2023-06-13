@@ -1,0 +1,48 @@
+---
+title: "Plot Spatial Example Exercise"
+author: "Tobias Holden"
+date: "5/1/2023"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(data.table)
+```
+
+```{r}
+# Input path (yours may differ)
+root <- paste('experiments','my_outputs','spatial',sep='/')
+
+### Load Files
+events <- fread(paste(root,"CountedEvents.csv", sep='/'))
+malaria_channels <- fread(paste(root,"SpatialReportMalariaFiltered_all_ages.csv",sep='/'))
+
+### Align Column Names
+colnames(events) <- tolower(colnames(events))
+colnames(malaria_channels) <- tolower(colnames(malaria_channels))
+
+### Join datasets by time and node
+df <- inner_join(events, malaria_channels)
+
+### Plot Summary
+
+df %>% 
+  gather(key = "variable", value="value", -c(node, time, run_number, xtlh, experiment)) %>%
+  group_by(time, node, xtlh, variable) %>%
+  summarize(value = mean(value)) %>%
+  mutate(node = paste("Node",node),
+         variable=gsub("_","\n",variable)) %>%
+  ggplot(aes(x=time, y=value)) +
+  geom_path(aes(group=xtlh, color=xtlh)) +
+  facet_grid(variable~node, scales="free") +
+  scale_color_distiller(palette = "Spectral") +
+  ylab("Average Value") +
+  theme_minimal()
+
+### Save plot
+ggsave(paste(root,'SpatialSummary.png',sep = '/'))
+```
