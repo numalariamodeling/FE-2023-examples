@@ -1138,7 +1138,7 @@ This will produce a file inside `/OUTPUTS_FOLDER/SUBFOLDER/CountedEvents.csv' wi
 
 **Part 4. Plot Spatial Results**
 
-1. Open 'plot_spatial_example.rmd'  
+1. Open 'spatial_plotter.rmd'  
 2. Update the `root` in the first chunk with the path to folder containing the `SpatialReportMalariaFiltered.csv` and `CountedEvents.csv` generated above. This is also where the output plot will be saved. 
 3. Run the `spatial_plotter.rmd` file
 
