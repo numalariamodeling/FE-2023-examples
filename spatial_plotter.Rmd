@@ -1,7 +1,7 @@
 ---
 title: "Plot Spatial Example Exercise"
 author: "Tobias Holden"
-date: "5/1/2023"
+date: "6/14/2023"
 output: html_document
 editor_options: 
   chunk_output_type: console
@@ -31,13 +31,13 @@ df <- inner_join(events, malaria_channels)
 ### Plot Summary
 
 df %>% 
-  gather(key = "variable", value="value", -c(node, time, run_number, xtlh, experiment)) %>%
-  group_by(time, node, xtlh, variable) %>%
+  gather(key = "variable", value="value", -c(node, time, run_number, x_temporary_larval_habitat, experiment)) %>%
+  group_by(time, node, x_temporary_larval_habitat, variable) %>%
   summarize(value = mean(value)) %>%
   mutate(node = paste("Node",node),
          variable=gsub("_","\n",variable)) %>%
   ggplot(aes(x=time, y=value)) +
-  geom_path(aes(group=xtlh, color=xtlh)) +
+  geom_path(aes(group=x_temporary_larval_habitat, color=x_temporary_larval_habitat)) +
   facet_grid(variable~node, scales="free") +
   scale_color_distiller(palette = "Spectral") +
   ylab("Average Value") +
