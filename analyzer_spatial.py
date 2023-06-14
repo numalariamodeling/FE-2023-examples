@@ -187,7 +187,7 @@ if __name__ == "__main__":
     ## Analyzer Specifications ##
     #############################
     # Grouping variables (for each node & timestep)
-    sweep_variables = ['Run_Number', 'xTLH']   
+    sweep_variables = ['Run_Number', 'x_Temporary_Larval_Habitat']   
     # Outputs to analyze - must have been requested during simulation
     spatial_channels = ['Population',           
                         'PCR_Parasite_Prevalence',
