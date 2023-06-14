@@ -861,11 +861,11 @@ Most of the time, we consider our geographical units of interest (the 'nodes' - 
 
 We will cover advanced applications of spatial modeling in another exercise. This exercise will allow you to practice combining parts from previous examples to run a simple spatial simulation and produce spatial outputs. Afterward, you can add code to introduce migration between nodes, and see how that changes things, but we will not deal with this in any detail here.
 
-**Part 1. Run Spatial Simulations**
+**Part 1. Setup Inputs**
 
 1. Create a spreadsheet **nodes.csv** with the columns *node_id*, *lat*, *lon*, and *pop*. EMODpy will be expecting these column names! <br>
         - This spreadsheet will be used to generate the climate and demographics files later  
-        - save the file inside your `project directory/simulation_inputs/demographics`
+        - save the file inside a new folder inside `/inputs/demographics`
 2. Fill in the spreadsheet with the information for 4 nodes
 
     Example:
@@ -896,10 +896,10 @@ def get_climate(tag = "default", start_year="2015", start_day="001", end_year="2
     end = "".join((end_year,end_day))     
     
     # Demographics
-    demo = "".join(("simulation_inputs/demographics/",demo_fname))
+    demo = "".join(("inputs/demographics/",demo_fname))
     
     # Output folder to store climate files
-    dir1 = "/".join(("simulation_inputs/climate",tag,"-".join((start,end))))
+    dir1 = "/".join(("inputs/climate",tag,"-".join((start,end))))
     
     if os.path.exists(dir1):
         print("Path already exists. Please check for existing climate files.")
@@ -925,22 +925,27 @@ def get_climate(tag = "default", start_year="2015", start_day="001", end_year="2
         df.to_csv(csv_file)
 
 if __name__ == "__main__":
-    get_climate(tag="EXAMPLE", start_year="2019", end_year="2019", demo_fname="nodes.csv")
+    get_climate(tag="FE_EXAMPLE", start_year="2019", end_year="2019", demo_fname="nodes.csv")
 ```
 
-Now, referring to the scripts you wrote for previous examples, you should be able to start with a blank `run_spatial.py` and outline - or in some cases complete - the code sections needed to:  
+We will reference the generated climate files later inside `set_param_fn()` and via `Task.common_assets.add_directory` inside `general_sim()`.
+	
+	
+**Part 1. Run Spatial Simulations**
+	
+Now, referring to the scripts you wrote for previous examples, you should be able to start with a blank `run_spatial.py` and outline - or in some cases complete - the code sections needed to run simulations, with the following **additional specifications**:  
 
-4. Import modules  
-5. **Set Configuration Parameters**  
+1. Import modules  
+2. **Set Configuration Parameters**  
     - You can keep the simulation duration short (1-2 years) while testing / debugging.  
-    - Add vectors
+    - Remember to add vectors
         -  `conf.add_species(config, manifest, ["gambiae", "arabiensis", "funestus"])`
         
-6. **Sweep configuration parameters**  
-7. **Build campaign**  
-8. Sweep campaign parameters (optional for this exercise)  
-9. Serialize burnin & pickup  
-10. **Build demographics**   
+3. **Sweep configuration parameters**  
+4. **Build campaign**  
+5. Sweep campaign parameters (optional for this exercise)  
+6. Serialize burnin & pickup  
+7. **Build demographics**   
     a. inside `build_demog()` use  this code to generate demographics from your "nodes.csv" file (you may need to edit the path to input_dir inside manifest.py)
     ```python
     demog = Demographics.from_csv(input_file = os.path.join(manifest.input_dir,"demographics","nodes.csv"), 
@@ -949,10 +954,10 @@ Now, referring to the scripts you wrote for previous examples, you should be abl
                                                             include_biting_heterogeneity = True)
     # NOTE: The id_ref used to generate climate and demographics must match!
     ```
-11. **Run Experiment [`general_sim()`]**  
+8. **Run Experiment [`general_sim()`]**  
     a. Set platform  
     b. Create EMODTask  
-    c. Set singularity image  
+    c. Set singularity image  (using `set_sif()`)
     d. Add weather directory asset  
     e. Use `SimulationBuilder()`  
     f. **Reports**  
@@ -963,7 +968,7 @@ Now, referring to the scripts you wrote for previous examples, you should be abl
 *Burnin*  
 
 - Duration: 30 years  
-- Vary `x_Temporary_Larval_Habitat` using  `update_campaign_param()` 
+- Vary `x_Temporary_Larval_Habitat` using  `set_param()` 
     - `np.logspace(0,1,10)` will use 10 evenly log-spaced values between 10<sup>0</sup> and 10<sup>1</sup> (1-10x)
 - No interventions  
 - 1 stochastic realization / random seed
@@ -979,13 +984,44 @@ Now, referring to the scripts you wrote for previous examples, you should be abl
     - One node receives ITNs every 3 years only  
     - One node receives no interventions
     - *Note: For simplicity, you can choose fixed "optimal" coverages (~80%) for these interventions, instead of sweeping over these campaign parameters.* 
+    - ℹ️ To add ITNs (in Nodes 1 and 3, in mid-June for example):
+	```python
+	import emodpy_malaria.interventions.bednet as itn
+	
+	def build_camp(...):
+	   ....
+		### ITN Distributions in nodes 1 and 3, for example ###
+      		itn.add_itn_scheduled(camp, 
+                            	      start_day = 165, 
+                                      demographic_coverage = 0.9, 
+                                      repetitions = 4, 
+                                      timesteps_between_repetitions = 365*3, 
+                                      node_ids = [1,3],
+                                      receiving_itn_broadcast_event= "Received_ITN",
+				      killing_initial_effect = 0.7,
+                            	      killing_box_duration = 180,
+                            	      killing_decay_time_constant = 90)
+	    ...
+	```
 - 10 stochastic realizations / random seeds each (sweep over `Run_Number`)  
 - add Filtered Spatial Reports and Event Counters to outputs, inside `general_sim()`   
     - `add_spatial_report_malaria_filtered(...)`  
-        - Filter to final year 3 years of the simulation  
+        - Only report on the last 3 years of the simulation   
         - For a daily report, use `reporting_interval = 1`  
         - Filter to ages 0.25-100  
-        - include spatial_output_channels 'Population', 'PCR_Parasite_Prevalence', and 'New_Clinical_Cases' (though any InsetChart Channels will work)  
+        - include spatial_output_channels 'Population', 'PCR_Parasite_Prevalence', and 'New_Clinical_Cases' (though any InsetChart Channels will work)
+	  ```python
+	  add_spatial_report_malaria_filtered(task, manifest, 
+					      start_day = start_report, end_day = end_report,
+	                                      reporting_interval = 1, 
+					      node_ids =None, 
+					      min_age_years = 0.25, max_age_years = 100, 
+					      spatial_output_channels = ["Population",
+									 "PCR_Parasite_Prevalence",
+									 "New_Clinical_Cases"] ,
+					      filename_suffix = "all_ages")
+	  ```
+	
     - Use the code below to `add_report_event_counter(...)` **by node** 
         - the `event_trigger_list` should include 'Received_Treatment' and 'Received_ITN'  
         - *Note: These events need to be added to `config.parameters.Custom_Individual_Events=[...]` inside `set_param_fn()` as well.*
@@ -1004,11 +1040,11 @@ Now, referring to the scripts you wrote for previous examples, you should be abl
         
           ```
         
-**Part 2. Analyze Spatial Simulations** 
+**Part 3. Analyze Spatial Simulations** 
 
 To analyze the `SpatialReportMalariaFiltered_.bin` files generated for each channel and simulation, use the script `analyzer_spatial.py`
 
-Edit **only** the following lines at the bottom of the script before running:
+Edit **only** the section at the bottom of the script before running:
 
 ```python
 ...
@@ -1022,49 +1058,26 @@ if __name__ == "__main__":
     ## Experiments Dictionary ##
     ############################
     # {'experiment label' : 'exp_id'}
-    expts = {'FE_example' : '9729c597-1161-4631-a222-ac1be450887c'}
+    expts = {'<EXPERIMENT_LABEL>' : '<EXPERIMENT_ID>'}
    
     ## Paths ##
     ###########
     # experiments folder
     jdir =  manifest.job_directory
     # output folder
-    wdir=os.path.join(jdir,'my_outputs', 'baseline')
+    wdir=os.path.join(jdir,'<OUTPUTS_FOLDER>', '<SUBFOLDER>')
     if not os.path.exists(wdir):
         os.mkdir(wdir) 
-    ## Analyzer Specifications ##
-    #############################
-    # Grouping variables (for each node & timestep)
-    sweep_variables = ['Run_Number', 'xTLH']   
-    # Outputs to analyze - must have been requested during simulation
-    spatial_channels = ['Population',           
-                        'PCR_Parasite_Prevalence',
-                        'New_Clinical_Cases']
+
     ...
     
-    ## Run Analyzer ##
-    ##################
-    with Platform('SLURM_LOCAL',job_directory=jdir) as platform:
-        for expt_name, exp_id in expts.items():
-            analyzer = [SpatialAnalyzer(dir_name=expt_name,
-                                        f_base = report_type,
-                                        f_suffix = report_suffix,
-                                        exp_id = exp_id,
-                                        spatial_channels=spatial_channels,
-                                        sweep_variables=sweep_variables,
-                                        working_dir=wdir)]      
-            # Create AnalyzerManager with required parameters
-            manager = AnalyzeManager(configuration={},ids=[(exp_id, ItemType.EXPERIMENT)],
-                                     analyzers=analyzer, partial_analyze_ok=True)
-            # Run analyze
-            manager.analyze()
 ```
 
 This will produce a file inside `working_dir/my_outputs/experiment_name/SpatialReportMalariaFiltered.csv` with columns:  
 * Time
 * Node
 * Run_Number
-* xTLH
+* x_Temporary_Larval_Habitat
 * Population
 * PCR_Parasite_Prevalence
 * New_Clinical_Cases
@@ -1083,47 +1096,47 @@ if __name__ == "__main__":
     ...
     ...
     
-    expts = {'experiment_name': '######-exp-id-#####'}
-    # input directory
+    ## Experiments Dictionary ##
+    ############################
+    # {'experiment label' : 'exp_id'}
+    expts = {'<EXPERIMENT_LABEL>' : '<EXPERIMENT_ID>'}
+   
+    ## Paths ##
+    ###########
+    # experiments folder
     jdir =  manifest.job_directory
-    # output directory
-    wdir=os.path.join(jdir,'my_outputs', 'eventReports')
+    # output folder
+    wdir=os.path.join(jdir,'<OUTPUTS_FOLDER>', '<SUBFOLDER>')
     if not os.path.exists(wdir):
-        os.mkdir(wdir)
-    # Grouping variables (besides time and node)
-    sweep_variables = ['Run_Number','xTLH']
-    # Events to capture
-    events = ['Received_ITN', 'Received_Treatment']
-    
+        os.mkdir(wdir) 
+    ...
+	
     with Platform('SLURM_LOCAL',job_directory=jdir) as platform:
         for expname, exp_id in expts.items():  
             
             analyzer = [EventCounterAnalyzer(exp_name = expname, 
                                              exp_id = exp_id, 
                                              sweep_variables = sweep_variables, 
-                                             nodes = ["1","2","3","17"], 
+	############### UPDATE THIS LINE TO MATCH YOUR NODE IDS ###############
+                                             nodes = ["1","2","3","17"],
+	#######################################################################
                                              events = events,
                                              working_dir = wdir)]
-            
-            # Create AnalyzerManager with required parameters
-            manager = AnalyzeManager(configuration={},ids=[(exp_id, ItemType.EXPERIMENT)],
-                                     analyzers=analyzer, partial_analyze_ok=True)
-            # Run analyze
-            manager.analyze()
+    ...
    
 
 ```
 
-This will produce a file inside `working_dir/my_outputs/experiment_name/CountedEvents.csv' with columns:  
+This will produce a file inside `/OUTPUTS_FOLDER/SUBFOLDER/CountedEvents.csv' with columns:  
 * Time  
 * Node  
 * Run_Number  
-* xTLH  
+* x_Temporary_Larval_Habitat 
 * Received Treatment  
 * Received ITN  
 
 
-**Part 3. Plot Spatial Results**
+**Part 4. Plot Spatial Results**
 
 1. Open 'plot_spatial_example.rmd'  
 2. Update the `root` in the first chunk with the path to folder containing the `SpatialReportMalariaFiltered.csv` and `CountedEvents.csv` generated above. This is also where the output plot will be saved. 
