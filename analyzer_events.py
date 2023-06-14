@@ -139,7 +139,7 @@ if __name__ == "__main__":
     wdir=os.path.join(jdir, 'my_outputs','spatial')
     if not os.path.exists(wdir):
         os.makedirs(wdir)
-    sweep_variables = ['Run_Number','xTLH']
+    sweep_variables = ['Run_Number','x_Temporary_Larval_Habitat']
     events = ['Received_ITN', 'Received_Treatment']
     
     with Platform('SLURM_LOCAL',job_directory=jdir) as platform:
