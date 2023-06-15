@@ -989,19 +989,17 @@ Now, referring to the scripts you wrote for previous examples, you should be abl
 	import emodpy_malaria.interventions.bednet as itn
 	
 	def build_camp(...):
-	   ....
-		### ITN Distributions in nodes 1 and 3, for example ###
-      		itn.add_itn_scheduled(camp, 
-                            	      start_day = 165, 
-                                      demographic_coverage = 0.9, 
-                                      repetitions = 4, 
-                                      timesteps_between_repetitions = 365*3, 
-                                      node_ids = [1,3],
-                                      receiving_itn_broadcast_event= "Received_ITN",
-				      killing_initial_effect = 0.25,
-                            	      killing_decay_time_constant = 1460,
-				      blocking_initial_effect = 0.75,
-				      blocking_decay_time_constant = 730)
+	     ### ITN Distributions in nodes 1 and 3, for example ###
+      	     itn.add_itn_scheduled(camp, start_day = 165, 
+				   demographic_coverage = 0.9, 
+				   repetitions = 4, 
+				   timesteps_between_repetitions = 365*3, 
+				   node_ids = [1,3],
+				   receiving_itn_broadcast_event= "Received_ITN",
+				   killing_initial_effect = 0.25,
+				   killing_decay_time_constant = 1460,
+				   blocking_initial_effect = 0.75,
+				   blocking_decay_time_constant = 730)
 	    ...
 	```
 - 10 stochastic realizations / random seeds each (sweep over `Run_Number`)  
@@ -1014,12 +1012,12 @@ Now, referring to the scripts you wrote for previous examples, you should be abl
 	  ```python
 	  add_spatial_report_malaria_filtered(task, manifest, 
 					      start_day = start_report, end_day = end_report,
-	                                      reporting_interval = 1, 
-					      node_ids =None, 
+					      reporting_interval = 1, 
+					      node_ids =None,
 					      min_age_years = 0.25, max_age_years = 100, 
 					      spatial_output_channels = ["Population",
 									 "PCR_Parasite_Prevalence",
-									 "New_Clinical_Cases"] ,
+									 "New_Clinical_Cases"],
 					      filename_suffix = "all_ages")
 	  ```
 	
