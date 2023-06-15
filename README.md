@@ -998,9 +998,10 @@ Now, referring to the scripts you wrote for previous examples, you should be abl
                                       timesteps_between_repetitions = 365*3, 
                                       node_ids = [1,3],
                                       receiving_itn_broadcast_event= "Received_ITN",
-				      killing_initial_effect = 0.7,
-                            	      killing_box_duration = 180,
-                            	      killing_decay_time_constant = 90)
+				      killing_initial_effect = 0.25,
+                            	      killing_decay_time_constant = 1460,
+				      blocking_initial_effect = 0.75,
+				      blocking_decay_time_constant = 730)
 	    ...
 	```
 - 10 stochastic realizations / random seeds each (sweep over `Run_Number`)  
