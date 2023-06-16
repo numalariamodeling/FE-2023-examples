@@ -636,3 +636,514 @@ Les propriétés individuelles permettent de catégoriser et d'ajouter de l'hét
 De même, le dernier exercice de cette semaine se concentrera sur les simulations spatiales qui permettent d'avoir plusieurs nœuds distincts dans notre configuration expérimentale. Dans de nombreux cas, nous n'avons pas besoin de nœuds multiples car nous nous concentrons sur une zone particulière, mais il arrive que nous nous intéressions à plusieurs zones, notamment différentes, pour les mêmes questions et que nous souhaitions maintenir leurs relations spatiales, en particulier la migration des hôtes humains et des moustiques. Dans ce cas, nous pouvons ajouter une configuration spatiale au modèle qui fonctionnera en grande partie de la même manière que les nœuds individuels, mais à plusieurs endroits.
 
 **Instructions**
+
+Cliquez sur la flèche pour développer :
+<details><summary><span><em>Adding Interventions</em></span></summary>
+<p>
+
+Lorsque nous commençons à envisager d'ajouter des interventions à nos simulations, nous devons également réfléchir à la manière de construire la chronologie. Cela s'avère particulièrement utile dans le cadre d'un projet, car il est possible de faire correspondre des sites spécifiques avec des données sur l'incidence et la prévalence, le moment où les interventions ont été mises en œuvre (et lesquelles), etc. Pour l'instant, pensons-y plus simplement, en nous appuyant sur ce que nous avons appris la semaine dernière. Nous voudrons d'abord initialiser la population par une brûlure de 50 ans sans aucune intervention. Augmentez la taille de votre population à 1000 pour 5 répliques et relancez le burnin pendant que vous travaillez sur les scripts de cet exercice (le pickup).
+
+- Copiez le script `run_example_pickup.py` que vous avez créé la semaine dernière, renommez-le `run_example_pickup_CM.py`. *Note : nous ajoutons des interventions à un pickup dans cet exemple, mais vous n'avez pas besoin de sérialiser pour utiliser des interventions, des propriétés individuelles, ou des simulations multi-noeuds.*
+- Vous devrez importer les fonctionnalités de recherche de traitement/gestion de cas dans votre script à partir d'emodpy-malaria afin d'utiliser cette fonction d'intervention :
+  ```python
+  import emodpy_malaria.interventions.treatment_seeking as cm
+  ```
+
+- Une fois que vous avez importé les fonctions de gestion de cas, vous pouvez les ajouter à votre fonction `build_camp()`. Nous utiliserons `add_treatment_seeking()` en particulier - cette fonction transmet tous les paramètres importants pour la gestion des cas à notre fichier de campagne plus large. Il existe un petit ensemble de paramètres que nous utilisons couramment, ci-dessous, mais pour voir tous les contrôles disponibles, vous pouvez explorer le [code source](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/interventions/treatment_seeking.py).
+    - `start_day` : indique quand l'intervention doit commencer par rapport au début de la simulation. Ceci est particulièrement utile lorsque vous souhaitez que les interventions commencent à des moments différents dans les simulations.
+    - `drug` : indique quels médicaments doivent être utilisés pour la gestion des cas. L'artéméther et la luméfantrine sont les médicaments par défaut, mais tous les médicaments disponibles sont définis dans [`malaria_drug_params`](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/malaria_drug_params.csv) d'emodpy-malaria.
+    - `targets` : contrôle les populations cibles et les déclencheurs pour la gestion des cas. Vous remarquerez que nous utilisons généralement les événements `NewClinicalCase` et `NewSevereCase` pour déclencher la gestion des cas. Nous pouvons également ajouter des niveaux de couverture et des cibles d'âge minimum/maximum. Dans cet exemple, nous supposons que nous avons un certain niveau de gestion des cas pour les enfants de moins de 5 ans (U5) et que nous réduisons la couverture de toutes les personnes âgées de plus de 5 ans à 75 % de la couverture U5. Nous supposons également que la couverture des cas graves (tous âges confondus) est de 115 % de la couverture U5, jusqu'à un maximum de 100 %. Cela signifie que nous devrons ajouter plusieurs dictionnaires cibles à notre paramètre cible afin de couvrir les deux groupes. Enfin, le dictionnaire cible inclut également la recherche (le taux de retard, en 1/jours, dans la recherche de soins) et le taux (le taux de retard, en jours, entre le moment où l'on recherche des soins et celui où l'on reçoit des soins, généralement 0,3 pour les cas non compliqués, ce qui signifie qu'il y a un retard de trois jours en moyenne).  
+    
+      | Moins de 5 ans (cm_cov_u5) | Plus de 5 ans | Grave |
+	    |:-------:|:------:|:-----:|
+	    | 80% |60% | 92% |
+	    | ... | ... | ... |
+    
+		❓ Sur la base de cet exemple, **quels seraient les niveaux de couverture de la prise en charge des cas supérieurs à 5 et graves pour une couverture des cas inférieurs à 5 de 100 % ?**  
+		
+		❓ **Qu'en est-il de 0 %?**
+		
+    - `broadcast_event_name` : indique le nom de l'événement à diffuser lors de chaque événement à des fins de reporting. Ceci est particulièrement utile si vous avez des versions multiples ou changeantes de la même intervention, comme l'utilisation de différents médicaments de gestion de cas, dans une seule simulation.
+- Ajoutez la gestion de cas à votre fonction `build_camp()` en utilisant le script ci-dessous. Remarquez que nous incluons `cm.` avant `add_treatment_seeking()` - c'est parce que nous avons importé cette fonction en tant que `cm`, il est donc utile de la référencer pour s'assurer que nous utilisons bien la fonction que nous pensons utiliser. Vous remarquerez également que nous ajoutons `cm_cov_U5=0.80` et `cm_start=1` aux arguments que `build_camp()` prend - nous faisons cela pour pouvoir lui passer les valeurs d'un balayage sur la couverture et la date de début de la gestion des cas plus tard dans le script. Les valeurs incluses sont des valeurs par défaut que vous pouvez ajuster si nécessaire, mais elles sont disponibles pour que vous n'ayez pas à fournir une valeur de balayage si cela n'est pas nécessaire.
+
+  ```python
+  def build_camp(cm_cov_U5=0.80, cm_start = 1) :
+
+      camp.schema_path = manifest.schema_file
+
+      # Ajouter la gestion des cas
+      # Cet exemple suppose que les adultes chercheront à se faire soigner 75 % plus souvent que les U5 et que les cas graves chercheront à se faire soigner 15 % plus souvent que les U5 (jusqu'à une couverture de 100 %).
+      cm.add_treatment_seeking(camp, start_day=cm_start, drug=['Artemether', 'Lumefantrine'],
+                        targets=[{'trigger' : 'NewClinicalCase', 'coverage' : cm_cov_U5, 
+                                  'agemin' : 0, 'agemax' : 5,
+                                  'seek' : 1, 'rate' : 0.3},
+                                 {'trigger' : 'NewClinicalCase', 'coverage' : cm_cov_U5*0.75, 
+                                  'agemin' : 5, 'agemax' : 115,
+                                  'seek' : 1, 'rate' : 0.3},
+                                 {'trigger' : 'NewSevereCase', 'coverage' : min(cm_cov_U5*1.15,1), 
+                                  'agemin' : 0, 'agemax' : 115,
+                                  'seek' : 1, 'rate' : 0.5}],
+                        broadcast_event_name="Received_Treatment")            
+                       
+      return camp
+  ```
+
+
+	
+- Pour faciliter le balayage de plusieurs paramètres de campagne à la fois, nous allons également ajouter une fonction pour mettre à jour ces valeurs ensemble après `build_camp()`. Dans cette fonction de mise à jour, nous incluons une partie de `build_camp()` qui prend des valeurs pour les deux variables que nous avons définies dans la dernière étape. Elle crée ensuite la campagne pour une simulation particulière à partir d'un rappel de la fonction partielle. Enfin, cette fonction renvoie un dictionnaire des paramètres et des valeurs que nous mettons à jour ici pour ajouter une étiquette pour chacun d'entre eux aux métadonnées de la simulation.
+  ```python
+  def update_campaign_multiple_parameters(simulation, cm_cov_U5, cm_start) :
+
+      build_campaign_partial = partial(build_camp, cm_cov_U5=cm_cov_U5, cm_start=cm_start)
+      simulation.task.create_campaign_from_callback(build_campaign_partial)
+    
+      return dict(cm_cov_U5=cm_cov_U5, cm_start=cm_start)
+  ```
+
+- Comme nous l'avons vu dans l'exercice de la semaine dernière sur l'ajout de balayages de paramètres, nous aurons besoin d'ajouter un balayage au constructeur dans `general_sim()` pour la campagne en plus des paramètres de configuration. Cependant, cette fois-ci, nous devrons utiliser `add_multiple_parameter_sweep_definition()` au lieu de `add_sweep_definition()` puisque nous mettons à jour à la fois la couverture et le jour de début. Si vous utilisiez `add_sweep_definition` directement avec un partial de `build_camp()` pour chaque paramètre individuellement, la seconde fois que vous appellerez le partial, il écrasera le premier et donc un seul paramètre sera mis à jour. D'un autre côté, `add_multiple_parameter_sweep_definition()` nous permet de balayer l'ensemble de l'espace des paramètres de manière croisée. Elle prend notre fonction de mise à jour et nous fournissons un dictionnaire de nos paramètres et leur liste de valeurs que nous voulons balayer. Nous allons balayer trois valeurs de couverture (0, 50 % et 95 %) et trois dates de début d'intervention (1, 100 et 365). Pour l'instant, il s'agit de valeurs relativement arbitraires destinées à illustrer la fonctionnalité d'EMOD. Dans cet exemple, nous obtiendrons 3x3x5 = 45 simulations totales (niveaux de couverture x jours de début x numéros d'exécution) qui modélisent chaque combinaison unique de paramètres.
+
+    ℹ️ 
+    
+    | Moins de 5 ans (cm_cov_u5) | Plus de 5 ans | Grave |
+    |:-------:|:------:|:-----:|
+    | 0% |0% | 0% |
+    | 50% | 37.5% | 57.5% |
+    | 95% | 71.25% | 100% |
+	
+	
+  ```python
+  def general_sim()
+      ## contenu existant
+    
+      ## balayage de la gestion des cas 
+      builder.add_multiple_parameter_sweep_definition(
+          update_campaign_multiple_parameters,
+          dict(
+              cm_cov_U5=[0.0, 0.5, 0.95],
+              cm_start=[1, 100, 365]
+          )
+      )
+  ```
+- Mettez à jour la liste d'événements `ReportEventRecorder` pour inclure `Received_Treatment` de notre campagne de gestion de cas (soit en plus de la liste d'événements que nous avons utilisée précédemment, soit en tant que seul événement).
+- Mettre à jour le nom de l'expérience en `example_sim_pickup_CM`.
+- Exécutez le script. Pendant que vous attendez, mettez à jour `analyzer_serialization.py` avec votre nouveau nom d'expérience, ID, et les variables de balayage.
+- Lorsque les simulations sont terminées, vérifiez vos résultats. Elles devraient être en grande partie les mêmes qu'avant, mais vous devriez maintenant voir le `Received_Treatment` même dans le `ReportEventRecorder`. Examinez également le fichier `campaign.json` pour voir les détails de la campagne que vous avez ajoutée aux simulations - chacune sera légèrement différente en fonction des paramètres de balayage qu'elle a reçus.
+    - Votre fichier de campagne ressemble-t-il à ce que vous attendez ? C'est un bon moyen de vérifier si vos simulations distribuent correctement les interventions ou si quelque chose n'est pas configuré correctement (par exemple, s'il distribue 100 fois plus de cas de gestion que prévu).
+- Si vos résultats semblent bons, lancez l'analyseur et vérifiez ses résultats.
+- Essayez de tracer vos résultats. Vous pouvez vous baser sur les scripts que vous avez créés pour l'exemple de sérialisation précédent, mais comment pourriez-vous prendre en compte les changements que nous avons apportés cette semaine ?      
+    - *Astuce : Pensez aux changements liés à l'ajout d'interventions et aux balayages de paramètres supplémentaires.*
+- Jetez un coup d'œil aux autres [interventions](https://github.com/numalariamodeling/emodpy-malaria/tree/main/emodpy_malaria/interventions) dans emodpy-malaria. Les [campagnes de médicaments](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/interventions/drug_campaign.py), les [MII](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/interventions/bednet.py) et les [IRS](https://github.com/numalariamodeling/emodpy-malaria/blob/main/emodpy_malaria/interventions/irs.py) peuvent présenter un intérêt particulier. 
+    - ➕ Pour un défi supplémentaire, essayez d'ajouter une (ou plusieurs !) de ces interventions à cette simulation par vous-même ou avec l'aide des guides pratiques. Un exemple de script avec des interventions multiples se trouve dans les scripts de solution **EN COURS**.
+
+</p>
+</details>
+
+<details><summary><span><em>Individual Properties</em></span></summary>
+<p>
+
+Les propriétés individuelles (IP) peuvent être ajoutées à toute simulation afin d'ajouter des informations supplémentaires utiles à des projets spécifiques. En fonction de la question de recherche, les propriétés individuelles peuvent n'être nécessaires que pour les interventions et non pour les rapports, ou vice versa, mais pas pour les deux.
+
+Dans cet exemple, nous continuerons à nous appuyer sur la structure de sérialisation, en ajoutant un PI d'accès à la gestion des cas à notre flux de travail précédent.  Nous utiliserons des propriétés individuelles pour créer deux sous-groupes pour cet accès : accès faible et accès élevé. Pour des raisons de simplicité, nous supposons que leur taille relative est égale (50 % d'accès faible, 50 % d'accès élevé).
+
+1. Burnin - Ajouter des IPs aux données démographiques et aux rapports
+    - Copiez le script `run_example_burnin.py` dans un script python vierge et nommez le `run_example_burnin_IP.py`
+    - Dans le demographics builder, nous pouvons définir et ajouter une propriété individuelle personnalisée qui sera appliquée à la population de la simulation. Dans cet exemple, nous voulons inclure des niveaux élevés et faibles d'accès aux soins. 
+        - Commencez par définir la `initial_distribution` pour la propriété dans une liste où chaque valeur est la proportion de la population qui sera distribuée à chaque niveau de propriété, 50% d'accès faible et 50% d'accès élevé.
+        - Ensuite, utilisez la fonction `AddIndividualPropetyAndHINT()` du paquetage importé `Demographics` pour ajouter notre propriété d'accès au fichier démographique que nous sommes en train de construire. Dans cette fonction, définissez les propriétés `Property="Access"`, `Values=["Low", "High"]`, et `InitialDistribution=initial_distribution`. La propriété est notre étiquette de haut niveau tandis que les valeurs représentent les niveaux (tels que haut et bas) de la propriété. La distribution initiale utilise la distribution que nous avons utilisée dans la dernière étape pour appliquer les valeurs à la population, respectivement.
+        
+      ```python
+      def build_demog() :
+          demog = Demographics.from_template_node(lat=1, lon=2, pop=1000, name="Example_Site")
+          demog.SetEquilibriumVitalDynamics()
+          
+          
+          # Ajouter la distribution des âges
+          age_distribution = Distributions.AgeDistribution_SSAfrica
+          demog.SetAgeDistribution(age_distribution)
+      
+          # Ajouter un IP personnalisé aux données démographiques                              
+          initial_distribution = [0.5, 0.5]
+          demog.AddIndividualPropertyAndHINT(Property="Access", Values=["Low", "High"],
+                                              InitialDistribution=initial_distribution)                                  
+                                            
+          return demog
+      ```
+    - Nous pouvons également ajouter des propriétés individuelles à nos reporters. Les méthodes pour le faire entre l'enregistreur d'événements et le rapport de synthèse sont légèrement différentes. Pour le burnin, nous n'ajouterons que l'enregistreur d'événements mais nous verrons les changements dans le rapport de synthèse dans le pickup.
+        - Dans l'enregistreur d'événements, nous pouvons simplement ajouter `ips_to_record=['<property>']` qui indique au rapport que nous voulons également qu'il nous dise à quel niveau d'accès appartient la personne qui a vécu l'événement. Vous pouvez ajouter plusieurs adresses IP à cette liste si nécessaire.
+    - Mettez à jour le nom de l'expérience et exécutez vos simulations
+    - Lorsque le burnin se termine, vérifiez vos sorties, y compris l'enregistreur d'événements et l'existence du fichier d'état.
+        - ❓ Comment l'enregistreur d'événements change-t-il avec les adresses IP ?
+        - *Note : nous ne lançons généralement pas d'analyseurs sur les burnins une fois que nous savons qu'ils fonctionnent correctement, à moins qu'il y ait des questions spécifiques d'intérêt pour cette partie de l'expérience, donc nous allons sauter cette étape dans cet exemple.*
+    
+2. Pickup - Ajouter des IPs aux interventions
+    - Copiez le script `run_example_pickup_CM.py` dans un script python vierge et nommez-le `run_example_pickup_CM_withIP.py`.
+    - Mettez à jour le `burnin_exp_id` avec l'expérience que vous avez réalisée dans la partie 1.
+    - Dans `build_camp()` nous allons ajouter des IPs à la configuration de l'intervention de gestion de cas. Une partie importante de cette tâche consistera à ajuster le niveau de couverture pour refléter les différences entre les groupes à faible accès et à accès élevé, sur la base d'une couverture au niveau de la population. Essayez d'écrire votre propre assistant pour ce faire et, lorsque vous serez prêt, vérifiez votre travail ci-dessous.
+      <details><summary><span><em>Vérifier votre ajustement de couverture</em></span></summary>
+      <p>
+        - Ajoutez ce qui suit à `build_camp()` après avoir défini le chemin du schéma :
+          
+          ```python
+          def build_camp() :
+              ## contenu existant
+        
+              # Calcul de la couverture pour les groupes d'accès faible et élevé
+              # Nous supposons que le groupe d'accès élevé = 0,5 de la population totale (voir la configuration démographique)
+              frac_high = 0.5
+            
+              # Utiliser un if/else pour définir la couverture élevée par rapport à la couverture faible en fonction de la proportion
+              # de la population qui a un accès élevé aux soins
+              if cm_cov_U5 > frac_high :
+                  cm_cov_U5_high = 1
+                  cm_cov_U5_low = (cm_cov_U5 - frac_high) / (1 - frac_high)
+              else :
+                  cm_cov_U5_low = 0
+                  cm_cov_U5_high = cm_cov_U5 / frac_high
+          ```
+          - L'instruction if/else utilise ici la proportion de la population ayant un accès élevé aux soins pour aider à définir les niveaux de couverture. Sur la base de nos hypothèses, nous nous attendons à ce que le groupe à accès élevé atteigne une couverture de 100 % avant que le groupe à faible accès ne bénéficie d'une quelconque couverture. Dans ce cas, le groupe à faible accès bénéficiera d'une couverture résiduelle pour que la couverture de la population atteigne le niveau prévu (par exemple, 75 % de la couverture de tous les U5 = 100 % de la couverture du groupe à fort accès et 50 % de la couverture du groupe à faible accès). De même, si la couverture de la population est inférieure à la proportion d'individus ayant un accès élevé, le groupe à faible accès aura une couverture de 0 % et l'accès élevé sera calculé au niveau permettant d'atteindre la couverture de la population attendue (par exemple, 25 % de couverture de tous les U5 = 50 % d'accès élevé et 0 % d'accès faible).
+          - Il est possible d'inclure des relations plus complexes entre les niveaux de propriété individuels si les données le justifient.
+      </p>
+      </details>
+      
+    - Une fois que les niveaux de couverture élevés et faibles sont définis, nous pouvons modifier l'intervention de gestion de cas pour refléter la variation entre les groupes. 
+        - Ajustez chacun des niveaux de couverture pour utiliser `cm_cov_U5_low` de votre ajustement de couverture.
+        - Après les cibles, ajoutez `ind_property_restrictions=[{'Access' : 'Low'}]` - ceci limitera l'intervention aux personnes du groupe à faible accès. Plusieurs adresses IP peuvent être utilisées ici si vous le souhaitez.
+          <details><summary><span><em>Vérifier votre intervention de gestion de cas</em></span></summary>
+          <p>
+          - Ajoutez ce qui suit à `build_camp()` après avoir défini les niveaux de couverture :
+          
+            ```python
+            cm.add_treatment_seeking(camp, start_day=cm_start, drug=['Artemether', 'Lumefantrine'],
+                       targets=[{'trigger' : 'NewClinicalCase', 'coverage' : cm_cov_U5_low, 
+                                 'agemin' : 0, 'agemax' : 5,
+                                 'seek' : 1, 'rate' : 0.3},
+                                 {'trigger' : 'NewClinicalCase', 'coverage' : cm_cov_U5_low*0.75, 
+                                  'agemin' : 5, 'agemax' : 115,
+                                  'seek' : 1, 'rate' : 0.3},
+                                 {'trigger' : 'NewSevereCase', 'coverage' : min(cm_cov_U5_low*1.15,1), 
+                                  'agemin' : 0, 'agemax' : 115,
+                                  'seek' : 1, 'rate' : 0.5}],          
+                       ind_property_restrictions=[{'Access' : 'Low'}],
+                       broadcast_event_name="Received_Treatment")
+            ```
+          </p>
+          </details>
+        - Dupliquer l'intervention à faible accès et la modifier pour appliquer la gestion des cas au groupe à accès élevé également.
+    - Ajoutez les mêmes détails d'IP de l'incendie aux données démographiques de la prise en charge.
+    - Ajoutez les spécifications IP pour les rapports de l'enregistreur d'événements dont il a été question dans la partie 1.
+    - Ensuite, nous modifierons le rapport de synthèse et utiliserons le système en boucle pour les années de l'exercice d'étalonnage (pour utiliser un analyseur différent). Nous lui demandons de n'inclure que les individus d'un niveau particulier par le biais de `must_have_ip_key_value='<property>:<value>'`. Cela signifie que le rapport demandé ci-dessous n'inclura que les personnes ayant un accès élevé aux soins. Dans ce cas, il est également utile d'ajouter un `filename_suffix` tel que '_highaccess' pour marquer le résultat de l'analyse. Veillez à inclure un rapport pour les deux niveaux d'accès dans votre script, un exemple est inclus pour "accès élevé" ci-dessous.
+    
+        ```python
+        for i in range(pickup_years) :
+            add_malaria_summary_report(task, manifest, start_day=1+365*i,
+                                   end_day=365 + i * 365, reporting_interval=30,
+                                   age_bins=[0.25, 5, 115],
+                                   max_number_reports=serialize_years,
+                                   must_have_ip_key_value='Access:High',
+                                   filename_suffix=f'Monthly_highaccess_{sim_start_year+i}',
+                                   pretty_format=True)
+        ```
+    - Mettre à jour le nom de l'expérience, exécuter le script.
+    - Mettez à jour le nom et l'ID de l'expérience dans `analyzer_IP.py`. Assurez-vous de vérifier si vous avez besoin de mettre à jour quelque chose comme `sweep_variables` ou les années de l'analyseur. 
+    - Une fois le pickup terminé, vérifiez vos sorties pour vous assurer que tout a bien été créé. Avez-vous des rapports récapitulatifs sur l'accès élevé et l'accès faible ? Si tout semble correct, lancez l'analyseur et vérifiez ses résultats.
+    - Essayez de tracer vos résultats. N'hésitez pas à utiliser d'anciens scripts et à les adapter pour essayer de comprendre les différences entre les niveaux de propriété intellectuelle.
+        - ⚠️*Réfléchissez aux types d'indicateurs sur lesquels l'accès à la gestion des dossiers peut avoir un impact et à la manière dont vous souhaiteriez présenter les comparaisons entre les groupes ayant un accès élevé et ceux ayant un accès faible. Veillez à inclure tout regroupement sur les balayages de paramètres, car ils peuvent avoir un impact sur les résultats!*
+        - ❓ Si vous aviez inclus le rapport de synthèse dans le burnin, vous attendriez-vous à ce que ces résultats soient différents ? Si oui, comment et pourquoi ?
+            - ⚠️*Pensez en particulier aux différents niveaux de propriété intellectuelle et à ce qui a changé entre les scénarios de brûlage et de ramassage*.
+    
+</p>
+</details>
+
+<details><summary><span><em>Simulations multi-nœuds/spatiales</em></span></summary>
+<p>
+
+La plupart du temps, nous considérons que les unités géographiques qui nous intéressent (les "nœuds" - qu'ils représentent des districts, des régions, des pays ou des populations abstraites) sont indépendantes les unes des autres. En général, il est préférable de simuler différents lieux séparément, mais vous pouvez vouloir effectuer des simulations "spatiales" impliquant plusieurs nœuds et les connexions entre eux (par exemple, la migration). 
+
+Nous aborderons les applications avancées de la modélisation spatiale dans un autre exercice. Cet exercice vous permettra de vous entraîner à combiner des éléments des exemples précédents afin d'exécuter une simulation spatiale simple et de produire des résultats spatiaux. Par la suite, vous pouvez ajouter du code pour introduire la migration entre les noeuds, et voir comment cela change les choses, mais nous n'aborderons pas cela en détail ici.
+
+**Partie 1. Configuration des entrées**
+
+1. Créez une feuille de calcul **nodes.csv** avec les colonnes *node_id*, *lat*, *lon*, et *pop*. EMODpy attendra ces noms de colonnes ! <br>
+        - Cette feuille de calcul sera utilisée pour générer les fichiers climatiques et démographiques ultérieurement.  
+        - enregistrez le fichier dans un nouveau dossier dans `/inputs/demographics`
+2. Remplissez la feuille de calcul avec les informations relatives à 4 nœuds.
+
+    Exemple :
+
+    | node_id | lat | lon | pop |
+    |:-------:|:------:|:-----:|:----:|
+    | 1 | 12.11 | -1.47 | 1000 |
+    | 2 | 12.0342 | -1.44 | 1000 | 
+    | 3 | 12.13 | -1.59 | 1000 | 
+    | 17 | 12.06 | -1.48 | 1000 |
+        
+   - ⚠️ **node_id** doivent être des nombres positifs, mais ne doivent pas nécessairement être séquentiels.  
+   - ℹ️ les valeurs lat/lon doivent représenter des lieux réels dont le climat est propice à la transmission du paludisme (pour l'étape 3).  
+   - ⚠️ les noms des colonnes sont censés être "node_id", "lat", "lon" et "pop" par défaut. 
+3. En utilisant un script séparé, `get_climate.py`, demander et sauvegarder les fichiers climatiques basés sur **nodes.csv** <br>.
+   *Pour plus de simplicité, utilisez une série d'une seule année à partir de 2019, en utilisant la définition de la fonction et l'appel à `get_climate()` ci-dessous* <br>.
+        - Il suffit de mettre à jour les arguments "tag" et "demo_fname" de manière appropriée
+        
+```python  
+from emodpy_malaria.weather import *
+import os
+
+def get_climate(tag = "default", start_year="2015", start_day="001", end_year="2016", end_day="365", demo_fname="demographics.csv", fix_temp=None) :
+    # Spécifications #
+    ##################
+    # Plage de dates
+    start = "".join((start_year,start_day))  
+    end = "".join((end_year,end_day))     
+    
+    # Données démographiques
+    demo = "".join(("inputs/demographics/",demo_fname))
+    
+    # Dossier de sortie pour stocker les fichiers climatiques
+    dir1 = "/".join(("inputs/climate",tag,"-".join((start,end))))
+
+    if os.path.exists(dir1) :
+        print("Le chemin existe déjà. Veuillez vérifier s'il existe des fichiers climatiques.")
+        retour
+    else :
+        print("Génération des fichiers climatiques de {} pour le jour {} de {} au jour {} de {}".format(demo,start_day,start_year,end_day,end_year))
+        os.makedirs(dir1)
+        csv_file=os.path.join(dir1, "weather.csv")
+        # Demande de fichiers météo
+        wa = WeatherArgs(site_file= demo,
+                         start_date=int(start),
+                         end_date=int(end),
+                         node_column="node_id",
+                         id_reference=tag)
+        
+        wr : WeatherRequest = WeatherRequest(platform="Calculon")
+        wr.generate(weather_args=wa, request_name=tag)
+        wr.download(local_dir=dir1)
+        
+        print(f "Les fichiers originaux sont téléchargés dans : {dir1}") 
+        
+        df, wa = weather_to_csv(weather_dir = dir1, csv_file=csv_file)
+        df.to_csv(csv_file)
+
+if __name__ == "__main__" :
+    get_climate(tag="FE_EXAMPLE", start_year="2019", end_year="2019", demo_fname="nodes.csv")
+```
+
+Nous ferons référence aux fichiers climatiques générés plus tard dans `set_param_fn()` et via `Task.common_assets.add_directory` dans `general_sim()`.
+	
+	
+**Partie 2. Exécuter des simulations spatiales**
+	
+Maintenant, en vous référant aux scripts que vous avez écrits pour les exemples précédents, vous devriez être capable de commencer avec un `run_spatial.py` vierge et d'esquisser - ou dans certains cas de compléter - les sections de code nécessaires pour exécuter les simulations, avec les **spécifications additionnelles** suivantes :  
+
+1. Importer des modules  
+2. **Set Configuration Parameters** (Paramètres de configuration)  
+    - La durée de la simulation peut être courte (1 à 2 ans) pour les tests et le débogage.  
+    - N'oubliez pas d'ajouter des vecteurs
+        - `conf.add_species(config, manifest, ["gambiae", "arabiensis", "funestus"])`
+        
+3. **Sweep des paramètres de configuration**  
+4. **Construire une campagne**  
+5. Paramètres de la campagne de balayage (facultatif pour cet exercice)  
+6. Sérialiser la gravure et le ramassage  
+7. **Construire les données démographiques**   
+    a. dans `build_demog()` utilisez ce code pour générer des données démographiques à partir de votre fichier "nodes.csv" (vous pouvez avoir besoin d'éditer le chemin vers input_dir à l'intérieur de manifest.py)
+    ```python
+    demog = Demographics.from_csv(input_file = os.path.join(manifest.input_dir, "demographics", "nodes.csv"), 
+                                                            id_ref="EXEMPLE", 
+                                                            init_prev = 0.01, 
+                                                            include_biting_heterogeneity = True)
+    # NOTE : L'id_ref utilisé pour générer le climat et les données démographiques doit correspondre !
+    ```
+8. **Exécution de l'expérience [`general_sim()`]**  
+    a. Définir la plate-forme  
+    b. Créer EMODTask  
+    c. Définir l'image de singularité (en utilisant `set_sif()`)
+    d. Ajouter l'actif du répertoire météorologique  
+    e. Utiliser `SimulationBuilder()`  
+    f. **Rapports**  
+    g. Créer, exécuter et vérifier les résultats de l'expérience  
+
+**Spécifications supplémentaires pour l'exemple de modèle spatial**
+
+*Brûlure*  
+
+- Durée de l'expérience : 30 ans  
+- Varier `x_Temporary_Larval_Habitat` en utilisant `set_param()` 
+    - `np.logspace(0,1,10)` utilisera 10 valeurs logarithmiques régulièrement espacées entre 10<sup>0</sup> et 10<sup>1</sup> (1-10x)
+- Pas d'intervention  
+- 1 réalisation stochastique / graine aléatoire
+- *Astuce : vérifiez `set_param_fn()` pour vous assurer que vous avez ajouté des vecteurs, pointé vers les fichiers démographiques/climatiques correspondants, et permis la sérialisation.*
+
+*Ramassage* 
+
+- Durée de l'étude : 10 ans  
+- Transférer `x_Temporary_Larval_Habitat` à partir de burnin en utilisant `update_serialization_parameters()`.  
+- Les interventions sont déployées différemment dans chaque nœud en fournissant une liste de nœuds à l'argument `node_ids` <br> (ex. `treatment_seeking(... node_ids=[1,2])`) :  
+    - Un nœud reçoit une prise en charge et des MII tous les 3 ans.  
+    - Un nœud reçoit une prise en charge uniquement  
+    - Un nœud reçoit des MII tous les 3 ans seulement  
+    - Un nœud ne reçoit aucune intervention
+    - *Remarque : pour plus de simplicité, vous pouvez choisir des couvertures "optimales" fixes (~80%) pour ces interventions, au lieu de balayer les paramètres de la campagne.*
+    - ℹ️ Pour ajouter des MII (dans les noeuds 1 et 3, à la mi-juin par exemple) :
+	
+	```python
+	import emodpy_malaria.interventions.bednet as itn
+	
+	def build_camp(...) :
+	     ### Distributions de moustiquaires imprégnées d'insecticide dans les noeuds 1 et 3, par exemple ###
+      	     itn.add_itn_scheduled(camp, start_day = 165, 
+				   demographic_coverage = 0,9, 
+				   repetitions = 4, 
+				   timesteps_between_repetitions = 365*3, 
+				   node_ids = [1,3],
+				   receiving_itn_broadcast_event= "Received_ITN",
+				   killing_initial_effect = 0,25,
+				   killing_decay_time_constant = 1460,
+				   blocking_initial_effect = 0,75,
+				   blocking_decay_time_constant = 730)
+	    ...
+	```
+- 10 réalisations stochastiques / graines aléatoires chacune (balayage sur `Run_Number`)  
+- ajouter les rapports spatiaux filtrés et les compteurs d'événements aux sorties, à l'intérieur de `general_sim()`   
+    - `add_spatial_report_malaria_filtered(...)`  
+        - Rapport uniquement sur les 3 dernières années de la simulation   
+        - Pour un rapport quotidien, utilisez `reporting_interval = 1`  
+        - Filtre sur les âges 0.25-100  
+        - include spatial_output_channels 'Population', 'PCR_Parasite_Prevalence', et 'New_Clinical_Cases' (bien que n'importe quel canal InsetChart fonctionne)
+	  
+	  ```python
+	  add_spatial_report_malaria_filtered(task, manifest, 
+					      start_day = start_report, end_day = end_report,
+					       reporting_interval = 1, 
+					      node_ids =None,
+					      min_age_years = 0.25, max_age_years = 100, 
+					     spatial_output_channels = ["Population",
+									 "PCR_Parasite_Prevalence",
+									 "New_Clinical_Cases"],
+					      filename_suffix = "all_ages")
+	  ```
+    - Utilisez le code ci-dessous pour `add_report_event_counter(...)` **par noeud** 
+        - la `event_trigger_list` doit inclure 'Received_Treatment' et 'Received_ITN'  
+        - *Note : Ces événements doivent être ajoutés à `config.parameters.Custom_Individual_Events=[...]` dans `set_param_fn()` également.*
+        
+          ```python
+          demo_df = pd.read_csv(os.path.join(manifest.input_dir, "demographics", "nodes.csv"))
+          for node in demo_df['node_id']:
+              add_report_event_counter(task, manifest,
+                                   start_day = start_report,
+                                   end_day = end_report,
+                                   node_ids = [node],
+                                   min_age_years = 0,
+                                   max_age_years = 100,
+                                   event_trigger_list = ["Received_ITN", "Received_Treatment"],
+                                   filename_suffix = "_".join(("node",str(node))))
+        
+          ```
+          
+**Partie 3. Analyser les simulations spatiales** 
+
+Pour analyser les fichiers `SpatialReportMalariaFiltered_.bin` générés pour chaque canal et chaque simulation, utilisez le script `analyzer_spatial.py`
+
+Modifiez **uniquement** la section au bas du script avant de l'exécuter :
+
+```python
+...
+...
+...
+
+if __name__ == "__main__" :
+    ...
+    ...
+    ...
+    ## Dictionnaire des expériences ##
+    ############################
+    # {'experiment label' : 'exp_id'}
+    expts = {'<EXPERIMENT_LABEL>' : '<EXPERIMENT_ID>'}
+   
+    ## Chemins d'accès ##
+    ###########
+    # dossier experiments
+    jdir = manifest.job_directory
+    # dossier de sortie
+    wdir=os.path.join(jdir,'<OUTPUTS_FOLDER>', '<SUBFOLDER>')
+    if not os.path.exists(wdir) :
+        os.mkdir(wdir) 
+
+    ...
+    
+```
+
+Cela produira un fichier dans `working_dir/my_outputs/experiment_name/SpatialReportMalariaFiltered.csv` avec des colonnes :  
+* Temps
+* Node
+* Numéro d'exécution
+* x_Temporary_Larval_Habitat
+* Population
+* PCR_Parasite_Prevalence
+* New_Clinical_Cases
+
+Pour analyser les comptes d'événements de chaque `ReportEventCounter_node_#.json`, exécutez le script `analyzer_events.py`
+
+Modifiez **uniquement** les lignes suivantes au bas du script avant de l'exécuter :
+
+```python
+...
+...
+...
+
+if __name__ == "__main__" :
+    ...
+    ...
+    ...
+    
+    ## Dictionnaire des expériences ##
+    ############################
+    # {'experiment label' : 'exp_id'}
+    expts = {'<EXPERIMENT_LABEL>' : '<EXPERIMENT_ID>'}
+   
+    ## Chemins d'accès ##
+    ###########
+    # dossier experiments
+    jdir = manifest.job_directory
+    # dossier de sortie
+    wdir=os.path.join(jdir,'<OUTPUTS_FOLDER>', '<SUBFOLDER>')
+    if not os.path.exists(wdir) :
+        os.mkdir(wdir) 
+    ...
+	
+    with Platform('SLURM_LOCAL',job_directory=jdir) as platform :
+        for expname, exp_id in expts.items() :  
+            
+            analyzer = [EventCounterAnalyzer(exp_name = expname, 
+                                             exp_id = exp_id, 
+                                             sweep_variables = sweep_variables, 
+	############### METTEZ À JOUR CETTE LIGNE POUR QU'ELLE CORRESPONDE À VOS IDENTIFIANTS DE NŒUDS ###############
+                                             nodes = ["1", "2", "3", "17"],
+	#######################################################################
+                                             events = events,
+                                             working_dir = wdir)]
+    ...
+   
+
+```
+
+Cela produira un fichier dans `/OUTPUTS_FOLDER/SUBFOLDER/CountedEvents.csv' avec les colonnes :  
+
+* Temps  
+* Node  
+* Numéro d'exécution  
+* Habitat x_Temporary_Larval_Habitat 
+* Received Treatment  
+* Received ITN  
+
+
+**Partie 4. Tracer les résultats spatiaux**
+
+1. Ouvrez 'spatial_plotter.rmd' dans RStudio
+2. Mettez à jour le `root` dans le premier morceau avec le chemin du dossier contenant les fichiers `SpatialReportMalariaFiltered.csv` et `CountedEvents.csv` générés ci-dessus. C'est également dans ce dossier que le graphique de sortie sera sauvegardé. 
+3. Exécutez le fichier `spatial_plotter.rmd`.
+
+Visualisez le fichier `SpatialSummary.png` qui a été créé.
+
+</p>
+</details>

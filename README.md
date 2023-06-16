@@ -931,7 +931,7 @@ if __name__ == "__main__":
 We will reference the generated climate files later inside `set_param_fn()` and via `Task.common_assets.add_directory` inside `general_sim()`.
 	
 	
-**Part 1. Run Spatial Simulations**
+**Part 2. Run Spatial Simulations**
 	
 Now, referring to the scripts you wrote for previous examples, you should be able to start with a blank `run_spatial.py` and outline - or in some cases complete - the code sections needed to run simulations, with the following **additional specifications**:  
 
@@ -946,7 +946,7 @@ Now, referring to the scripts you wrote for previous examples, you should be abl
 5. Sweep campaign parameters (optional for this exercise)  
 6. Serialize burnin & pickup  
 7. **Build demographics**   
-    a. inside `build_demog()` use  this code to generate demographics from your "nodes.csv" file (you may need to edit the path to input_dir inside manifest.py)
+    a. inside `build_demog()` use this code to generate demographics from your "nodes.csv" file (you may need to edit the path to input_dir inside manifest.py)
     ```python
     demog = Demographics.from_csv(input_file = os.path.join(manifest.input_dir,"demographics","nodes.csv"), 
                                                             id_ref="EXAMPLE", 
@@ -985,6 +985,7 @@ Now, referring to the scripts you wrote for previous examples, you should be abl
     - One node receives no interventions
     - *Note: For simplicity, you can choose fixed "optimal" coverages (~80%) for these interventions, instead of sweeping over these campaign parameters.* 
     - ℹ️ To add ITNs (in Nodes 1 and 3, in mid-June for example):
+	
 	```python
 	import emodpy_malaria.interventions.bednet as itn
 	
@@ -1009,6 +1010,7 @@ Now, referring to the scripts you wrote for previous examples, you should be abl
         - For a daily report, use `reporting_interval = 1`  
         - Filter to ages 0.25-100  
         - include spatial_output_channels 'Population', 'PCR_Parasite_Prevalence', and 'New_Clinical_Cases' (though any InsetChart Channels will work)
+	  
 	  ```python
 	  add_spatial_report_malaria_filtered(task, manifest, 
 					      start_day = start_report, end_day = end_report,
@@ -1020,7 +1022,6 @@ Now, referring to the scripts you wrote for previous examples, you should be abl
 									 "New_Clinical_Cases"],
 					      filename_suffix = "all_ages")
 	  ```
-	
     - Use the code below to `add_report_event_counter(...)` **by node** 
         - the `event_trigger_list` should include 'Received_Treatment' and 'Received_ITN'  
         - *Note: These events need to be added to `config.parameters.Custom_Individual_Events=[...]` inside `set_param_fn()` as well.*
@@ -1126,7 +1127,8 @@ if __name__ == "__main__":
 
 ```
 
-This will produce a file inside `/OUTPUTS_FOLDER/SUBFOLDER/CountedEvents.csv' with columns:  
+This will produce a file inside `/OUTPUTS_FOLDER/SUBFOLDER/CountedEvents.csv' with columns: 
+
 * Time  
 * Node  
 * Run_Number  
@@ -1137,7 +1139,7 @@ This will produce a file inside `/OUTPUTS_FOLDER/SUBFOLDER/CountedEvents.csv' wi
 
 **Part 4. Plot Spatial Results**
 
-1. Open 'spatial_plotter.rmd'  
+1. Open 'spatial_plotter.rmd' in RStudio
 2. Update the `root` in the first chunk with the path to folder containing the `SpatialReportMalariaFiltered.csv` and `CountedEvents.csv` generated above. This is also where the output plot will be saved. 
 3. Run the `spatial_plotter.rmd` file
 
