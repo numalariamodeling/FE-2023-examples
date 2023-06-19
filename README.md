@@ -69,7 +69,7 @@ This week we will be discussing EMOD's general structure and content as well as 
 **What to Expect**
 
 Click the arrow to expand:
-<details><summary><span><em>Running EMOD from the terminal</em></span></summary>
+<details><summary><span><em><h3>Running EMOD from the terminal</h3></em></span></summary>
 <p>
 
 When you run an EMOD simulation script on QUEST, it will generate a set of initial messages. You will see a warning about no "idmtools.ini" - this is perfectly normal as we do not typically need the ini file to run with emodpy. Following this warning, you will see a segment that tells you some basic details about the idmtools platform you are using to run the script as well as the job directory, where all your simulation outputs will be stored.
@@ -83,7 +83,7 @@ After a short waiting period, you will also see additional lines providing infor
 </p>
 </details>
 
-<details><summary><span><em>File Structure</em></span></summary>
+<details><summary><span><em><h3>File Structure</h3></em></span></summary>
 <p>
 
 If you navigate to the job directory, the file structure should look similar to that below. It can be summarized as:
@@ -115,7 +115,7 @@ This week's exercise introduces the simplest version of running and analyzing a 
 **Instructions**
 
 Click the arrow to expand:
-<details><summary><span><em>Running a simple EMOD simulation</em></span></summary>
+<details><summary><span><em><h3>Running a simple EMOD simulation</h3></em></span></summary>
 <p>
 
 - Navigate to your local copy of this repository on QUEST: `cd /projects/b1139/FE_<username>/FE-2023-examples`  
@@ -162,7 +162,7 @@ This week's second exercise focuses on adding reporters and observing changes in
 **Instructions**
 
 Click the arrow to expand:
-<details><summary><span><em>Adding Inputs</em></span></summary>
+<details><summary><span><em><h3>Adding Inputs</h3></em></span></summary>
 <p>
 
 This exercise demonstrates how to create demographics and climate files and how to incorporate these into the simulation as well as introducing how to modify config parameters (e.g. run number or simulation duration). Complete all of the steps below before running this next example.
@@ -250,7 +250,7 @@ This exercise demonstrates how to create demographics and climate files and how 
 </details>
 
 
-<details><summary><span><em>Adding outputs</em></span></summary>
+<details><summary><span><em><h3>Adding outputs</h3></em></span></summary>
 <p>
 
 This exercise demonstrates how to add some of the malaria built-in reporters to our sims. These reports can help us understand what is going on in our simulations from basic targets like incidence and prevalence to more detailed pictures of events or within-host data such as parasitemia. You can read more about the possible types of analyzers in the [EMOD output file documentation](https://docs.idmod.org/projects/emod-malaria/en/latest/software-outputs.html). In this exercise we'll add the Report Event Recorder and Malaria Summary Report to the simulations.
@@ -293,7 +293,7 @@ This exercise demonstrates how to add some of the malaria built-in reporters to 
 </details>
 
 
-<details><summary><span><em>Analysis</em></span></summary>
+<details><summary><span><em><h3>Analysis</h3></em></span></summary>
 <p>
 
 Now that you've learned the basics of how to run EMOD and add inputs/outputs you can start actually analyzing some data! We use analyzer scripts to extract the data we want from our simulations' reports to understand what the simulation is doing, how it is changing, and answer research questions. This week's analyzer script, `analyzer_W2.py` contains two different analyzers:
@@ -344,7 +344,7 @@ This week's final exercise demonstrates the concept of serializing populations i
 **Instructions**
 
 Click the arrow to expand:
-<details><summary><span><em>Parameter Sweeping</em></span></summary>
+<details><summary><span><em><h3>Parameter Sweeping</h3></em></span></summary>
 <p>
 
 This exercise demonstrates how to "sweep" over parameters to have a set of different values across simulations in our experiment.
@@ -404,7 +404,7 @@ There are additional more complicated sweeping methods, particularly with creati
 </p>
 </details>
 
-<details><summary><span><em>Calibration</em></span></summary>
+<details><summary><span><em><h3>Calibration</h3></em></span></summary>
 <p>
 
 Depending on our project and site there are a variety of different parameters you may be interested in calibrating on due to different uncertainties, including those having to do with vectors and interventions. In this example, we want to calibrate a parameter called `x_Temporary_Larval_Habitat` that controls the amount of larval mosquito habitat, and the amount of mosquitoes, accordingly. This is a common parameter in calibration efforts. We'll use our example site with some data that mimics a household survey (DHS) conducted in the site. In this hypothetical survey, a number of children under 5 years old were tested for malaria, and we know how many of them are positive. We'll use these reference points to select the best fit.
@@ -452,7 +452,7 @@ Depending on our project and site there are a variety of different parameters yo
 </p>
 </details>
 
-<details><summary><span><em>Serialization</em></span></summary>
+<details><summary><span><h3><em>Serialization</em></h3></span></summary>
 <p>
 
 This serialization exercise has three parts. In part 1 you will run and save a burnin simulation. In part 2 you will "pickup" this simulation and add antimalarial interventions. In part 3 you will repeat parts 1 & 2 using a longer burnin duration, and compare the results.
@@ -638,7 +638,7 @@ Likewise, the final exercise of this week will focus on spatial simulations whic
 **Instructions**
 
 Click the arrow to expand:
-<details><summary><span><em>Adding Interventions</em></span></summary>
+<details><summary><span><em><h3>Adding Interventions</h3></em></span></summary>
 <p>
 
 As we start thinking about adding interventions to our simulations, we should also think about how to construct the timeline. This is particularly useful for project work as you match to specific sites with data on incidence and prevalence, when (and what) interventions were implemented, etc. For now, let's think about it more simply, building off of what we learned last week. We'll first want to initialize the population through a 50 year burnin with no interventions. Increase your population size back to 1000 for 5 replicates and re-run the burnin while you work on this exercise's scripts (the pickup).
@@ -738,7 +738,7 @@ As we start thinking about adding interventions to our simulations, we should al
 </p>
 </details>
 
-<details><summary><span><em>Individual Properties</em></span></summary>
+<details><summary><span><em><h3>Individual Properties</h3></em></span></summary>
 <p>
 
 Individual properties (IPs) can be added to any simulation to add additional information useful to specific projects. Depending on the research question individual properties might only be needed for interventions and not for the reports, or vice versa, if not both.
@@ -854,7 +854,7 @@ In this example, we'll continue building off of the serialization structure, add
 </p>
 </details>
 
-<details><summary><span><em><h2>Multi-node/Spatial Simulations</h2></em></span></summary>
+<details><summary><span><em><h3>Multi-node/Spatial Simulations</h3></em></span></summary>
 <p>
 
 Most of the time, we consider our geographical units of interest (the 'nodes' - whether they represent districts, regions, countries, or abstract populations) to be independent from one another. Usually, it's better to simulate different locales separately, but you may want to run 'spatial' simulations involving multiple nodes and the connections between them (ex. migration). 
