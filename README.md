@@ -854,7 +854,7 @@ In this example, we'll continue building off of the serialization structure, add
 </p>
 </details>
 
-<details><summary><span><em>Multi-node/Spatial Simulations</em></span></summary>
+<details><summary><span><em><h2>Multi-node/Spatial Simulations</h2></em></span></summary>
 <p>
 
 Most of the time, we consider our geographical units of interest (the 'nodes' - whether they represent districts, regions, countries, or abstract populations) to be independent from one another. Usually, it's better to simulate different locales separately, but you may want to run 'spatial' simulations involving multiple nodes and the connections between them (ex. migration). 
