@@ -7,7 +7,7 @@ def parse_commandline():
     """Parse the arguments given on the command-line.
     """
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--name", type=str, required=True, default = "STRANGER")
+    parser.add_argument("--name", type=str, required=True)
 
     args = parser.parse_args()
 
