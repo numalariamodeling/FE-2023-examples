@@ -85,5 +85,20 @@ def build_demog():
     demog.SetAgeDistribution(age_distribution)
     return demog
 ```
+## Add Migration between Nodes
 
+Assuming, the same multi-node setup described above - we can add migration of humans and/or vectors between nodes.
+
+1. Create migration.csv describing the rate of migration between nodes
+
+| *To* | *From* | *Rate* | 
+|----|------|------|
+|   1|     2|   0.5|
+|   2|     1|   0.5|
+|   3|    17|  0.33|
+|  17|     3|  0.33|
+
+2. Run `generate_migration.py` to  convert the csv to binary file
+
+3. 
 
