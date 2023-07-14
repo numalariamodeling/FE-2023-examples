@@ -455,7 +455,7 @@ Depending on our project and site there are a variety of different parameters yo
 <details><summary><span><h3><em>Serialization</em></h3></span></summary>
 <p>
 
-This serialization exercise has three parts. In part 1 you will run and save a burnin simulation. In part 2 you will "pickup" this simulation and add antimalarial interventions. In part 3 you will repeat parts 1 & 2 using a longer burnin duration, and compare the results.
+This serialization exercise has three parts. In part 1 you will run and save a burnin simulation. In part 2 you will "pickup" this simulation to run for a shorter time. In part 3 you will repeat parts 1 & 2 using a longer burnin duration, and compare the results.
 
 1. Burning in
     - Description: Typically, we create 50-year burnin simulations to initialize transmission and immunity in our population of interest prior to trying to answer our research questions. For this example, we will start by only running the burnin for 10 years with 500 people to make sure everything is running correctly. For now we will also want to run 3 replicates. Be sure to use your calibrated `x_Temporary_Larval_Habitat` from the previous example.
