@@ -116,7 +116,7 @@ Additional targeting and configuration parameters are described [here](https://d
 
 ### Bednets
 
-Insecticide-treated bednets can be distributed with the `add_itn_scheduled()` function, which has many options to configure who is targeted for ITN distribution.
+Insecticide-treated bednets can be distributed with the `add_itn_scheduled()` function, which has many options to configure who is targeted for ITN distribution and the properties of the insecticides used.
 
 ```{python,eval=F}
 import emod_api.campaign as campaign
@@ -164,5 +164,56 @@ def add_itn_scheduled(campaign,
 The default `coverage_by_age` sets coverage to 100% for everyone regardless of age.
 
 ### Indoor Residual Spraying (IRS)
+
+Insecticide-treated bednets can be distributed with the `add_scheduled_irs_housing_modificatoin()` function, which has many options to configure the effects of insecticides used.
+
+```{python, eval=F}
+import emod_api.campaign as campaign
+from emodpy_malaria.interventions.irs import add_scheduled_irs_housing_modification
+
+add_scheduled_irs_housing_modification(campaign, 
+                                       start_day = 1,
+                                       demographic_coverage = 1, 
+                                       killing_initial_effect = 1,                    # NOTE: these default effect sizes and kinetics are not calibrated values
+                                       killing_box_duration = 0,
+                                       killing_decay_time_constant = 90,
+                                       repelling_initial_effect = 0,
+                                       repelling_box_duration = 0,
+                                       repelling_decay_time_constant = 90,
+                                       insecticide = "",
+                                       intervention_name = "IRSHousingModification"
+    """
+        Adds scheduled IRSHousingModification intervention to the campaign. The IRSHousingModification intervention class
+        includes Indoor Residual Spraying (IRS) in the simulation. IRS is another key vector control tool in which
+        insecticide is sprayed on the interior walls of a house so that mosquitoes resting on the walls after
+        consuming a blood meal will die. IRS can also have a repellent effect. Because this class is distributed
+        to individuals, it can target subgroups of the population. To target all individuals in a node, use
+        IndoorSpaceSpraying. Do not use IRSHousingModification and IndoorSpaceSpraying together.
+
+    Args:
+        campaign: A campaign builder that also contains schema_path parameters
+        start_day: The day on which the intervention is distributed
+        demographic_coverage: The fraction of individuals in the target demographic that will receive this intervention
+        node_ids: A list of node ids to which this intervention will be distributed. None or [] distributes
+            intervention to all nodes
+        killing_initial_effect: Initial strength of the Killing effect. The effect may decay over time.
+        killing_box_duration: Box duration of effect in days before the decay of Killing Initial_Effect.
+        killing_decay_time_constant: The exponential decay length, in days of the Killing Initial_Effect.
+        repelling_initial_effect: Initial strength of the Killing effect. The effect decays over time.
+        repelling_box_duration: Box duration of effect in days before the decay of Repelling Initial Effect.
+        repelling_decay_time_constant: The exponential decay length, in days of the Repelling Initial Effect.
+        insecticide:The name of the insecticide defined in config.Insecticides for this intervention.
+            If insecticides are being used, then this must be defined as one of those values.  If they are not
+            being used, then this does not needed to be specified or can be empty string.  It cannot have a
+            value if config.Insecticides does not define anything.
+        intervention_name: The optional name used to refer to this intervention as a means to differentiate it from
+            others that use the same class. It’s possible to have multiple IRSHousingModification interventions
+            attached to a person if they have different Intervention_Name values.
+
+    Returns:
+        Nothing
+    """
+
+```
 
 ### Larvicides
