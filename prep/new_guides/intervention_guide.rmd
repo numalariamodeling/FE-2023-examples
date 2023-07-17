@@ -131,6 +131,34 @@ add_itn_scheduled(campaign,
         repetitions=5, # ITN will be distributed 5 times
         timesteps_between_repetitions= 365*3 # three years between ITN distributions
 )
+
+# Full Argument List : 
+
+def add_itn_scheduled(campaign,
+                      start_day: int = 0,
+                      coverage_by_ages: list = None,
+                      demographic_coverage: float = 1.0,
+                      target_num_individuals: int = None,
+                      node_ids: list = None,
+                      repetitions: int = 1,
+                      timesteps_between_repetitions: int = 365,
+                      ind_property_restrictions: list = None,
+                      receiving_itn_broadcast_event: str = None,
+                      blocking_initial_effect: float = 0.9,              # NOTE: these default effect sizes and kinetics are not calibrated values
+                      blocking_box_duration: float = 0,
+                      blocking_decay_time_constant: float = 7300,
+                      killing_initial_effect: float = 0.6,
+                      killing_box_duration: int = 0,
+                      killing_decay_time_constant: float = 7300,
+                      repelling_initial_effect: float = 0,
+                      repelling_box_duration: float = -1,
+                      repelling_decay_time_constant: float = 0,
+                      usage_initial_effect: float = 1,
+                      usage_box_duration: float = -1,
+                      usage_decay_time_constant: float = 0,
+                      insecticide: str = "",
+                      cost: float = 0,
+                      intervention_name: str = "SimpleBednet")
 ```
 
 The default `coverage_by_age` sets coverage to 100% for everyone regardless of age.
