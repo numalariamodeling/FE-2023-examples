@@ -957,7 +957,7 @@ Now, referring to the scripts you wrote for previous examples, you should be abl
 8. **Run Experiment [`general_sim()`]**  
     a. Set platform  
     b. Create EMODTask  
-    c. Set singularity image  (using `set_sif()`)
+    c. Set singularity image  (using `set_sif()`)  
     d. Add weather directory asset  
     e. Use `SimulationBuilder()`  
     f. **Reports**  
