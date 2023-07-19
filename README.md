@@ -935,17 +935,18 @@ We will reference the generated climate files later inside `set_param_fn()` and 
 	
 Now, referring to the scripts you wrote for previous examples, you should be able to start with a blank `run_spatial.py` and outline - or in some cases complete - the code sections needed to run simulations, with the following **additional specifications**:  
 
-1. Import modules  
-2. **Set Configuration Parameters**  
+1. Import modules
+    - `import pandas as pd`  
+3. **Set Configuration Parameters**  
     - You can keep the simulation duration short (1-2 years) while testing / debugging.  
     - Remember to add vectors
         -  `conf.add_species(config, manifest, ["gambiae", "arabiensis", "funestus"])`
         
-3. **Sweep configuration parameters**  
-4. **Build campaign**  
-5. Sweep campaign parameters (optional for this exercise)  
-6. Serialize burnin & pickup  
-7. **Build demographics**   
+4. **Sweep configuration parameters**  
+5. **Build campaign**  
+6. Sweep campaign parameters (optional for this exercise)  
+7. Serialize burnin & pickup  
+8. **Build demographics**   
     a. inside `build_demog()` use this code to generate demographics from your "nodes.csv" file (you may need to edit the path to input_dir inside manifest.py)
     ```python
     demog = Demographics.from_csv(input_file = os.path.join(manifest.input_dir,"demographics","nodes.csv"), 
@@ -954,7 +955,7 @@ Now, referring to the scripts you wrote for previous examples, you should be abl
                                                             include_biting_heterogeneity = True)
     # NOTE: The id_ref used to generate climate and demographics must match!
     ```
-8. **Run Experiment [`general_sim()`]**  
+9. **Run Experiment [`general_sim()`]**  
     a. Set platform  
     b. Create EMODTask  
     c. Set singularity image  (using `set_sif()`)  
