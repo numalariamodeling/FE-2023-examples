@@ -933,19 +933,28 @@ Nous ferons référence aux fichiers climatiques générés plus tard dans `set_
 	
 **Partie 2. Exécuter des simulations spatiales**
 	
-Maintenant, en vous référant aux scripts que vous avez écrits pour les exemples précédents, vous devriez être capable de commencer avec un `run_spatial.py` vierge et d'esquisser - ou dans certains cas de compléter - les sections de code nécessaires pour exécuter les simulations, avec les **spécifications additionnelles** suivantes :  
+Maintenant, en vous référant aux scripts que vous avez écrits pour les exemples précédents, vous devriez être capable de commencer avec un `run_spatial.py` vierge et d'esquisser - ou dans certains cas de compléter - les sections de code nécessaires pour exécuter des simulations, avec les **spécifications supplémentaires** suivantes :  
 
-1. Importer des modules  
-2. **Set Configuration Parameters** (Paramètres de configuration)  
+1. Importer des modules
+    - `import pandas as pd`  
+3. **Définir les paramètres de configuration**  
     - La durée de la simulation peut être courte (1 à 2 ans) pour les tests et le débogage.  
-    - N'oubliez pas d'ajouter des vecteurs
+    - N'oubliez pas d'ajouter les vecteurs
         - `conf.add_species(config, manifest, ["gambiae", "arabiensis", "funestus"])`
-        
-3. **Sweep des paramètres de configuration**  
-4. **Construire une campagne**  
-5. Paramètres de la campagne de balayage (facultatif pour cet exercice)  
-6. Sérialiser la gravure et le ramassage  
-7. **Construire les données démographiques**   
+    - Pointez vers vos nouveaux fichiers de climat
+      ```python
+      climate_root = os.path.join("climate",'FE_EXAMPLE','2019001-2019365')
+      
+      config.parameters.Air_Temperature_Filename = os.path.join(climate_root, 'dtk_15arcmin_air_temperature_daily.bin')
+      config.parameters.Land_Temperature_Filename = os.path.join(climate_root, 'dtk_15arcmin_air_temperature_daily.bin')
+      config.parameters.Rainfall_Filename = os.path.join(climate_root, 'dtk_15arcmin_rainfall_daily.bin')
+      config.parameters.Relative_Humidity_Filename = os.path.join(climate_root, 'dtk_15arcmin_relative_humidity_daily.bin')
+      ```  
+4. **Paramètres de configuration du balayage**  
+5. **Construire la campagne**  
+6. Paramètres de la campagne de balayage (facultatif pour cet exercice)  
+7. Sérialiser le burnin et le pickup  
+8. **Construire les données démographiques**   
     a. dans `build_demog()` utilisez ce code pour générer des données démographiques à partir de votre fichier "nodes.csv" (vous pouvez avoir besoin d'éditer le chemin vers input_dir à l'intérieur de manifest.py)
     ```python
     demog = Demographics.from_csv(input_file = os.path.join(manifest.input_dir, "demographics", "nodes.csv"), 
@@ -954,27 +963,28 @@ Maintenant, en vous référant aux scripts que vous avez écrits pour les exempl
                                                             include_biting_heterogeneity = True)
     # NOTE : L'id_ref utilisé pour générer le climat et les données démographiques doit correspondre !
     ```
-8. **Exécution de l'expérience [`general_sim()`]**  
+9. **Exécution de l'expérience [`general_sim()`]**  
     a. Définir la plate-forme  
     b. Créer EMODTask  
-    c. Définir l'image de singularité (en utilisant `set_sif()`)
-    d. Ajouter l'actif du répertoire météorologique  
+    c. Définir l'image de singularité (en utilisant `set_sif()`)  
+    d. Add weather directory asset :  
+   	`task.common_assets.add_directory(os.path.join(manifest.input_dir, "climate"), relative_path="climate")`   
     e. Utiliser `SimulationBuilder()`  
     f. **Rapports**  
     g. Créer, exécuter et vérifier les résultats de l'expérience  
 
 **Spécifications supplémentaires pour l'exemple de modèle spatial**
 
-*Brûlure*  
+*Brûlure  
 
 - Durée de l'expérience : 30 ans  
 - Varier `x_Temporary_Larval_Habitat` en utilisant `set_param()` 
     - `np.logspace(0,1,10)` utilisera 10 valeurs logarithmiques régulièrement espacées entre 10<sup>0</sup> et 10<sup>1</sup> (1-10x)
 - Pas d'intervention  
 - 1 réalisation stochastique / graine aléatoire
-- *Astuce : vérifiez `set_param_fn()` pour vous assurer que vous avez ajouté des vecteurs, pointé vers les fichiers démographiques/climatiques correspondants, et permis la sérialisation.*
+- Astuce : vérifiez `set_param_fn()` pour vous assurer que vous avez ajouté des vecteurs, pointé vers les fichiers démographiques/climatiques correspondants, et permis la sérialisation.
 
-*Ramassage* 
+*Ramassage 
 
 - Durée de l'étude : 10 ans  
 - Transférer `x_Temporary_Larval_Habitat` à partir de burnin en utilisant `update_serialization_parameters()`.  
@@ -983,7 +993,7 @@ Maintenant, en vous référant aux scripts que vous avez écrits pour les exempl
     - Un nœud reçoit une prise en charge uniquement  
     - Un nœud reçoit des MII tous les 3 ans seulement  
     - Un nœud ne reçoit aucune intervention
-    - *Remarque : pour plus de simplicité, vous pouvez choisir des couvertures "optimales" fixes (~80%) pour ces interventions, au lieu de balayer les paramètres de la campagne.*
+    - Remarque : pour plus de simplicité, vous pouvez choisir des couvertures "optimales" fixes (~80%) pour ces interventions, au lieu de balayer les paramètres de la campagne. 
     - ℹ️ Pour ajouter des MII (dans les noeuds 1 et 3, à la mi-juin par exemple) :
 	
 	```python
@@ -992,15 +1002,15 @@ Maintenant, en vous référant aux scripts que vous avez écrits pour les exempl
 	def build_camp(...) :
 	     ### Distributions de moustiquaires imprégnées d'insecticide dans les noeuds 1 et 3, par exemple ###
       	     itn.add_itn_scheduled(camp, start_day = 165, 
-				   demographic_coverage = 0,9, 
-				   repetitions = 4, 
-				   timesteps_between_repetitions = 365*3, 
+				   couverture démographique = 0,9, 
+				   répétitions = 4, 
+				   pas_de_temps_entre_les_répétitions = 365*3, 
 				   node_ids = [1,3],
 				   receiving_itn_broadcast_event= "Received_ITN",
-				   killing_initial_effect = 0,25,
-				   killing_decay_time_constant = 1460,
-				   blocking_initial_effect = 0,75,
-				   blocking_decay_time_constant = 730)
+				   effet_initial_de_la_tuerie = 0,25,
+				   constante de temps de destruction = 1460,
+				   effet_initial_bloquant = 0,75,
+				   constante_de_temps_de_blocage = 730)
 	    ...
 	```
 - 10 réalisations stochastiques / graines aléatoires chacune (balayage sur `Run_Number`)  
@@ -1014,24 +1024,24 @@ Maintenant, en vous référant aux scripts que vous avez écrits pour les exempl
 	  ```python
 	  add_spatial_report_malaria_filtered(task, manifest, 
 					      start_day = start_report, end_day = end_report,
-					       reporting_interval = 1, 
+					      intervalle_de_rapport = 1, 
 					      node_ids =None,
 					      min_age_years = 0.25, max_age_years = 100, 
-					     spatial_output_channels = ["Population",
-									 "PCR_Parasite_Prevalence",
-									 "New_Clinical_Cases"],
+					      canaux_de_sortie_spatiale = ["Population",
+									 "Prévalence_du_parasite_de_la_PCR",
+									 "Nouveaux_cas_cliniques"],
 					      filename_suffix = "all_ages")
 	  ```
     - Utilisez le code ci-dessous pour `add_report_event_counter(...)` **par noeud** 
         - la `event_trigger_list` doit inclure 'Received_Treatment' et 'Received_ITN'  
-        - *Note : Ces événements doivent être ajoutés à `config.parameters.Custom_Individual_Events=[...]` dans `set_param_fn()` également.*
+        - Note : Ces événements doivent être ajoutés à `config.parameters.Custom_Individual_Events=[...]` dans `set_param_fn()` également.
         
           ```python
           demo_df = pd.read_csv(os.path.join(manifest.input_dir, "demographics", "nodes.csv"))
-          for node in demo_df['node_id']:
+          for node in demo_df['node_id'] :
               add_report_event_counter(task, manifest,
-                                   start_day = start_report,
-                                   end_day = end_report,
+                                   jour_début = rapport_début,
+                                   jour_fin = rapport_fin,
                                    node_ids = [node],
                                    min_age_years = 0,
                                    max_age_years = 100,
@@ -1039,7 +1049,7 @@ Maintenant, en vous référant aux scripts que vous avez écrits pour les exempl
                                    filename_suffix = "_".join(("node",str(node))))
         
           ```
-          
+        
 **Partie 3. Analyser les simulations spatiales** 
 
 Pour analyser les fichiers `SpatialReportMalariaFiltered_.bin` générés pour chaque canal et chaque simulation, utilisez le script `analyzer_spatial.py`
@@ -1079,8 +1089,8 @@ Cela produira un fichier dans `working_dir/my_outputs/experiment_name/SpatialRep
 * Numéro d'exécution
 * x_Temporary_Larval_Habitat
 * Population
-* PCR_Parasite_Prevalence
-* New_Clinical_Cases
+* Prévalence du parasite par PCR
+* Nouveaux cas cliniques
 
 Pour analyser les comptes d'événements de chaque `ReportEventCounter_node_#.json`, exécutez le script `analyzer_events.py`
 
@@ -1116,7 +1126,7 @@ if __name__ == "__main__" :
             
             analyzer = [EventCounterAnalyzer(exp_name = expname, 
                                              exp_id = exp_id, 
-                                             sweep_variables = sweep_variables, 
+                                             variables_de_balayage = variables_de_balayage, 
 	############### METTEZ À JOUR CETTE LIGNE POUR QU'ELLE CORRESPONDE À VOS IDENTIFIANTS DE NŒUDS ###############
                                              nodes = ["1", "2", "3", "17"],
 	#######################################################################
@@ -1127,20 +1137,20 @@ if __name__ == "__main__" :
 
 ```
 
-Cela produira un fichier dans `/OUTPUTS_FOLDER/SUBFOLDER/CountedEvents.csv' avec les colonnes :  
+Cela produira un fichier dans `/OUTPUTS_FOLDER/SUBFOLDER/CountedEvents.csv' avec les colonnes : 
 
 * Temps  
 * Node  
 * Numéro d'exécution  
 * Habitat x_Temporary_Larval_Habitat 
-* Received Treatment  
-* Received ITN  
+* Traitement reçu  
+Traitement reçu * MII reçue  
 
 
 **Partie 4. Tracer les résultats spatiaux**
 
 1. Ouvrez 'spatial_plotter.rmd' dans RStudio
-2. Mettez à jour le `root` dans le premier morceau avec le chemin du dossier contenant les fichiers `SpatialReportMalariaFiltered.csv` et `CountedEvents.csv` générés ci-dessus. C'est également dans ce dossier que le graphique de sortie sera sauvegardé. 
+2. Mettez à jour le `root` dans le premier morceau avec le chemin d'accès au dossier contenant les fichiers `SpatialReportMalariaFiltered.csv` et `CountedEvents.csv` générés ci-dessus. C'est également dans ce dossier que le graphique de sortie sera sauvegardé. 
 3. Exécutez le fichier `spatial_plotter.rmd`.
 
 Visualisez le fichier `SpatialSummary.png` qui a été créé.
