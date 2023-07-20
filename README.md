@@ -941,7 +941,15 @@ Now, referring to the scripts you wrote for previous examples, you should be abl
     - You can keep the simulation duration short (1-2 years) while testing / debugging.  
     - Remember to add vectors
         -  `conf.add_species(config, manifest, ["gambiae", "arabiensis", "funestus"])`
-        
+    - Point to your new climate files
+      ```python
+      climate_root = os.path.join("climate",'FE_EXAMPLE','2019001-2019365')
+      
+      config.parameters.Air_Temperature_Filename = os.path.join(climate_root, 'dtk_15arcmin_air_temperature_daily.bin')
+      config.parameters.Land_Temperature_Filename = os.path.join(climate_root, 'dtk_15arcmin_air_temperature_daily.bin')
+      config.parameters.Rainfall_Filename = os.path.join(climate_root, 'dtk_15arcmin_rainfall_daily.bin')
+      config.parameters.Relative_Humidity_Filename = os.path.join(climate_root, 'dtk_15arcmin_relative_humidity_daily.bin')
+      ```  
 4. **Sweep configuration parameters**  
 5. **Build campaign**  
 6. Sweep campaign parameters (optional for this exercise)  
@@ -959,7 +967,8 @@ Now, referring to the scripts you wrote for previous examples, you should be abl
     a. Set platform  
     b. Create EMODTask  
     c. Set singularity image  (using `set_sif()`)  
-    d. Add weather directory asset  
+    d. Add weather directory asset:  
+   	`task.common_assets.add_directory(os.path.join(manifest.input_dir, "climate"), relative_path="climate")`   
     e. Use `SimulationBuilder()`  
     f. **Reports**  
     g. Create, run, and check result of experiment  
