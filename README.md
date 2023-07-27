@@ -455,7 +455,7 @@ Depending on our project and site there are a variety of different parameters yo
 <details><summary><span><h3><em>Serialization</em></h3></span></summary>
 <p>
 
-This serialization exercise has three parts. In part 1 you will run and save a burnin simulation. In part 2 you will "pickup" this simulation and add antimalarial interventions. In part 3 you will repeat parts 1 & 2 using a longer burnin duration, and compare the results.
+This serialization exercise has three parts. In part 1 you will run and save a burnin simulation. In part 2 you will "pickup" this simulation to run for a shorter time. In part 3 you will repeat parts 1 & 2 using a longer burnin duration, and compare the results.
 
 1. Burning in
     - Description: Typically, we create 50-year burnin simulations to initialize transmission and immunity in our population of interest prior to trying to answer our research questions. For this example, we will start by only running the burnin for 10 years with 500 people to make sure everything is running correctly. For now we will also want to run 3 replicates. Be sure to use your calibrated `x_Temporary_Larval_Habitat` from the previous example.
@@ -935,17 +935,26 @@ We will reference the generated climate files later inside `set_param_fn()` and 
 	
 Now, referring to the scripts you wrote for previous examples, you should be able to start with a blank `run_spatial.py` and outline - or in some cases complete - the code sections needed to run simulations, with the following **additional specifications**:  
 
-1. Import modules  
-2. **Set Configuration Parameters**  
+1. Import modules
+    - `import pandas as pd`  
+3. **Set Configuration Parameters**  
     - You can keep the simulation duration short (1-2 years) while testing / debugging.  
     - Remember to add vectors
         -  `conf.add_species(config, manifest, ["gambiae", "arabiensis", "funestus"])`
-        
-3. **Sweep configuration parameters**  
-4. **Build campaign**  
-5. Sweep campaign parameters (optional for this exercise)  
-6. Serialize burnin & pickup  
-7. **Build demographics**   
+    - Point to your new climate files
+      ```python
+      climate_root = os.path.join("climate",'FE_EXAMPLE','2019001-2019365')
+      
+      config.parameters.Air_Temperature_Filename = os.path.join(climate_root, 'dtk_15arcmin_air_temperature_daily.bin')
+      config.parameters.Land_Temperature_Filename = os.path.join(climate_root, 'dtk_15arcmin_air_temperature_daily.bin')
+      config.parameters.Rainfall_Filename = os.path.join(climate_root, 'dtk_15arcmin_rainfall_daily.bin')
+      config.parameters.Relative_Humidity_Filename = os.path.join(climate_root, 'dtk_15arcmin_relative_humidity_daily.bin')
+      ```  
+4. **Sweep configuration parameters**  
+5. **Build campaign**  
+6. Sweep campaign parameters (optional for this exercise)  
+7. Serialize burnin & pickup  
+8. **Build demographics**   
     a. inside `build_demog()` use this code to generate demographics from your "nodes.csv" file (you may need to edit the path to input_dir inside manifest.py)
     ```python
     demog = Demographics.from_csv(input_file = os.path.join(manifest.input_dir,"demographics","nodes.csv"), 
@@ -954,11 +963,12 @@ Now, referring to the scripts you wrote for previous examples, you should be abl
                                                             include_biting_heterogeneity = True)
     # NOTE: The id_ref used to generate climate and demographics must match!
     ```
-8. **Run Experiment [`general_sim()`]**  
+9. **Run Experiment [`general_sim()`]**  
     a. Set platform  
     b. Create EMODTask  
-    c. Set singularity image  (using `set_sif()`)
-    d. Add weather directory asset  
+    c. Set singularity image  (using `set_sif()`)  
+    d. Add weather directory asset:  
+   	`task.common_assets.add_directory(os.path.join(manifest.input_dir, "climate"), relative_path="climate")`   
     e. Use `SimulationBuilder()`  
     f. **Reports**  
     g. Create, run, and check result of experiment  
