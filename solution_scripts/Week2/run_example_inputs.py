@@ -32,6 +32,7 @@ def set_param_fn(config):
     """
     import emodpy_malaria.malaria_config as conf
     config = conf.set_team_defaults(config, manifest)
+    config.parameters.Climate_Model = "CLIMATE_BY_DATA"
     conf.add_species(config, manifest, ["gambiae", "arabiensis", "funestus"])
 
     config.parameters.Simulation_Duration = sim_years*365
