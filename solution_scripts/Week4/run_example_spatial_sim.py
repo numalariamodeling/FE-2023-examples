@@ -225,7 +225,7 @@ def general_sim(selected_platform):
     ############
     # Set platform and associated values, such as the maximum number of jobs to run at one time
     # Use b1139 for longer simulations (do not exveed 100 max_running_jobs)
-    platform = Platform(selected_platform, job_directory=manifest.job_directory, partition='b1139', time='6:00:00',
+    platform = Platform(selected_platform, job_directory=manifest.job_directory, partition='b1139testnode', time='6:00:00',
                         account='b1139', modules=['singularity'], max_running_jobs=100)
     # Task #
     ########
