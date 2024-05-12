@@ -24,7 +24,7 @@ Quelques scripts principaux sont fournis au niveau principal de ce référentiel
 **Prérequis:** 
 L'exécution de vos scripts nécessite que l'environnement virtuel emodpy soit chargé et suppose que les fichiers soient exécutés à partir d'un répertoire de travail situé à l'endroit où se trouve le script. Créez cet environnement à l'aide des [instructions d'installation](https://numalariamodeling.github.io/FE-2023-site-web-francais/guides/install_guide.html). Nous vous recommandons de créer un dossier "environments" dans votre répertoire personnel et d'y créer l'environnement. 
 
-Vous devrez également configurer votre fichier `.bashrc` (situé dans votre répertoire personnel). Nous utilisons ce fichier pour charger automatiquement les modules, tels que python, qui sont nécessaires au fonctionnement d'EMOD. Nous pouvons inclure un alias pour l'environnement virtuel décrit ci-dessus. Le modèle ci-dessous crée une commande alias appelée `load_emodpy` que nous pouvons exécuter dans le terminal pour activer l'environnement virtuel emodpy - mettez à jour la commande d'activation pour refléter l'environnement que vous avez créé à l'étape précédente. 
+Vous devrez également configurer votre fichier `.bashrc` (situé dans votre répertoire personnel). Nous utilisons ce fichier pour charger automatiquement les modules, tels que python, qui sont nécessaires au fonctionnement d'EMOD. Nous pouvons inclure un alias pour l'environnement virtuel décrit ci-dessus. Le modèle ci-dessous crée une commande alias appelée `load_myenv` que nous pouvons exécuter dans le terminal pour activer l'environnement virtuel emodpy - mettez à jour la commande d'activation pour refléter l'environnement que vous avez créé à l'étape précédente. 
 
 Cliquez sur la flèche pour développer:
 <details><summary><span><em>Template `.bashrc` file</em></span></summary>
@@ -44,18 +44,20 @@ fi
 # export SYSTEMD_PAGER=
 
 # Alias et fonctions spécifiques à l'utilisateur
-alias load_emodpy='source /home/<user>/environments/<emodpy-venv>/bin/activate'
+load_myenv (){
 module purge all
+module load python/3.8.4
 module load singularity/3.8.1
 module load git/2.8.2
-module load python/3.8.4
-module load R/4.1.1
+module load R/4.2.3
+source '/home/<user>/environments/<nom de l'environnement virtuel>/bin/activate'
+}
 ```
 
 </p>
 </details>
 
-Avant d'exécuter les scripts d'exemple hebdomadaires, veuillez vous assurer que l'environnement virtuel emodpy a été chargé avec succès et que ce [répertoire a été cloné](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) dans le répertoire du projet sur QUEST, idéalement sous la forme */projects/b1139/FE_<username>/FE-2023-examples*.
+Avant d'exécuter les scripts d'exemple hebdomadaires, veuillez vous assurer que l'environnement virtuel emodpy a été chargé avec succès et que ce [répertoire a été cloné](https://docs.github.com/fr/repositories/creating-and-managing-repositories/cloning-a-repository) dans le répertoire du projet sur QUEST, idéalement sous la forme */projects/b1139/FE_<username>/FE-2023-examples*.
 
 - Naviguez vers le projet: `cd /projects/b1139`
 - Créez votre répertoire personnel pour le programme: `mkdir FE_<nom d'utilisateur>` puis naviguez-y en utilisant `cd FE_<nom d'utilisateur>`.
@@ -63,7 +65,7 @@ Avant d'exécuter les scripts d'exemple hebdomadaires, veuillez vous assurer que
 	
 Avant de commencer un exercice, assurez-vous d'avoir récupéré les dernières modifications du répertoire (voir git-guides [git-pull](https://github.com/git-guides/git-pull)).
 	
-Pour plus d'aide sur l'utilisation de SLURM sur QUEST, consultez [ressources ](https://numalariamodeling.github.io/FE-2023-quarto-website/resources/coding_resources/quest_resources.html) sur le site web du programme.
+Pour plus d'aide sur l'utilisation de SLURM sur QUEST, consultez [ressources ](https://numalariamodeling.github.io/FE-2023-site-web-francais/resources/coding_resources/quest_resources.html) sur le site web du programme.
 
 ## Semaine 1: Vue d'ensemble d'EMOD
 Cette semaine, nous discuterons de la structure générale et du contenu d'EMOD et nous nous assurerons que vous êtes prêts à exécuter le modèle sur notre HPC linux, QUEST. Vous allez mettre en place votre propre environnement virtuel pour exécuter EMOD via emodpy et idmtools et cloner ce répertoire github dans votre répertoire FE sur notre allocation de projet QUEST, b1139. Veuillez vous familiariser avec le répertoire, le site web et la documentation EMOD avant d'exécuter l'exemple simple à la fin de cette semaine.
