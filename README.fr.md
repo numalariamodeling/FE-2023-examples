@@ -335,14 +335,14 @@ Maintenant que vous avez appris les bases de l'exécution d'EMOD et de l'ajout d
 </details>
 
 ## Semaine 3: Mise en place d'expériences et mise au point
-Les exercices de cette semaine porteront sur la conception et la mise en place d'expériences plus détaillées. Nous aborderons le balayage des paramètres de configuration, l'étalonnage et la sérialisation. 
+Les exercices de cette semaine porteront sur la conception et la mise en place d'expériences plus détaillées. Nous aborderons le balayage des paramètres de configuration, l'étalonnage (calibration) et la sérialisation. 
 
-Le premier exercice de cette semaine introduit le concept de "balayage" sur des plages de valeurs pour différents paramètres.  Il y a plusieurs raisons pour lesquelles nous pouvons vouloir tester une gamme de valeurs de paramètres, dont voici quelques exemples:
+Le premier exercice de cette semaine introduit le concept de "balayage" sur des plages de valeurs pour différents paramètres.  Il y a plusieurs raisons pour lesquelles nous pouvons vouloir tester une plage de valeurs de paramètres, dont voici quelques exemples:
     - l'exécution de plusieurs réalisations stochastiques (cet exemple)
-    - tester l'adéquation de l'étalonnage, par exemple avec la quantité d'habitat larvaire pour les moustiques (exemple d'étalonnage, plus tard dans la semaine)
+    - tester l'adéquation de l'étalonnage (calibration), par exemple avec la quantité d'habitat larvaire pour les moustiques (exemple d'étalonnage (calibration), plus tard dans la semaine)
     - tester différentes configurations d'intervention, telles que les niveaux de couverture ou les répétitions (nous y reviendrons la semaine prochaine). 
     
-L'exercice suivant vous guidera à travers un flux de travail de calibration de modèle de base dans EMOD. Nous ne connaissons pas toujours certains des paramètres de notre modèle, et pourtant ces paramètres jouent un rôle important dans l'élaboration des résultats de notre modèle. Nous "ajustons" ou "calibrons" les paramètres à certaines données réelles dont nous disposons. Essentiellement, nous proposons une gamme de valeurs pour ces paramètres et nous exécutons le modèle pour voir si les résultats correspondent aux données réelles observées. Pour ce faire, nous utilisons le "balayage" décrit dans le dernier exercice. L'ensemble des valeurs proposées est comparé aux données de référence et celles qui permettent au modèle de correspondre le mieux aux données réelles sont choisies pour les étapes suivantes de la modélisation.
+L'exercice suivant vous guidera à travers un flux de travail de calibration de modèle de base dans EMOD. Nous ne connaissons pas toujours certains des paramètres de notre modèle, et pourtant ces paramètres jouent un rôle important dans l'élaboration des résultats de notre modèle. Nous "ajustons" ou "calibrons" les paramètres à certaines données réelles dont nous disposons. Essentiellement, nous proposons une plage de valeurs pour ces paramètres et nous exécutons le modèle pour voir si les résultats correspondent aux données réelles observées. Pour ce faire, nous utilisons le "balayage" décrit dans le dernier exercice. L'ensemble des valeurs proposées est comparé aux données de référence et celles qui permettent au modèle de correspondre le mieux aux données réelles sont choisies pour les étapes suivantes de la modélisation.
 
 
 Le dernier exercice de cette semaine démontre le concept de sérialisation des populations dans les simulations. La sérialisation nous permet d'exécuter des simulations, de les sauvegarder à un certain moment et de simuler une autre campagne/scénario à partir du point que nous avons sauvegardé. Nous pouvons effectuer plusieurs simulations en série sur la même population. Nous utilisons souvent ce processus pour sauvegarder de longues simulations initiales appelées "burnins", au cours desquelles l'immunité de la population est établie. Nous ne voulons pas attendre que cela se produise à chaque fois, nous sérialisons donc la population à la fin de la simulation initiale et nous effectuons ensuite des simulations plus courtes, généralement avec des interventions supplémentaires (également appelées simulations "pick-up").
@@ -350,10 +350,10 @@ Le dernier exercice de cette semaine démontre le concept de sérialisation des 
 **Instructions**
 
 Cliquez sur la flèche pour agrandir:
-<details><summary><span><em>Parameter Sweeping</em></span></summary>
+<details><summary><span><em>Balayage des paramètres</em></span></summary>
 <p>
 
-Cet exercice montre comment "balayer" les paramètres afin d'obtenir un ensemble de valeurs différentes d'une simulation à l'autre dans notre expérience.
+Cet exercice montre comment "balayer" les paramètres afin d'obtenir un ensemble de différentes valeurs à travers les simulations de notre expérience.
 
 Pour l'instant, nous commencerons par un simple balayage d'un paramètre de configuration, tel que le numéro d'exécution. Comme nous l'avons vu précédemment, le numéro d'exécution contrôle la valeur de la graine aléatoire pour la simulation. En réglant les simulations sur une plage de valeurs de numéro d'exécution/graine aléatoire, nous pouvons produire davantage de répliques stochastiques. Chaque réplique produira des résultats légèrement différents pour la même simulation globale en raison de ce tirage de la distribution de probabilité aléatoire ; il est donc important d'effectuer plusieurs répliques pour obtenir des résultats scientifiquement valables.
 
@@ -380,8 +380,8 @@ Il existe d'autres méthodes de balayage plus compliquées, en particulier pour 
   ```
 
 - Comme mentionné, nous devons également ajuster la façon dont nous créons nos expériences dans `general_sim()`. Notez que nous utilisons actuellement `Experiment.from_task()` qui crée l'expérience et les simulations directement à partir de la tâche définie. Pour balayer les variables, nous allons devoir passer à l'utilisation de `Experiment.from_builder()` qui fonctionne pour configurer chaque simulation directement plutôt qu'une expérience entière avec les mêmes paramètres.
-    - Tout d'abord, initialiser le constructeur tel que `builder = SimulationBuilder()`. Cela devrait se faire dans `general_sim()` entre l'ajout d'actifs et de rapports. 
-    - Ajoutez le sweep au constructeur en utilisant `add_sweep_definition()`. Ici, vous allez créer un partial de `set_param` (défini ci-dessus), passer le paramètre de configuration que vous souhaitez définir à ce partial, et ensuite fournir la plage de valeurs à balayer. Dans cet exemple, la fonction doit balayer `Run_Number` sur la plage de `num_seeds` définie ci-dessus (elle sortira des valeurs de 0 - `num_seeds`).
+    - Tout d'abord, initialiser le constructeur tel que `builder = SimulationBuilder()`. Cela devrait se faire dans `general_sim()` entre l'ajout d'actifs (Assets) et de rapports. 
+    - Ajoutez le `sweep` au constructeur en utilisant `add_sweep_definition()`. Ici, vous allez créer un partial de `set_param` (défini ci-dessus), passer le paramètre de configuration que vous souhaitez définir à ce partial, et ensuite fournir la plage de valeurs à balayer. Dans cet exemple, la fonction doit balayer `Run_Number` sur la plage de `num_seeds` définie ci-dessus (elle sortira des valeurs de 0 - `num_seeds`).
     - Enfin, vous devrez supprimer la création d'expérience `Experiment.from_task()` et la remplacer par `Experiment.from_builder(builder, task, name=<expt_name>)`. Cela créera des expériences basées sur la tâche mais avec les informations supplémentaires contenues dans le constructeur, y compris le balayage ajouté. Assurez-vous de conserver le nom modifié de l'expérience!
   
       ```python
@@ -410,7 +410,7 @@ Il existe d'autres méthodes de balayage plus compliquées, en particulier pour 
 </p>
 </details>
 
-<details><summary><span><em>Calibration</em></span></summary>
+<details><summary><span><em>Etalonnage (Calibration)</em></span></summary>
 <p>
 
 En fonction de notre projet et de notre site, il existe une variété de paramètres différents sur lesquels il peut être intéressant de calibrer en raison de différentes incertitudes, y compris celles liées aux vecteurs et aux interventions. Dans cet exemple, nous voulons calibrer un paramètre appelé `x_Temporary_Larval_Habitat` qui contrôle la quantité d'habitat larvaire pour les moustiques et la quantité de moustiques en conséquence. Il s'agit d'un paramètre courant dans les efforts de calibration. Nous utiliserons notre site d'exemple avec des données qui imitent une enquête sur les ménages (DHS) menée sur le site. Dans cette enquête hypothétique, un certain nombre d'enfants de moins de 5 ans ont été testés pour le paludisme et nous savons combien d'entre eux sont positifs. Nous utiliserons ces points de référence pour sélectionner le meilleur ajustement.
@@ -419,12 +419,12 @@ En fonction de notre projet et de notre site, il existe une variété de paramè
 1. Exécution des balayages de calibration
     - Copiez `run_example_sweeps.py` dans un nouveau script nommé `run_example_calibration.py`
     - Mettez à jour `sim_years` pour qu'il dure au moins 20 ans avec `sim_start_year=2000`. Cette année de départ est juste destinée à nous aider à placer nos simulations dans le temps, comme avec l'analyseur, plutôt que de changer les pas de temps de la simulation.
-    - Sous le balayage que nous avons ajouté la dernière fois, ajoutez-en un autre pour `x_Temporary_Larval_Habitat` (default = 1). Ce paramètre multiplie la valeur par défaut de l'habitat larvaire, de sorte que nous voudrons commencer avec une gamme de valeurs relativement petite. Une bonne façon de le faire est d'utiliser une commande numpy, `logspace`, qui divisera l'intervalle de manière égale dans l'espace logarithmique - nous allons essayer -0.5 à 1 dans l'espace logarithmique (0.316 à 10 en termes de valeur réelle du paramètre) pour 10 valeurs distinctes. L'espace logarithmique est particulièrement utile pour ce paramètre, car les valeurs réelles de l'habitat larvaire peuvent être assez importantes, de sorte que nous avons tendance à vouloir explorer de plus près les valeurs inférieures de notre plage. Veillez également à `import numpy as np` avec le reste de vos déclarations d'importation.
+    - Sous le balayage que nous avons ajouté la dernière fois, ajoutez-en un autre pour `x_Temporary_Larval_Habitat` (default = 1). Ce paramètre multiplie la valeur par défaut de l'habitat larvaire, de sorte que nous voudrons commencer avec une plage de valeurs relativement petite. Une bonne façon de le faire est d'utiliser une commande numpy, `logspace`, qui divisera l'intervalle de manière égale dans l'espace logarithmique - nous allons essayer -0.5 à 1 dans l'espace logarithmique (0.316 à 10 en termes de valeur réelle du paramètre) pour 10 valeurs distinctes. L'espace logarithmique est particulièrement utile pour ce paramètre, car les valeurs réelles de l'habitat larvaire peuvent être assez importantes, de sorte que nous avons tendance à vouloir explorer de plus près les valeurs inférieures de notre plage. Assurez-vous d'ajouter également `import numpy as np` avec le reste de vos déclarations d'importation.
     
       ```python
       builder.add_sweep_definition(partial(set_param, param='x_Temporary_Larval_Habitat'), np.logspace(-0.5,1,10))
       ```
-    - Dans cet exemple, nous utiliserons des rapports récapitulatifs annuels plutôt qu'un seul grand rapport qui passerait par une boucle for pour toutes les années. Nous ajouterons également `filename_suffix=f'Monthly_U5_{sim_year}'` à la fin du rapport de synthèse. Cette commande ajoute un descripteur au fichier de sortie du rapport - elle est particulièrement utile lorsque vous souhaitez produire plusieurs rapports différents à partir du même type de rapport (comme un rapport hebdomadaire, mensuel et annuel).
+    - Dans cet exemple, nous utiliserons des rapports récapitulatifs annuels plutôt qu'un seul grand rapport qui passerait par une boucle pour toutes les années. Nous ajouterons également `filename_suffix=f'Monthly_U5_{sim_year}'` à la fin du rapport de synthèse. Cette commande ajoute un descripteur au fichier de sortie du rapport - elle est particulièrement utile lorsque vous souhaitez produire plusieurs rapports différents à partir du même type de rapport (comme un rapport hebdomadaire, mensuel et annuel).
     
       ```python
         for year in range(sim_years):
@@ -440,9 +440,10 @@ En fonction de notre projet et de notre site, il existe une variété de paramè
     - Dans le `general_sim()`, trouvez la commande `experiment.run(wait_until_done=True, platform=platform)` (ligne 148 dans le script de la solution). C'est la commande qui soumet et exécute nos simulations. Notez qu'elle a un argument "wait until done" - c'est ce qui nous donne la barre de progression pour l'achèvement de nos simulations après la soumission. Maintenant que nous exécutons des simulations plus longues, mettez-le à `False` pour libérer votre terminal.
         - ⚠️ *Vous devriez également supprimer les messages d'impression qui suivent cette ligne et qui indiquent si l'expérience a réussi ou non, car nous n'attendons plus qu'elle se termine avant de poursuivre le script. Cela vous fera obtenir le message d'avertissement "experiment failed" car les simulations seront toujours en cours (et n'auront donc pas abouti) lorsque le script de soumission (`run_example_calibration.py`) exécutera cette ligne. A la place, utilisez `squeue -A b1139` pour vérifier le statut de vos jobs en cours sur QUEST et utilisez ensuite stderr.txt et stdout.txt pour déterminer si vos simulations ont réussi ou échoué lorsqu'elles ont fini de s'exécuter.*
     - Mettez à jour le `nom_expt` et lancez vos simulations.
-            - Ces simulations peuvent prendre plus de temps en raison de la durée plus longue de la simulation. Vous pouvez vérifier la progression de vos travaux et ce qui est en cours d'exécution sur la même allocation en utilisant `squeue -A b1139` ou seulement la progression de vos travaux avec `squeue -u <nom d'utilisateur>`.
-            - Une fois les simulations terminées, vérifiez vos résultats. Est-ce que tout est là? Est-ce que tous vos rapports ressemblent à ce que vous attendiez?
-    - Mettez à jour le `expt_name`, `exp_id`, et les années à analyser dans le `analyzer_calibration.py` puis exécutez le script lorsque vos simulations sont terminées - vérifiez les différences entre cet analyseur et les précédents (et leurs sorties).
+    - Ces simulations peuvent prendre plus de temps en raison de la durée plus longue de la simulation. Vous pouvez vérifier la progression de vos travaux et ce qui est en cours d'exécution sur la même allocation en utilisant `squeue -A b1139` ou seulement la progression de vos travaux avec `squeue -u <nom d'utilisateur>`.
+    - Une fois les simulations terminées, vérifiez vos résultats. Est-ce que tout est là? Est-ce que tous vos rapports ressemblent à ce que vous attendiez?
+    - Mettez à jour le `expt_name`, `exp_id`, et les années à analyser dans le `analyzer_calibration.py` puis exécutez le script lorsque vos simulations sont terminées
+    - Vérifiez les différences entre cet analyseur et les précédents (et leurs sorties).
 
     
 2. Sélection des paramètres
@@ -458,7 +459,7 @@ En fonction de notre projet et de notre site, il existe une variété de paramè
 </p>
 </details>
 
-<details><summary><span><em>Serialisation</em></span></summary>
+<details><summary><span><em>Sérialisation</em></span></summary>
 <p>
 
 Cet exercice de sérialisation comporte trois parties. Dans la première partie, vous exécuterez et sauvegarderez une simulation de burnin. Dans la partie 2, vous "récupérerez" cette simulation et y ajouterez des interventions antipaludiques. Dans la troisième partie, vous répéterez les parties 1 et 2 en utilisant une durée de burnin plus longue et vous comparerez les résultats.
