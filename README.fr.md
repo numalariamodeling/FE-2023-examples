@@ -495,7 +495,8 @@ Cet exercice de sérialisation comporte trois parties. Dans la première partie,
               config.parameters.Serialization_Precision = "REDUCED"
           ```
     - Exécutez le script et vérifiez vos résultats à la fin de l'exécution.
-        - Notez que nous avons `InsetChart.json` comme c'est le cas par défaut pour toutes les sims (si vous n'avez pas inclus d'autres reporters) et un nouveau fichier `state-03650.dtk`. Ce fichier state est le fichier "burnin" qui enregistre toutes les informations nécessaires sur cette simulation (comme la population, l'immunité, etc) au point dans le temps que nous avons demandé, dans ce cas le jour 3650 (le dernier jour d'une simulation de 10 ans). *Astuce: le nom du fichier d'état doit changer en fonction de la durée du burnin.*
+        - Notez que nous avons `InsetChart.json` comme c'est le cas par défaut pour toutes les sims (si vous n'avez pas inclus d'autres reporters) et un nouveau fichier `state-03650.dtk`. Ce fichier "state" est le fichier "burnin" qui enregistre toutes les informations nécessaires sur cette simulation (comme la population, l'immunité, etc) au point dans le temps que nous avons demandé, dans ce cas le jour 3650 (le dernier jour d'une simulation de 10 ans).
+        - *⚠️ Le nom du fichier d'état doit changer en fonction de la durée du burnin.*
     - En attendant que vos simulations se terminent, nous pouvons adapter le script `analyzer_w2.py` pour mieux répondre aux besoins de la sérialisation. Copiez ce script et nommez le `analyzer_serialization.py`
         - Commencez par ajouter une section à l'exécutable `if __name__ == "__main__":` de l'analyseur qui définit la durée de la sérialisation et l'étape (burnin ou pickup) que vous souhaitez analyser, dans ce cas le burnin.
         
@@ -505,7 +506,7 @@ Cet exercice de sérialisation comporte trois parties. Dans la première partie,
           serialize_years = 10 # Identique à run_example_burnin.py
           step = 'burnin'
           ```
-        - Nous pouvons également vouloir ajuster nos variables de balayage et les canaux `InsetChart`. Essayons de changer les canaux pour les quatre ci-dessous et d'ajouter une instruction if pour définir les variables de balayage pour le pickup. Pour l'instant, c'est la même chose que pour le burnin et ne balaye que Run_Number, mais cela peut être utilisé pour des paramètres supplémentaires, tels que la couverture de l'intervention, au fur et à mesure que vous ajoutez de la complexité au pickup. 
+        - Nous pouvons également vouloir ajuster nos variables de balayage et les canaux `InsetChart`. Essayons de changer les canaux pour les quatre ci-dessous et d'ajouter une instruction "if" pour définir les variables de balayage pour le pickup. Pour l'instant, c'est la même chose que pour le burnin et ne balaye que Run_Number, mais cela peut être utilisé pour des paramètres supplémentaires, tels que la couverture de l'intervention, au fur et à mesure que vous ajoutez de la complexité au pickup. 
         
           ```python
           ## Définir les variables de balayage et la liste des événements en fonction de l'expérience
@@ -556,15 +557,15 @@ Cet exercice de sérialisation comporte trois parties. Dans la première partie,
           ```
     - Exécutez le script d'analyse et vérifiez les résultats.
     
-2. Reprendre
+2. Pickup
     - Créez un nouveau script, `run_example_pickup.py` qui sera utilisé pour exécuter une simulation à partir des simulations de burnin sur 10 ans que vous avez exécutées dans la Partie 1. Vous pouvez choisir de copier le contenu de votre burnin ou de recommencer à zéro, en réfléchissant bien aux parties qui sont nécessaires ou que vous pensez pouvoir changer pour le pickup.
-        - Veillez à mettre à jour ou à ajouter tous les rapporteurs qui peuvent être intéressants pour voir ce qui se passe pendant le ramassage. Il est recommandé d'inclure au moins le rapporteur de synthèse que nous avons utilisé dans les exemples précédents.
-        - Comme nous l'avons mentionné plus haut, les ramassages sont souvent les plus utiles lorsque l'on réfléchit à différents scénarios d'intervention. Nous discuterons de l'ajout de ces interventions de manière plus approfondie dans les exercices ultérieurs et nous nous concentrerons principalement sur le processus de création de la collecte dans cet exercice. 
-        - *Notez que les jours de début et de fin pour les éléments tels que les rapports et les interventions sont relatifs au début de la simulation de ramassage - en d'autres termes, ils recommencent à zéro.*
-    - Importez `build_burnin_df` depuis le fichier d'aide `utils_slurm` - cette fonction nous aide à accéder aux informations de burnin sauvegardées et à construire notre ramassage à partir de celles-ci.
-    - Ajoutez des paramètres personnalisés ou nouveaux qui définissent la simulation de ramassage et la durée du burnin ainsi que l'ID de l'expérience de burnin. Ajoutez ces paramètres au début de votre nouveau script après vos déclarations d'importation:
-        - `pickup_years` pour définir votre `Simulation_Duration` (c.-à-d. le nombre d'années d'exécution après le burnin). Cela remplacera la durée que vous aviez précédemment dans le script, donc assurez-vous de mettre à jour la `Simulation_Duration` en conséquence!
-        - `serialize_years` pour définir l'année du burnin qui sert de début au ramassage et devrait être égale à la valeur de `serialize_years` dans le burnin.
+        - Veillez à mettre à jour ou à ajouter tous les rapporteurs qui peuvent être intéressants pour voir ce qui se passe pendant le pickup. Il est recommandé d'inclure au moins le rapporteur de synthèse que nous avons utilisé dans les exemples précédents.
+        - Comme nous l'avons mentionné plus haut, les pickup sont souvent les plus utiles lorsqu'on envisage différents scénarios d'intervention. Nous discuterons de l'ajout de ces interventions de manière plus approfondie dans les exercices ultérieurs. Dans cet exercice, nous nous concentrons principalement sur le processus de création du pickup 
+        - *Notez que les jours de début et de fin pour les éléments tels que les rapports et les interventions sont relatifs au début de la simulation de pickup - en d'autres termes, ils recommencent à zéro.*
+    - Importez `build_burnin_df` depuis le fichier d'aide `utils_slurm` - cette fonction nous aide à accéder aux informations de burnin sauvegardées et à construire notre pickup à partir de celles-ci.
+    - Ajoutez des paramètres personnalisés ou nouveaux qui définissent la simulation de pickup et la durée du burnin ainsi que l'ID de l'expérience de burnin. Ajoutez ces paramètres au début de votre nouveau script après vos déclarations d'importation:
+        - `pickup_years` pour définir votre `Simulation_Duration` (c.-à-d. le nombre d'années d'exécution après le burnin). Cela remplacera la durée que vous aviez précédemment dans le script, donc assurez-vous de mettre à jour la `Simulation_Duration` dans la fonction `set_param()`.
+        - `serialize_years` pour définir l'année du burnin qui sert de début au pickup et devrait être égale à la valeur de `serialize_years` dans le burnin.
         - `burnin_exp_id = '<exp_id>'` avec l'experiment_id de l'expérience burnin que vous voulez récupérer.
 
           ```python
@@ -581,7 +582,7 @@ Cet exercice de sérialisation comporte trois parties. Dans la première partie,
       def set_param_fn() :
           ## contenu existant 
     
-          #Ajouter la sérialisation - ajouter les paramètres de ramassage "read" à config.json
+          #Ajouter la sérialisation - ajouter les paramètres de pickup "read" à config.json
           config.parameters.Serialized_Population_Reading_Type = "READ"
           config.parameters.Serialization_Mask_Node_Read = 0
           config.parameters.Serialization_Time_Steps = [serialize_years*365]
@@ -599,11 +600,11 @@ Cet exercice de sérialisation comporte trois parties. Dans la première partie,
     
          simulation.task.set_parameter("Serialized_Population_Filenames", df["Serialized_Population_Filenames"][x])
          simulation.task.set_parameter("Serialized_Population_Path", os.path.join(path, "output"))
-         simulation.task.set_parameter("Run_Number", seed) #faire correspondre le numéro de course de la simulation de ramassage à celui de la simulation "burnin"
+         simulation.task.set_parameter("Run_Number", seed) #faire correspondre le numéro de course de la simulation de pickup à celui de la simulation "burnin"
 
          return {"Run_Number":seed}
       ```
-    - Enfin, nous devons ajouter quelques commandes pour trouver les fichiers d'état sérialisés et les ajouter à notre constructeur de simulation. Utilisez la commande `build_burnin_df` pour créer le cadre de données qui contiendra toutes les informations nécessaires sur notre burnin en utilisant l'ID de l'expérience burnin, la plateforme où nous exécutons tout, et le point de temps sérialisé. Ensuite, nous pouvons balayer la fonction `update_serialize_parameters` que nous avons créée dans la dernière étape, en référençant le dataframe burnin comme étant l'endroit d'où nous obtenons les informations pour nos sims et en balayant les valeurs d'index du dataframe afin de lire l'ensemble ligne par ligne.
+    - Enfin, nous devons ajouter quelques commandes pour trouver les fichiers sérialisés(state files) et les ajouter à notre constructeur de simulation. Utilisez la commande `build_burnin_df` pour créer le cadre de données qui contiendra toutes les informations nécessaires sur notre burnin en utilisant l'ID de l'expérience burnin, la plateforme où nous exécutons tout, et le point de temps sérialisé. Ensuite, nous pouvons balayer la fonction `update_serialize_parameters` que nous avons créée dans la dernière étape, en référençant le dataframe burnin comme étant l'endroit d'où nous obtenons les informations pour nos sims et en balayant les valeurs d'index du dataframe afin de lire l'ensemble ligne par ligne.
     
       ```python
       def general_sim():
@@ -617,18 +618,18 @@ Cet exercice de sérialisation comporte trois parties. Dans la première partie,
     - *Note: Assurez-vous que vous ne créez pas de répliques stochastiques supplémentaires dans le pickup. Parce que nous faisons correspondre le "Run_Number" dans `update_serialize_parameters`, il n'y a pas besoin de faire ce balayage supplémentaire du numéro de run.*
     - Lancez l'expérience. Une fois l'expérience terminée, vérifiez vos résultats. Voyez-vous ce que vous attendez? 
         - *Astuce: pensez aux rapporteurs que vous avez ajoutés, ou pas.*
-        - Remarquez qu'il n'y a pas de fichier d'état dans la collecte. Lorsque nous choisissons de lire plutôt que d'écrire avec les paramètres de configuration de la sérialisation, cela ne fera que lire le fichier d'état du burnin plutôt que d'en écrire un nouveau pour le pickup. Il est possible de faire les deux étapes pendant la sérialisation si nécessaire.
+        - Remarquez qu'il n'y a pas de fichier "state" dans le pickup. Lorsque nous choisissons de lire plutôt que d'écrire avec les paramètres de configuration de la sérialisation, cela ne fera que lire le fichier d'état du burnin plutôt que d'en écrire un nouveau pour le pickup. Il est possible de faire les deux étapes pendant la sérialisation si nécessaire.
         - Rappelez-vous que vous devez vérifier toutes vos sorties, y compris des choses comme `config.json` et `campaign.json` pour vous assurer qu'elles font ce que vous attendez. Dans cet exemple, il est particulièrement pertinent de s'assurer que tous les paramètres, comme `x_Temporary_Larval_Habitat`, qui devraient être les mêmes dans le burnin et le pickup le sont réellement. Vous pouvez les comparer côte à côte ou les copier-coller dans un logiciel comme [diffchecker](https://www.diffchecker.com/) pour vous assurer que tout se passe comme prévu.        
     - En attendant que la sérialisation se termine, faites toutes les modifications nécessaires à l'analyseur comme `expt_name`, `exp_id`, `step`, et pickup `start_year`. Une fois l'expérience terminée, vous pouvez lancer `analyzer_serialization.py` et vérifier ses résultats.
     
-3. Comparer les simulations de ramassage sur différentes durées de burnin
+3. Comparer les simulations de pickup sur différentes durées de burnin
     - Exécutez un burnin plus long de 50 ans en utilisant `run_example_burnin.py`
     - Quand l'exécution est terminée (cela peut prendre un certain temps), mettez à jour le `burnin_exp_id` dans `run_example_pickup.py`. Vérifiez vos résultats pour vous assurer que tout s'est déroulé correctement.
-    - Avant de lancer l'expérience, mettez à jour le `exp_name` (c'est à dire ajoutez 'burnin50'), pour garder une trace de vos itérations de simulation. Ne changez rien d'autre dans la simulation de ramassage, pour permettre la comparaison entre les itérations de ramassage à partir de différentes durées de burnin.
-    - Exécutez l'expérience de ramassage, attendez qu'elle se termine, et vérifiez vos résultats.
+    - Avant de lancer l'expérience, mettez à jour le `exp_name` (c'est à dire ajoutez 'burnin50'), pour garder une trace de vos itérations de simulation. Ne changez rien d'autre dans la simulation de pickup, pour permettre la comparaison entre les itérations de pickup à partir de différentes durées de burnin.
+    - Exécutez l'expérience de pickup, attendez qu'elle se termine, et vérifiez vos résultats.
     - En utilisant `analyzer_serialization.py`, lancez `InsetChartAnalyzer` pour les deux expériences burnin et pickup. Assurez-vous de modifier votre `serialization_years` et le `step` que vous analysez. N'hésitez pas à changer les `channels_inset_chart` pour d'autres en fonction des différences que vous souhaitez explorer. Vérifiez les résultats.
     - Essayez de tracer vos résultats pour montrer à la fois le burnin et le pickup sur le même graphique pour vos canaux d'intérêt au fil du temps. Vous pouvez utiliser R ou python pour le faire - si vous êtes bloqué, il y a un exemple de script de tracé python dans `Solution_scripts/Week3` appelé `plot_example_serialization.py` mais nous recommandons fortement d'essayer de faire votre propre version d'un tracé d'abord.
-        - *Note: ces tracés et ces scripts d'analyse ne sont que des bases de travail pour vous! Il se peut que vous souhaitiez apporter des modifications ou inclure des éléments supplémentaires, tels qu'une variable de balayage supplémentaire, des intervalles de confiance ou des rapports supplémentaires avec de nouveaux analyseurs (et sorties), au fur et à mesure que vous développez votre projet, en particulier lorsque vous ajoutez de la complexité au ramassage*.
+        - *Note: ces tracés et ces scripts d'analyse ne sont que des bases de travail pour vous! Il se peut que vous souhaitiez apporter des modifications ou inclure des éléments supplémentaires, tels qu'une variable de balayage supplémentaire, des intervalles de confiance ou des rapports supplémentaires avec de nouveaux analyseurs (et sorties), au fur et à mesure que vous développez votre projet, en particulier lorsque vous ajoutez de la complexité au pickup*.
     - ❓ Comparez les tracés entre les expériences avec des burnins de 10 et 50 ans. Remarquez-vous des différences?
     
 </p>
