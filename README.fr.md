@@ -813,7 +813,7 @@ Dans cet exemple, nous continuerons à nous appuyer sur la structure de sériali
       
     - Une fois que les niveaux de couverture élevés et faibles sont définis, nous pouvons modifier l'intervention de gestion de cas pour refléter la variation entre les groupes. 
         - Ajustez chacun des niveaux de couverture pour utiliser `cm_cov_U5_low` de votre ajustement de couverture.
-        - Après les cibles, ajoutez `ind_property_restrictions=[{'Access' : 'Low'}]` - ceci limitera l'intervention aux personnes du groupe à faible accès. Plusieurs adresses IP peuvent être utilisées ici si vous le souhaitez.
+        - Après les cibles, ajoutez `ind_property_restrictions=[{'Access' : 'Low'}]` - ceci limitera l'intervention aux personnes du groupe à faible accès. Plusieurs IPs peuvent être utilisées ici si vous le souhaitez.
           <details><summary><span><em>Vérifier votre intervention de gestion de cas</em></span></summary>
           <p>
           - Ajoutez ce qui suit à `build_camp()` après avoir défini les niveaux de couverture :
@@ -835,9 +835,9 @@ Dans cet exemple, nous continuerons à nous appuyer sur la structure de sériali
           </p>
           </details>
         - Dupliquer l'intervention à faible accès et la modifier pour appliquer la gestion des cas au groupe à accès élevé également.
-    - Ajoutez les mêmes détails d'IP de l'incendie aux données démographiques de la prise en charge.
-    - Ajoutez les spécifications IP pour les rapports de l'enregistreur d'événements dont il a été question dans la partie 1.
-    - Ensuite, nous modifierons le rapport de synthèse et utiliserons le système en boucle pour les années de l'exercice d'étalonnage (pour utiliser un analyseur différent). Nous lui demandons de n'inclure que les individus d'un niveau particulier par le biais de `must_have_ip_key_value='<property>:<value>'`. Cela signifie que le rapport demandé ci-dessous n'inclura que les personnes ayant un accès élevé aux soins. Dans ce cas, il est également utile d'ajouter un `filename_suffix` tel que '_highaccess' pour marquer le résultat de l'analyse. Veillez à inclure un rapport pour les deux niveaux d'accès dans votre script, un exemple est inclus pour "accès élevé" ci-dessous.
+    - Ajoutez les mêmes détails d'IP de de burnin aux données démographiques de pickup.
+    - Ajoutez les spécifications IP pour les rapports de l'enregistreur d'événements discutés dans la partie 1.
+    - Ensuite, nous modifierons le rapport de synthèse et utiliserons le système en boucle (for loop) pour les années de l'exercice de calibration (pour utiliser un analyseur différent). Nous lui demandons de n'inclure que les individus d'un niveau particulier à travers de `must_have_ip_key_value='<property>:<value>'`. Cela signifie que le rapport demandé ci-dessous n'inclura que les personnes ayant un accès élevé aux soins. Dans ce cas, il est également utile d'ajouter un `filename_suffix` tel que '_highaccess' pour marquer le résultat de l'analyse. Veillez à inclure un rapport pour les deux niveaux d'accès dans votre script, un exemple est inclus pour "accès élevé" ci-dessous.
     
         ```python
         for i in range(pickup_years) :
@@ -852,10 +852,10 @@ Dans cet exemple, nous continuerons à nous appuyer sur la structure de sériali
     - Mettre à jour le nom de l'expérience, exécuter le script.
     - Mettez à jour le nom et l'ID de l'expérience dans `analyzer_IP.py`. Assurez-vous de vérifier si vous avez besoin de mettre à jour quelque chose comme `sweep_variables` ou les années de l'analyseur. 
     - Une fois le pickup terminé, vérifiez vos sorties pour vous assurer que tout a bien été créé. Avez-vous des rapports récapitulatifs sur l'accès élevé et l'accès faible ? Si tout semble correct, lancez l'analyseur et vérifiez ses résultats.
-    - Essayez de tracer vos résultats. N'hésitez pas à utiliser d'anciens scripts et à les adapter pour essayer de comprendre les différences entre les niveaux de propriété intellectuelle.
+    - Essayez de tracer vos résultats. N'hésitez pas à utiliser d'anciens scripts et à les adapter pour essayer de comprendre les différences entre les niveaux de propriété individuelles.
         - ⚠️*Réfléchissez aux types d'indicateurs sur lesquels l'accès à la gestion des dossiers peut avoir un impact et à la manière dont vous souhaiteriez présenter les comparaisons entre les groupes ayant un accès élevé et ceux ayant un accès faible. Veillez à inclure tout regroupement sur les balayages de paramètres, car ils peuvent avoir un impact sur les résultats!*
         - ❓ Si vous aviez inclus le rapport de synthèse dans le burnin, vous attendriez-vous à ce que ces résultats soient différents ? Si oui, comment et pourquoi ?
-            - ⚠️*Pensez en particulier aux différents niveaux de propriété intellectuelle et à ce qui a changé entre les scénarios de brûlage et de ramassage*.
+            - ⚠️*Pensez en particulier aux différents niveaux de propriété individuelles et à ce qui a changé entre les scénarios de burnin et de pickup*.
     
 </p>
 </details>
@@ -884,11 +884,11 @@ Nous aborderons les applications avancées de la modélisation spatiale dans un 
     | 17 | 12.06 | -1.48 | 1000 |
         
    - ⚠️ **node_id** doivent être des nombres positifs, mais ne doivent pas nécessairement être séquentiels.  
-   - ℹ️ les valeurs lat/lon doivent représenter des lieux réels dont le climat est propice à la transmission du paludisme (pour l'étape 3).  
+   - ℹ️ les valeurs lat/lon doivent représenter des lieux réels avec des climats adaptés à la transmission du paludisme (pour l'étape 3).  
    - ⚠️ les noms des colonnes sont censés être "node_id", "lat", "lon" et "pop" par défaut. 
 3. En utilisant un script séparé, `get_climate.py`, demander et sauvegarder les fichiers climatiques basés sur **nodes.csv** <br>.
-   *Pour plus de simplicité, utilisez une série d'une seule année à partir de 2019, en utilisant la définition de la fonction et l'appel à `get_climate()` ci-dessous* <br>.
-        - Il suffit de mettre à jour les arguments "tag" et "demo_fname" de manière appropriée
+   *Pour plus de simplicité, utilisez une série d'une seule année à partir de 2019, en utilisant la définition de la fonction et appeler la fonction `get_climate()` ci-dessous* <br>.
+        - Mettez simplement à jour les arguments "tag" et "demo_fname" de manière appropriée.
         
 ```python  
 from emodpy_malaria.weather import *
@@ -939,12 +939,12 @@ Nous ferons référence aux fichiers climatiques générés plus tard dans `set_
 	
 **Partie 2. Exécuter des simulations spatiales**
 	
-Maintenant, en vous référant aux scripts que vous avez écrits pour les exemples précédents, vous devriez être capable de commencer avec un `run_spatial.py` vierge et d'esquisser - ou dans certains cas de compléter - les sections de code nécessaires pour exécuter des simulations, avec les **spécifications supplémentaires** suivantes :  
+Maintenant, en vous référant aux scripts que vous avez écrits pour les exemples précédents, vous devriez être capable de commencer avec un script vierge `run_spatial.py` et donner un aperçu - ou dans certains cas de compléter - les sections de code nécessaires pour exécuter des simulations, avec les **spécifications supplémentaires** suivantes :  
 
 1. Importer des modules
     - `import pandas as pd`  
 3. **Définir les paramètres de configuration**  
-    - La durée de la simulation peut être courte (1 à 2 ans) pour les tests et le débogage.  
+    - Vous pouvez maintenir une durée de simulation courte (1 à 2 ans) lors des tests / débogages.  
     - N'oubliez pas d'ajouter les vecteurs
         - `conf.add_species(config, manifest, ["gambiae", "arabiensis", "funestus"])`
     - Pointez vers vos nouveaux fichiers de climat
@@ -973,7 +973,7 @@ Maintenant, en vous référant aux scripts que vous avez écrits pour les exempl
     a. Définir la plate-forme  
     b. Créer EMODTask  
     c. Définir l'image de singularité (en utilisant `set_sif()`)  
-    d. Add weather directory asset :  
+    d. Ajoutez le répertoire d'actif (assets) météorologiques:  
    	`task.common_assets.add_directory(os.path.join(manifest.input_dir, "climate"), relative_path="climate")`   
     e. Utiliser `SimulationBuilder()`  
     f. **Rapports**  
@@ -981,7 +981,7 @@ Maintenant, en vous référant aux scripts que vous avez écrits pour les exempl
 
 **Spécifications supplémentaires pour l'exemple de modèle spatial**
 
-*burnin  
+*Burnin  
 
 - Durée de l'expérience : 30 ans  
 - Varier `x_Temporary_Larval_Habitat` en utilisant `set_param()` 
@@ -990,13 +990,13 @@ Maintenant, en vous référant aux scripts que vous avez écrits pour les exempl
 - 1 réalisation stochastique / graine aléatoire
 - Astuce : vérifiez `set_param_fn()` pour vous assurer que vous avez ajouté des vecteurs, pointé vers les fichiers démographiques/climatiques correspondants, et permis la sérialisation.
 
-*Ramassage 
+*Pickup 
 
-- Durée de l'étude : 10 ans  
+- Durée : 10 ans  
 - Transférer `x_Temporary_Larval_Habitat` à partir de burnin en utilisant `update_serialization_parameters()`.  
 - Les interventions sont déployées différemment dans chaque nœud en fournissant une liste de nœuds à l'argument `node_ids` <br> (ex. `treatment_seeking(... node_ids=[1,2])`) :  
     - Un nœud reçoit une prise en charge et des MII tous les 3 ans.  
-    - Un nœud reçoit une prise en charge uniquement  
+    - Un nœud reçoit une prise en charge seulement  
     - Un nœud reçoit des MII tous les 3 ans seulement  
     - Un nœud ne reçoit aucune intervention
     - Remarque : pour plus de simplicité, vous pouvez choisir des couvertures "optimales" fixes (~80%) pour ces interventions, au lieu de balayer les paramètres de la campagne. 
@@ -1025,7 +1025,7 @@ Maintenant, en vous référant aux scripts que vous avez écrits pour les exempl
         - Rapport uniquement sur les 3 dernières années de la simulation   
         - Pour un rapport quotidien, utilisez `reporting_interval = 1`  
         - Filtre sur les âges 0.25-100  
-        - include spatial_output_channels 'Population', 'PCR_Parasite_Prevalence', et 'New_Clinical_Cases' (bien que n'importe quel canal InsetChart fonctionne)
+        - Incluez les canaux de sortie spatiale (spatial_output_channels) 'Population', 'PCR_Parasite_Prevalence', et 'New_Clinical_Cases' (bien que n'importe quel canal InsetChart fonctionne)
 	  
 	  ```python
 	  add_spatial_report_malaria_filtered(task, manifest, 
@@ -1090,13 +1090,13 @@ if __name__ == "__main__" :
 ```
 
 Cela produira un fichier dans `working_dir/my_outputs/experiment_name/SpatialReportMalariaFiltered.csv` avec des colonnes :  
-* Temps
-* Node
-* Numéro d'exécution
+* Time (temps)
+* Node (nœud)
+* Run_Number (Numéro d'exécution)
 * x_Temporary_Larval_Habitat
 * Population
-* Prévalence du parasite par PCR
-* Nouveaux cas cliniques
+* PCR_Parasite_Prevalence (Prévalence du parasite)
+* New_Clinical_Cases (Nouveaux cas cliniques)
 
 Pour analyser les comptes d'événements de chaque `ReportEventCounter_node_#.json`, exécutez le script `analyzer_events.py`
 
@@ -1145,12 +1145,12 @@ if __name__ == "__main__" :
 
 Cela produira un fichier dans `/OUTPUTS_FOLDER/SUBFOLDER/CountedEvents.csv' avec les colonnes : 
 
-* Temps  
-* Node  
-* Numéro d'exécution  
+* Time (temps)  
+* Node (nœud) 
+* Run_Number (Numéro d'exécution)  
 * Habitat x_Temporary_Larval_Habitat 
-* Traitement reçu  
-Traitement reçu * MII reçue  
+* Received Treatment (Traitement reçu)  
+* Received ITN (Traitement reçu * MII reçue)  
 
 
 **Partie 4. Tracer les résultats spatiaux**
