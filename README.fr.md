@@ -23,7 +23,7 @@ Quelques scripts principaux sont fournis au niveau principal de ce référentiel
 **Prérequis:** 
 L'exécution de vos scripts nécessite que l'environnement virtuel emodpy soit chargé et suppose que les fichiers soient exécutés à partir d'un répertoire de travail situé à l'endroit où se trouve le script. Créez cet environnement à l'aide des [instructions d'installation](https://numalariamodeling.github.io/FE-2023-site-web-francais/guides/install_guide.html). Nous vous recommandons de créer un dossier "environments" dans votre répertoire personnel et d'y créer l'environnement. 
 
-Vous devrez également configurer votre fichier `.bashrc` (situé dans votre répertoire personnel). Nous utilisons ce fichier pour charger automatiquement les modules, tels que python, qui sont nécessaires au fonctionnement d'EMOD. Nous pouvons inclure un alias pour l'environnement virtuel décrit ci-dessus. Le modèle ci-dessous crée une commande alias appelée `load_myenv` que nous pouvons exécuter dans le terminal pour activer l'environnement virtuel emodpy - mettez à jour la commande d'activation pour refléter l'environnement que vous avez créé à l'étape précédente. 
+Vous devrez également configurer votre fichier `.bashrc` (situé dans votre répertoire personnel). Nous utilisons ce fichier pour charger automatiquement les modules, tels que python, qui sont nécessaires au fonctionnement d'EMOD. Nous pouvons inclure un alias pour l'environnement virtuel décrit ci-dessus. Le modèle ci-dessous crée une commande alias appelée `load_emodpy` que nous pouvons exécuter dans le terminal pour activer l'environnement virtuel emodpy - mettez à jour la commande d'activation pour refléter l'environnement que vous avez créé à l'étape précédente. 
 
 Cliquez sur la flèche pour développer:
 <details><summary><span><em>Template `.bashrc` file</em></span></summary>
@@ -31,11 +31,11 @@ Cliquez sur la flèche pour développer:
 
 Ce modèle peut être copié directement dans votre fichier `.bashrc` sur QUEST: 
 
-```bash
+```
 # .bashrc
 
 # Définitions globales de la source
-if [ -f /etc/bashrc ] ; then
+if [ -f /etc/bashrc ]; then
 	. /etc/bashrc
 fi
 
@@ -43,14 +43,12 @@ fi
 # export SYSTEMD_PAGER=
 
 # Alias et fonctions spécifiques à l'utilisateur
-load_myenv (){
+alias load_emodpy='source /home/<user>/environments/<emodpy-venv>/bin/activate'
 module purge all
-module load python/3.8.4
 module load singularity/3.8.1
 module load git/2.8.2
-module load R/4.2.3
-source '/home/<user>/environments/<nom de l'environnement virtuel>/bin/activate'
-}
+module load python/3.8.4
+module load R/4.1.1
 ```
 
 </p>
@@ -101,7 +99,7 @@ Si vous vous rendez dans le répertoire du travail, la structure du fichier devr
             - Sorties générales de l'expérience (par exemple, suivi de l'état et des erreurs, métadonnées de l'expérience)
         - Fichier de métadonnées de la suite
             
-*Note: Tous les dossiers ID sont des chaînes alphanumériques à 16 chiffres générées par idmtools, il n'y a actuellement aucun moyen de les modifier pour utiliser des noms plus lisibles par l'homme.*
+*Note: Tous les dossiers ID sont des chaînes alphanumériques à 16 caractères générées par idmtools, il n'y a actuellement aucun moyen de les modifier pour utiliser des noms plus lisibles par l'homme.*
 
 ![](static/example_file_structure.png)
 
@@ -128,7 +126,7 @@ Cliquez sur la flèche pour agrandir:
 - Lancez la simulation via `python3 run_example.py`
     - *Note: Assurez-vous d'être dans ce répertoire `/projects/b1139/FE_<username>/FE-2023-examples/` avant d'exécuter votre simulation*.
 - Attendez que la simulation se termine (~2 minutes)  
-- Allez dans le répertoire job (voir `experiments` ci-dessus) pour trouver l'expérience générée - elle sera sous un ensemble de chaînes alphanumériques de 16 caractères. La structure de ces chaînes est `Suite > Experiment > Simulations`. En raison des systèmes de gestion actuels de SLURM, vous ne pourrez pas voir le nom de l'expérience donné dans le script `run_example.py` ; cependant, il peut être trouvé dans les fichiers metadata.json au niveau de l'expérience et de la simulation. Vous pouvez également choisir de trier vos fichiers en fonction du temps, de sorte que les expériences les plus récentes apparaissent en premier. 
+- Allez dans le répertoire job (voir `experiments` ci-dessus) pour trouver l'expérience générée - elle sera sous un ensemble de chaînes de 16 caractères alphanumériques. La structure de ces chaînes est `Suite > Experiment > Simulations`. En raison des systèmes de gestion actuels de SLURM, vous ne pourrez pas voir le nom de l'expérience donné dans le script `run_example.py` ; cependant, il peut être trouvé dans les fichiers metadata.json au niveau de l'expérience et de la simulation. Vous pouvez également choisir de trier vos fichiers en fonction du temps, de sorte que les expériences les plus récentes apparaissent en premier. 
 - Jetez un coup d'œil à ce qui a été généré, même dans cette simple exécution, et familiarisez-vous avec la structure des fichiers. Vous devez toujours vérifier vos résultats au niveau de la simulation après avoir exécuté les simulations pour vous assurer qu'elles ont donné les résultats attendus. 
     - *Remarque: assurez-vous d'aller jusqu'au bout de la structure des dossiers pour voir vos simulations et leurs résultats. Pour plus d'informations sur ce à quoi il faut s'attendre, voir [Semaine 1 "Ce à quoi on peut s'attendre"](https://github.com/numalariamodeling/FE-2023-examples/blob/main/README.fr.md#semaine-1-vue-densemble-demod)*.
     - Vous devriez voir [`InsetChart.json`](https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-inset-chart.html) dans le dossier de sortie de la simulation - c'est le rapport par défaut d'EMOD qui vous donnera une idée de ce qui se passe dans votre simulation. Nous allons maintenant faire une analyse basique de ces données.
@@ -174,7 +172,7 @@ Cet exercice montre comment créer des fichiers démographiques et climatiques e
 
 1. Extraire les données climatiques et les ajouter aux simulations
     - Consultez le fichier `example_site.csv` dans le [dossier inputs](https://github.com/numalariamodeling/FE-2023-examples/tree/main/inputs) (Situé: `/projects/b1139/FE_<username>/FE-2023-examples/inputs`). Ce fichier contient les coordonnées d'un site d'exemple en Ouganda et établit que ce site sera notre "Node 1" dans le modèle. Vous pouvez utiliser ces coordonnées ou sélectionner un site différent (et ajuster les coordonnées en conséquence) si vous le souhaitez pour le reste de cet exemple.
-    - Ensuite, nous allons lancer `extract_weather.py` - ce script va lancer le générateur de météo. Notez qu'il lit les informations de `example_site.csv` pour trouver le bon site et vous pouvez demander la météo pour la période qui vous intéresse. Vous verrez également que la plateforme utilisée s'appelle *Calculon* - il s'agit du HPC de l'IDM _(Cela nécessite l'accès à la base de données climatiques. Demandez à quelqu'un de l'équipe NU les identifiants de Calculon.)_.
+    - Ensuite, nous allons lancer `extract_weather.py` - ce script va lancer le générateur de météo. Notez qu'il lit les informations de `example_site.csv` pour trouver le bon site et vous pouvez demander la météo pour la période qui vous intéresse. Vous verrez également que la plateforme utilisée s'appelle *Calculon* - il s'agit du HPC de l'IDM _(Cela nécessite l'accès à la base de données climatiques. Demandez à quelqu'un de l'équipe NU pour les identifiants de Calculon.)_.
         - Nous pouvons également lancer `recreate_weather.py` qui convertira les fichiers météo que nous venons de générer dans un format csv que nous pourrons modifier. Pour cet exemple, nous n'avons pas besoin de faire de modifications, mais cela peut être utile pour des questions de recherche telles que celles liées au changement climatique. Après avoir effectué toutes les modifications dans le script, nous reconvertissons les csv en fichiers météorologiques.  
     - Maintenant que vous savez ce que font les scripts, chargez votre environnement virtuel et utilisez `python3 extract_weather.py` pour lancer l'extraction.   
         - Entrez les identifiants pour accéder à Calculon et attendez que vos fichiers météo soient générés. Lorsque c'est terminé, vérifiez les entrées (`inputs`) de votre repo pour vous assurer que les fichiers ont bien été créés.   
