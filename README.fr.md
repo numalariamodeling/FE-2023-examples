@@ -645,7 +645,7 @@ Cliquez sur la flèche pour développer :
 <details><summary><span><em>Ajout d'interventions</em></span></summary>
 <p>
 
-Lorsque nous commençons à envisager d'ajouter des interventions à nos simulations, nous devons également réfléchir à la manière de construire la chronologie. Cela s'avère particulièrement utile dans le cadre d'un projet, car il est possible de faire correspondre des sites spécifiques avec des données sur l'incidence et la prévalence, le moment où les interventions ont été mises en œuvre (et lesquelles), etc. Pour l'instant, pensons-y plus simplement, en nous appuyant sur ce que nous avons appris la semaine dernière. Nous voudrons d'abord initialiser la population par une burnin de 50 ans sans intervention. Augmentez la taille de votre population à 1000 pour 5 répliques et relancez le burnin pendant que vous travaillez sur les scripts de cet exercice (le pickup).
+Lorsque nous commençons à envisager d'ajouter des interventions à nos simulations, nous devons également réfléchir à la manière de construire la chronologie. Cela s'avère particulièrement utile dans le cadre d'un projet, car il est possible de faire correspondre des sites spécifiques avec des données sur l'incidence et la prévalence, le moment où les interventions ont été mises en œuvre (et lesquelles), etc. Pour l'instant, pensons-y plus simplement, en nous appuyant sur ce que nous avons appris la semaine dernière. Nous voudrons d'abord initialiser la population par une simulation (burnin) de 50 ans sans intervention. Augmentez la taille de votre population à 1000 pour 5 répliques et relancez le burnin pendant que vous travaillez sur les scripts de cet exercice (le pickup).
 
 - Copiez le script `run_example_pickup.py` que vous avez créé la semaine dernière, renommez-le `run_example_pickup_CM.py`. *Note : nous ajoutons des interventions à un pickup dans cet exemple, mais vous n'avez pas besoin de sérialiser pour utiliser des interventions, des propriétés individuelles, ou des simulations multi-noeuds.*
 - Vous devrez importer les fonctionnalités de recherche de traitement/gestion de cas dans votre script à partir d'emodpy-malaria afin d'utiliser cette fonction d'intervention :
@@ -665,7 +665,7 @@ Lorsque nous commençons à envisager d'ajouter des interventions à nos simulat
     
 		❓ Sur la base de cet exemple, **quels seraient les niveaux de couverture de la prise en charge des cas de plus de 5 ans et graves pour une couverture des cas de moins de 5 ans de 100 % ?**  
 		
-		❓ **Que diriez-vous de 0 %?**
+		❓ **Qu'en est-il de 0 %?**
 		
     - `broadcast_event_name` : indique le nom de l'événement à diffuser lors de chaque événement à des fins de reporting. Ceci est particulièrement utile si vous avez des versions multiples ou changeantes de la même intervention, comme l'utilisation de différents médicaments de gestion de cas, dans une seule simulation.
 - Ajoutez la gestion de cas à votre fonction `build_camp()` en utilisant le script ci-dessous. Remarquez que nous incluons `cm.` avant `add_treatment_seeking()` - c'est parce que nous avons importé cette fonction en tant que `cm`, il est donc utile de la référencer pour s'assurer que nous utilisons bien la fonction que nous pensons utiliser. Vous remarquerez également que nous ajoutons `cm_cov_U5=0.80` et `cm_start=1` aux arguments que `build_camp()` prend - nous faisons cela pour pouvoir lui passer les valeurs d'un balayage sur la couverture et la date de début de la gestion des cas plus tard dans le script. Les valeurs incluses sont des valeurs par défaut que vous pouvez ajuster si nécessaire, mais elles sont disponibles pour que vous n'ayez pas à fournir une valeur de balayage si cela n'est pas nécessaire.
@@ -679,14 +679,11 @@ Lorsque nous commençons à envisager d'ajouter des interventions à nos simulat
       # Cet exemple suppose que les adultes chercheront à se faire soigner 75 % plus souvent que les U5 et que les cas graves chercheront à se faire soigner 15 % plus souvent que les U5 (jusqu'à une couverture de 100 %).
       cm.add_treatment_seeking(camp, start_day=cm_start, drug=['Artemether', 'Lumefantrine'],
                         targets=[{'trigger' : 'NewClinicalCase', 'coverage' : cm_cov_U5, 
-                                  'agemin' : 0, 'agemax' : 5,
-                                  'seek' : 1, 'rate' : 0.3},
+                                  'agemin' : 0, 'agemax' : 5, 'rate' : 0.3},
                                  {'trigger' : 'NewClinicalCase', 'coverage' : cm_cov_U5*0.75, 
-                                  'agemin' : 5, 'agemax' : 115,
-                                  'seek' : 1, 'rate' : 0.3},
+                                  'agemin' : 5, 'agemax' : 115, 'rate' : 0.3},
                                  {'trigger' : 'NewSevereCase', 'coverage' : min(cm_cov_U5*1.15,1), 
-                                  'agemin' : 0, 'agemax' : 115,
-                                  'seek' : 1, 'rate' : 0.5}],
+                                  'agemin' : 0, 'agemax' : 115, 'rate' : 0.5}],
                         broadcast_event_name="Received_Treatment")            
                        
       return camp
@@ -747,10 +744,10 @@ Lorsque nous commençons à envisager d'ajouter des interventions à nos simulat
 
 Les propriétés individuelles (IPs) peuvent être ajoutées à toute simulation afin d'ajouter des informations supplémentaires utiles à des projets spécifiques. En fonction de la question de recherche, les propriétés individuelles peuvent n'être nécessaires que pour les interventions et non pour les rapports, ou vice versa, mais pas pour les deux.
 
-Dans cet exemple, nous continuerons à nous appuyer sur la structure de sérialisation, en ajoutant un propriété individuelle (IP) d'accès à la gestion des cas à notre flux de travail précédent.  Nous utiliserons des propriétés individuelles pour créer deux sous-groupes pour cet accès : accès faible (low access) et accès élevé (high access). Pour des raisons de simplicité, nous supposons que leur taille relative est égale (50 % d'accès faible, 50 % d'accès élevé).
+Dans cet exemple, nous continuerons à nous appuyer sur la structure de sérialisation, en ajoutant une propriété individuelle (IP) d'accès à la gestion des cas à notre flux de travail précédent.  Nous utiliserons des propriétés individuelles pour créer deux sous-groupes pour cet accès : accès faible (low access) et accès élevé (high access). Pour des raisons de simplicité, nous supposons que leur taille relative est égale (50 % d'accès faible, 50 % d'accès élevé).
 
 1. Burnin - Ajouter des IPs aux données démographiques et aux rapports
-    - Copiez le script `run_example_burnin.py` dans un script python vierge et nommez le `run_example_burnin_IP.py`
+    - Copiez le script `run_example_burnin.py` dans un script python vierge (vide) et nommez le `run_example_burnin_IP.py`
     - Dans le "demographics builder", nous pouvons définir et ajouter une propriété individuelle personnalisée qui sera appliquée à la population de la simulation. Dans cet exemple, nous voulons inclure des niveaux élevés et faibles d'accès aux soins. 
         - Commencez par définir la `initial_distribution` pour la propriété dans une liste où chaque valeur est la proportion de la population qui sera distribuée à chaque niveau de propriété, 50% d'accès faible et 50% d'accès élevé.
         - Ensuite, utilisez la fonction `AddIndividualPropetyAndHINT()` du paquetage importé `Demographics` pour ajouter notre propriété d'accès au fichier démographique que nous sommes en train de construire. Dans cette fonction, définissez les propriétés `Property="Access"`, `Values=["Low", "High"]`, et `InitialDistribution=initial_distribution`. La propriété est notre étiquette de haut niveau tandis que les valeurs représentent les niveaux (tels que haut et bas) de la propriété. La distribution initiale utilise la distribution que nous avons utilisée dans la dernière étape pour appliquer les valeurs à la population, respectivement.
@@ -819,14 +816,11 @@ Dans cet exemple, nous continuerons à nous appuyer sur la structure de sériali
             ```python
             cm.add_treatment_seeking(camp, start_day=cm_start, drug=['Artemether', 'Lumefantrine'],
                        targets=[{'trigger' : 'NewClinicalCase', 'coverage' : cm_cov_U5_low, 
-                                 'agemin' : 0, 'agemax' : 5,
-                                 'seek' : 1, 'rate' : 0.3},
+                                 'agemin' : 0, 'agemax' : 5, 'rate' : 0.3},
                                  {'trigger' : 'NewClinicalCase', 'coverage' : cm_cov_U5_low*0.75, 
-                                  'agemin' : 5, 'agemax' : 115,
-                                  'seek' : 1, 'rate' : 0.3},
+                                  'agemin' : 5, 'agemax' : 115, 'rate' : 0.3},
                                  {'trigger' : 'NewSevereCase', 'coverage' : min(cm_cov_U5_low*1.15,1), 
-                                  'agemin' : 0, 'agemax' : 115,
-                                  'seek' : 1, 'rate' : 0.5}],          
+                                  'agemin' : 0, 'agemax' : 115, 'rate' : 0.5}],          
                        ind_property_restrictions=[{'Access' : 'Low'}],
                        broadcast_event_name="Received_Treatment")
             ```
@@ -942,7 +936,7 @@ Maintenant, en vous référant aux scripts que vous avez écrits pour les exempl
 1. Importer des modules
     - `import pandas as pd`  
 3. **Définir les paramètres de configuration**  
-    - Vous pouvez maintenir une durée de simulation courte (1 à 2 ans) lors des tests / débogages.  
+    - Vous pouvez maintenir une durée de simulation courte (1 à 2 ans) lors des tests / débogages (debuging).  
     - N'oubliez pas d'ajouter les vecteurs
         - `conf.add_species(config, manifest, ["gambiae", "arabiensis", "funestus"])`
     - Pointez vers vos nouveaux fichiers de climat
@@ -1093,7 +1087,7 @@ Cela produira un fichier dans `working_dir/my_outputs/experiment_name/SpatialRep
 * Run_Number (Numéro d'exécution)
 * x_Temporary_Larval_Habitat
 * Population
-* PCR_Parasite_Prevalence (Prévalence du parasite)
+* PCR_Parasite_Prevalence (Prévalence par PCR du parasite)
 * New_Clinical_Cases (Nouveaux cas cliniques)
 
 Pour analyser les comptes d'événements de chaque `ReportEventCounter_node_#.json`, exécutez le script `analyzer_events.py`
