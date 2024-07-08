@@ -181,6 +181,7 @@ This exercise demonstrates how to create demographics and climate files and how 
     ```python
     def set_param_fn():
         ## existing contents
+    	config.parameters.Climate_Model = "CLIMATE_BY_DATA"
         config.parameters.Air_Temperature_Filename = os.path.join('climate',
             'example_air_temperature_daily.bin')
         config.parameters.Land_Temperature_Filename = os.path.join('climate',
