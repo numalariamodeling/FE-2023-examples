@@ -180,16 +180,16 @@ This exercise demonstrates how to create demographics and climate files and how 
 
     ```python
     def set_param_fn():
-        ## existing contents
-    	config.parameters.Climate_Model = "CLIMATE_BY_DATA"
-        config.parameters.Air_Temperature_Filename = os.path.join('climate',
-            'example_air_temperature_daily.bin')
-        config.parameters.Land_Temperature_Filename = os.path.join('climate',
-            'example_air_temperature_daily.bin')
-        config.parameters.Rainfall_Filename = os.path.join('climate',
-            'example_rainfall_daily.bin')
-        config.parameters.Relative_Humidity_Filename = os.path.join('climate', 
-            'example_relative_humidity_daily.bin')
+	    ## existing contents
+	    config.parameters.Climate_Model = "CLIMATE_BY_DATA"
+	    config.parameters.Air_Temperature_Filename = os.path.join('climate',
+	    'example_air_temperature_daily.bin')
+	    config.parameters.Land_Temperature_Filename = os.path.join('climate',
+	    'example_air_temperature_daily.bin')
+	    config.parameters.Rainfall_Filename = os.path.join('climate',
+	    'example_rainfall_daily.bin')
+	    config.parameters.Relative_Humidity_Filename = os.path.join('climate',
+	    'example_relative_humidity_daily.bin')
 
     ```
     ```python
