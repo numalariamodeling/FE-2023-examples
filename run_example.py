@@ -86,7 +86,7 @@ def general_sim(selected_platform):
 
     # create experiment from builder
     user = os.getlogin()
-    experiment = Experiment.from_task(task, name= f'{user}_FE_example_basic')
+    experiment = Experiment.from_task(task, name='')
 
 
     # The last step is to call run() on the ExperimentManager to run the simulations.
