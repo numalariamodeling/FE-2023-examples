@@ -120,7 +120,7 @@ def general_sim(selected_platform):
                                pretty_format=True)
 
     # create experiment from task
-    experiment = Experiment.from_task(task, name="example_sim_outputs")
+    experiment = Experiment.from_task(task, name="")
 
 
     # The last step is to call run() on the ExperimentManager to run the simulations.
