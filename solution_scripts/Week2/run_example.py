@@ -87,7 +87,7 @@ def general_sim(selected_platform):
     
 
     # create experiment from task
-    experiment = Experiment.from_task(task, name="example_sim_inputs")
+    experiment = Experiment.from_task(task, name="")
 
 
     # The last step is to call run() on the ExperimentManager to run the simulations.
