@@ -47,7 +47,7 @@ alias load_emodpy='source /home/<user>/environments/<emodpy-venv>/bin/activate'
 module purge all
 module load singularity/3.8.1
 module load git/2.8.2
-module load python/3.8.4
+module load python/3.9.16
 module load R/4.1.1
 ```
 
